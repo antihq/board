@@ -43,11 +43,17 @@ new #[Title('Board')] class extends Component
     <flux:spacer class="my-4" />
 
     <div class="relative h-full">
-        <div class="absolute w-48 h-full inset-y-0 right-0 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 dark:to-transparent"></div>
-        <div class="overflow-x-auto h-full w-full">
+        <div
+            class="absolute inset-y-0 right-0 h-full w-48 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 dark:to-transparent"
+        ></div>
+        <div class="h-full w-full overflow-x-auto">
             <flux:kanban wire:sort="moveColumn">
                 @foreach ($this->board->columns as $column)
-                    <livewire:boards.column :column="$column" wire:key="{{ $column->id }}" wire:sort:item="{{ $column->id }}" />
+                    <livewire:boards.column
+                        :column="$column"
+                        wire:key="{{ $column->id }}"
+                        wire:sort:item="{{ $column->id }}"
+                    />
                 @endforeach
 
                 <flux:kanban.column>
@@ -64,18 +70,31 @@ new #[Title('Board')] class extends Component
                                         />
                                     </flux:heading>
 
-                                    <flux:button type="submit" variant="filled" size="sm" inset="top bottom" class="-me-1.5">
+                                    <flux:button
+                                        type="submit"
+                                        variant="filled"
+                                        size="sm"
+                                        inset="top bottom"
+                                        class="-me-1.5"
+                                    >
                                         Add
                                     </flux:button>
                                 </div>
                             </flux:kanban.card>
                         </form>
-                        <flux:button wire:click="$js.reveal" wire:show="!show" variant="subtle" icon="plus" size="sm" align="start">
+                        <flux:button
+                            wire:click="$js.reveal"
+                            wire:show="!show"
+                            variant="subtle"
+                            icon="plus"
+                            size="sm"
+                            align="start"
+                        >
                             New column
                         </flux:button>
                     </flux:kanban.column.footer>
                 </flux:kanban.column>
-                <div class="w-48 h-full shrink-0">&nbsp;</div>
+                <div class="h-full w-48 shrink-0">&nbsp;</div>
             </flux:kanban>
         </div>
     </div>

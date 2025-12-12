@@ -35,6 +35,11 @@ class Team extends Model
         return $this->hasMany(Board::class);
     }
 
+    public function tags()
+    {
+        return $this->hasMany(Tag::class);
+    }
+
     public function members()
     {
         return $this->belongsToMany(User::class, 'team_user');

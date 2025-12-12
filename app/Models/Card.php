@@ -31,6 +31,11 @@ class Card extends Model
         return $this->column()->first()->board();
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function moveInto($column, $position)
     {
         if ($this->column_id === $column->id && $this->position === $position) {
