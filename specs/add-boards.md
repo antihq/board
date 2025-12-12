@@ -1,0 +1,2 @@
+-  Only a name is needed to create a new board.
+-  It creates three default columns: Not now, Maybe? and Done
