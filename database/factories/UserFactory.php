@@ -48,7 +48,7 @@ class UserFactory extends Factory
                 ->state(array_merge([
                     'user_id' => $user->id,
                     'personal' => true,
-                    'name' => $user->name,
+                    'name' => $user->name.'\'s Team',
                 ], $overrides))
                 ->create();
         });
