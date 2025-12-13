@@ -1,8 +1,11 @@
 <?php
 
 use App\Models\Card;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -17,13 +20,27 @@ new class extends Component
 
     public bool $show = false;
 
+    public array $assignedUserIds = [];
+
     public bool $showAddTag = false;
 
     public array $tags = [];
 
     public string $tagTitle = '';
 
-    public Collection $teamTags;
+    #[Computed]
+    public function displayAssignees()
+    {
+        return $this->card->assignees->take(3);
+    }
+
+    #[Computed]
+    public function remainingAssigneesCount()
+    {
+        $total = $this->card->assignees->count();
+
+        return $total > 3 ? $total - 3 : 0;
+    }
 
     public function mount()
     {
@@ -31,7 +48,7 @@ new class extends Component
         $this->description = $this->card->description;
         $this->column = $this->card->column_id;
         $this->tags = $this->card->tags->pluck('id')->toArray();
-        $this->teamTags = $this->card->board->team->tags()->orderBy('name')->get();
+        $this->assignedUserIds = $this->card->assignees->pluck('id')->toArray();
     }
 
     public function save()
@@ -69,7 +86,6 @@ new class extends Component
 
         $this->tagTitle = '';
         $this->showAddTag = false;
-        $this->teamTags = $this->card->board->team->tags()->orderBy('name')->get();
     }
 
     public function syncTags()
@@ -81,13 +97,50 @@ new class extends Component
 
         $this->card->tags()->sync($validTagIds);
     }
+
+    public function syncAssignedUsers()
+    {
+        $validUserIds = $this->card->board->team->allMembers()
+            ->whereIn('id', $this->assignedUserIds)
+            ->pluck('id')
+            ->toArray();
+
+        $this->card->assignees()->sync($validUserIds);
+    }
 };
 ?>
 
 <div {{ $attributes }}>
     <flux:modal class="h-full w-full max-w-216 pt-1.5 pr-1.5 pb-1.5" @close="$refresh">
         <x-slot name="trigger">
-            <flux:kanban.card as="button" :heading="$card->title" />
+            <flux:kanban.card as="button" :heading="$card->title">
+                @unless($card->tags->isEmpty())
+                    <x-slot name="header">
+                        <div class="flex gap-2 items-center">
+                            <flux:icon name="tag" variant="micro" class="text-zinc-400" />
+
+                            @foreach ($card->tags as $tag)
+                                <flux:badge size="sm">{{ $tag->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    </x-slot>
+                @endunless
+                @unless($this->displayAssignees->isEmpty())
+                    <x-slot name="footer">
+                        <flux:icon name="bars-3-bottom-left" variant="micro" class="text-zinc-400" />
+
+                        <flux:avatar.group>
+                            @foreach ($this->displayAssignees as $assignee)
+                                <flux:avatar circle size="xs" :name="$assignee->name" :src="$assignee->avatar_url ?? null" color="auto" :color:seed="$assignee->id" />
+                            @endforeach
+
+                            @if ($this->remainingAssigneesCount > 0)
+                                <flux:avatar circle size="xs">{{ $this->remainingAssigneesCount }}+</flux:avatar>
+                            @endif
+                        </flux:avatar.group>
+                    </x-slot>
+                @endunless
+            </flux:kanban.card>
         </x-slot>
 
         @island(lazy: true)
@@ -165,6 +218,25 @@ new class extends Component
                         @endforeach
                     </flux:radio.group>
 
+                    <flux:pillbox
+                        wire:model="assignedUserIds"
+                        label="Assignees"
+                        multiple
+                        searchable
+                        placeholder="Choose team members..."
+                        size="sm"
+                        wire:change="syncAssignedUsers"
+                    >
+                        @foreach ($this->card->board->team->allMembers() as $member)
+                            <flux:pillbox.option :value="$member->id">
+                                <div class="flex items-center gap-2">
+                                    <flux:avatar :src="$member->avatar_url" size="xs" circle />
+                                    {{ $member->name }}
+                                </div>
+                            </flux:pillbox.option>
+                        @endforeach
+                    </flux:pillbox>
+
                     <div class="space-y-2">
                         <flux:pillbox
                             wire:model="tags"
@@ -175,7 +247,7 @@ new class extends Component
                             size="sm"
                             wire:change="syncTags"
                         >
-                            @foreach ($teamTags as $tag)
+                            @foreach ($this->card->board->team->tags as $tag)
                                 <flux:pillbox.option :value="$tag->id">
                                     {{ $tag->name }}
                                 </flux:pillbox.option>

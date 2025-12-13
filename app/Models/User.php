@@ -120,4 +120,12 @@ class User extends Authenticatable
 
         $this->save();
     }
+
+    /**
+     * Cards assigned to this user.
+     */
+    public function assignedCards()
+    {
+        return $this->belongsToMany(Card::class, 'card_assignments');
+    }
 }

@@ -31,6 +31,11 @@ class Card extends Model
         return $this->column()->first()->board();
     }
 
+    public function assignees()
+    {
+        return $this->belongsToMany(User::class, 'card_assignments');
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class);

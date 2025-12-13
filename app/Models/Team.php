@@ -45,6 +45,17 @@ class Team extends Model
         return $this->belongsToMany(User::class, 'team_user');
     }
 
+    public function allMembers()
+    {
+        $members = $this->members;
+
+        if ($this->user && ! $members->contains($this->user)) {
+            $members->push($this->user);
+        }
+
+        return $members;
+    }
+
     public function addMember(User $user): void
     {
         $this->members()->attach($user->id);

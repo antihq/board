@@ -8,26 +8,6 @@ use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
 
-it('shows available team tags in pillbox', function () {
-    $user = User::factory()->withPersonalTeam()->create();
-    $board = Board::factory()->for($user->currentTeam)->create();
-    $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
-    $tag1 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
-    $tag2 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Feature']);
-
-    $otherTeam = Team::factory()->create();
-    Tag::factory()->create(['team_id' => $otherTeam->id, 'name' => 'Other']);
-
-    $component = Livewire::actingAs($user)
-        ->test('boards.card', ['card' => $card]);
-
-    $teamTags = $component->get('teamTags');
-    expect($teamTags)->toHaveCount(2);
-    expect($teamTags->pluck('name'))->toContain('Bug', 'Feature');
-    expect($teamTags->pluck('name'))->not->toContain('Other');
-});
-
 it('loads existing card tags in pillbox', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
@@ -121,14 +101,129 @@ it('does not create duplicate tags for same team', function () {
     $column = Column::factory()->for($board)->create();
     $card = Card::factory()->for($column)->for($user)->create();
 
-    // Create initial tag
     $tag = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
-        ->set('tagTitle', 'Bug') // Try to create duplicate
+        ->set('tagTitle', 'Bug')
         ->call('addTag')
-        ->assertHasErrors('tagTitle'); // Should have validation error
+        ->assertHasErrors('tagTitle');
 
     expect(Tag::where('name', 'Bug')->count())->toBe(1);
+});
+
+it('loads existing card assignees in pillbox', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $member = User::factory()->create();
+    $user->currentTeam->members()->attach($member->id);
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    $card->assignees()->attach($member->id);
+
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card]);
+
+    expect($component->get('assignedUserIds'))->toContain($member->id);
+    expect($component->get('assignedUserIds'))->not->toContain($user->id);
+});
+
+it('assigns multiple team members to cards', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $user->currentTeam->members()->attach([$member1->id, $member2->id]);
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('assignedUserIds', [$member1->id, $member2->id])
+        ->call('syncAssignedUsers');
+
+    expect($card->fresh()->assignees)->toHaveCount(2);
+    expect($card->fresh()->assignees->pluck('id'))->toContain($member1->id, $member2->id);
+});
+
+it('removes team members from cards when deselected', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $user->currentTeam->members()->attach([$member1->id, $member2->id]);
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    $card->assignees()->attach([$member1->id, $member2->id]);
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('assignedUserIds', [$member1->id])
+        ->call('syncAssignedUsers');
+
+    expect($card->fresh()->assignees)->toHaveCount(1);
+    expect($card->fresh()->assignees->first()->id)->toBe($member1->id);
+});
+
+it('prevents assignment of users outside the team', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $member = User::factory()->create();
+    $outsider = User::factory()->create();
+    $user->currentTeam->members()->attach($member->id);
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('assignedUserIds', [$member->id, $outsider->id])
+        ->call('syncAssignedUsers');
+
+    expect($card->fresh()->assignees)->toHaveCount(1);
+    expect($card->fresh()->assignees->first()->id)->toBe($member->id);
+});
+
+it('allows team owner to be assigned to cards', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('assignedUserIds', [$user->id])
+        ->call('syncAssignedUsers');
+
+    expect($card->fresh()->assignees)->toHaveCount(1);
+    expect($card->fresh()->assignees->first()->id)->toBe($user->id);
+});
+
+it('handles mixed assignment and removal of team members', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $member3 = User::factory()->create();
+    $user->currentTeam->members()->attach([$member1->id, $member2->id, $member3->id]);
+
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    $card->assignees()->attach([$member1->id, $member2->id]);
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('assignedUserIds', [$member1->id, $member3->id, $user->id])
+        ->call('syncAssignedUsers');
+
+    expect($card->fresh()->assignees)->toHaveCount(3);
+    expect($card->fresh()->assignees->pluck('id'))->toContain($member1->id, $member3->id, $user->id);
+    expect($card->fresh()->assignees->pluck('id'))->not->toContain($member2->id);
 });

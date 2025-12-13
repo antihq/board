@@ -49,9 +49,25 @@ class CardPolicy
     }
 
     /**
+     * Determine whether user can assign the model.
+     */
+    public function assign(User $user, Card $card): bool
+    {
+        return $this->view($user, $card);
+    }
+
+    /**
+     * Determine whether user can unassign the model.
+     */
+    public function unassign(User $user, Card $card): bool
+    {
+        return $this->view($user, $card);
+    }
+
+    /**
      * Determine whether user can restore the model.
      */
-    public function restore(User $user, Card $card): bool
+    public function restore(): bool
     {
         return false;
     }
@@ -59,7 +75,7 @@ class CardPolicy
     /**
      * Determine whether user can permanently delete the model.
      */
-    public function forceDelete(User $user, Card $card): bool
+    public function forceDelete(): bool
     {
         return false;
     }
