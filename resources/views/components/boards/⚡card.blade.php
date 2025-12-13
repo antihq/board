@@ -113,7 +113,7 @@ new class extends Component
 <div {{ $attributes }}>
     <flux:modal class="h-full w-full max-w-216 pt-1.5 pr-1.5 pb-1.5" @close="$refresh">
         <x-slot name="trigger">
-            <flux:kanban.card as="button" :heading="$card->title">
+            <flux:kanban.card as="button" :heading="$card->title" class="h-full">
                 @unless($card->tags->isEmpty())
                     <x-slot name="header">
                         <div class="flex gap-2 items-center">
