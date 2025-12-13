@@ -23,16 +23,7 @@
             <flux:separator vertical class="mx-1 my-5" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:dropdown>
-                    <flux:navbar.item icon:trailing="chevron-down">Boards</flux:navbar.item>
-                    <flux:navmenu>
-                        <flux:menu.item icon="plus">New board</flux:menu.item>
-                        <flux:menu.separator />
-                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
-                    </flux:navmenu>
-                </flux:dropdown>
+                <livewire:boards-dropdown />
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
                     <flux:navmenu>
@@ -121,6 +112,10 @@
         </flux:main>
 
         <flux:toast />
+
+        <flux:modal name="create-board" class="md:w-[512px]">
+            <livewire:create-board-form @created="$flux.modal('create-board').close();" />
+        </flux:modal>
 
         <flux:footer class="border-zinc-200 lg:border-t dark:border-zinc-700" container>
             <flux:text class="text-xs/6 lg:text-sm/6">
