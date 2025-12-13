@@ -16,8 +16,12 @@
             </div>
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item href="#" wire:navigate>Assigned to me</flux:navbar.item>
-                <flux:navbar.item href="#" wire:navigate>Added by me</flux:navbar.item>
+                <flux:navbar.item href="/cards?assigned[0]={{ Auth::user()->id }}" :accent="false" :current="false" wire:navigate>
+                    Assigned to me
+                </flux:navbar.item>
+                <flux:navbar.item href="/cards?created[0]={{ Auth::user()->id }}" :accent="false" :current="false" wire:navigate>
+                    Added by me
+                </flux:navbar.item>
             </flux:navbar>
 
             <flux:separator vertical class="mx-1 my-5" />
@@ -27,9 +31,9 @@
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
                     <flux:navmenu>
-                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
+                        @foreach(Auth::user()->currentTeam->tags as $tag)
+                            <flux:navmenu.item href="/cards?tags[0]={{ $tag->id }}" wire:navigate>{{ $tag->name }}</flux:navmenu.item>
+                        @endforeach
                     </flux:navmenu>
                 </flux:dropdown>
                 <flux:dropdown>
