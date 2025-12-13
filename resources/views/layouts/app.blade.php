@@ -16,10 +16,48 @@
             </div>
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item href="/boards" wire:navigate>Boards</flux:navbar.item>
+                <flux:navbar.item href="#" wire:navigate>Assigned to me</flux:navbar.item>
+                <flux:navbar.item href="#" wire:navigate>Added by me</flux:navbar.item>
+            </flux:navbar>
+
+            <flux:separator vertical class="mx-1 my-5" />
+
+            <flux:navbar class="-mb-px max-lg:hidden">
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Boards</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:menu.item icon="plus">New board</flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">People</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:menu.item icon="plus">Invite people</flux:menu.item>
+                        <flux:menu.separator />
+                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
+                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
             </flux:navbar>
 
             <flux:spacer />
+
+            <flux:navbar class="me-4">
+                <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" />
+            </flux:navbar>
 
             <flux:dropdown position="top" align="end">
                 <flux:button size="sm" variant="ghost" square>

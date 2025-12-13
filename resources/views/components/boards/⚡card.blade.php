@@ -230,7 +230,7 @@ new class extends Component
                         @foreach ($this->card->board->team->allMembers() as $member)
                             <flux:pillbox.option :value="$member->id">
                                 <div class="flex items-center gap-2">
-                                    <flux:avatar :src="$member->avatar_url" size="xs" circle />
+                                    <flux:avatar :src="$member->avatar_url ?? null" size="xs" circle />
                                     {{ $member->name }}
                                 </div>
                             </flux:pillbox.option>
