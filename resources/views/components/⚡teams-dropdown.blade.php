@@ -41,8 +41,7 @@ new class extends Component
 }; ?>
 
 <flux:button.group>
-    <flux:button href="/dashboard" variant="subtle" size="sm" wire:navigate>
-        <flux:avatar size="xs" :name="$currentTeam?->name" color="auto" initials:single class="-ml-2" />
+    <flux:button href="/dashboard" variant="subtle" size="sm" inset="left" wire:navigate>
         {{ $currentTeam->name }}
     </flux:button>
     <flux:dropdown position="top" align="start">
