@@ -114,9 +114,9 @@ new class extends Component
     <flux:modal class="h-full w-full max-w-216 pt-1.5 pr-1.5 pb-1.5" @close="$refresh">
         <x-slot name="trigger">
             <flux:kanban.card as="button" :heading="$card->title" class="h-full">
-                @unless($card->tags->isEmpty())
+                @unless ($card->tags->isEmpty())
                     <x-slot name="header">
-                        <div class="flex gap-2 items-center">
+                        <div class="flex items-center gap-2">
                             <flux:icon name="tag" variant="micro" class="text-zinc-400" />
 
                             @foreach ($card->tags as $tag)
@@ -125,13 +125,21 @@ new class extends Component
                         </div>
                     </x-slot>
                 @endunless
-                @unless($this->displayAssignees->isEmpty())
+
+                @unless ($this->displayAssignees->isEmpty())
                     <x-slot name="footer">
                         <flux:icon name="bars-3-bottom-left" variant="micro" class="text-zinc-400" />
 
                         <flux:avatar.group>
                             @foreach ($this->displayAssignees as $assignee)
-                                <flux:avatar circle size="xs" :name="$assignee->name" :src="$assignee->avatar_url ?? null" color="auto" :color:seed="$assignee->id" />
+                                <flux:avatar
+                                    circle
+                                    size="xs"
+                                    :name="$assignee->name"
+                                    :src="$assignee->avatar_url ?? null"
+                                    color="auto"
+                                    :color:seed="$assignee->id"
+                                />
                             @endforeach
 
                             @if ($this->remainingAssigneesCount > 0)
