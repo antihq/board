@@ -18,7 +18,7 @@ class ColumnFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->word(),
+            'name' => 'Test Column',
             'board_id' => Board::factory(),
             'position' => 1,
         ];

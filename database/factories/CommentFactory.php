@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\Models\Team;
+use App\Models\Card;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Board>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Comment>
  */
-class BoardFactory extends Factory
+class CommentFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -19,9 +19,9 @@ class BoardFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Test Board',
-            'team_id' => Team::factory(),
+            'card_id' => Card::factory(),
             'user_id' => User::factory(),
+            'comment_body' => 'Test comment content',
         ];
     }
 }

@@ -1,10 +1,7 @@
 <?php
 
 use App\Models\Card;
-use App\Models\User;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -28,6 +25,8 @@ new class extends Component
 
     public string $tagTitle = '';
 
+    public string $commentBody = '';
+
     #[Computed]
     public function displayAssignees()
     {
@@ -40,6 +39,12 @@ new class extends Component
         $total = $this->card->assignees->count();
 
         return $total > 3 ? $total - 3 : 0;
+    }
+
+    #[Computed]
+    public function cardComments()
+    {
+        return $this->card->comments()->with('user')->oldest()->get();
     }
 
     public function mount()
@@ -106,6 +111,18 @@ new class extends Component
             ->toArray();
 
         $this->card->assignees()->sync($validUserIds);
+    }
+
+    public function addComment()
+    {
+        $this->validate([
+            'commentBody' => 'required|string|max:2000',
+        ]);
+
+        $this->card->comments()->create([
+            'comment_body' => $this->pull('commentBody'),
+            'user_id' => Auth::id(),
+        ]);
     }
 };
 ?>
@@ -208,6 +225,57 @@ new class extends Component
                             <flux:button wire:click="$js.conceal" variant="subtle" size="sm">Cancel</flux:button>
                             <flux:button type="submit" variant="filled" size="sm">Save</flux:button>
                         </div>
+                    </form>
+
+                    <flux:spacer class="my-8" />
+
+                    @if ($this->cardComments->isNotEmpty())
+                        <div class="mb-6 space-y-6">
+                            @foreach ($this->cardComments as $comment)
+                                <div class="flex gap-3">
+                                    <flux:avatar
+                                        :src="$comment->user->avatar_url ?? null"
+                                        size="sm"
+                                        circle
+                                        :name="$comment->user->name"
+                                    />
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2">
+                                            <flux:text variant="strong">{{ $comment->user->name }}</flux:text>
+                                            <flux:text class="text-xs">
+                                                {{ $comment->created_at->diffForHumans() }}
+                                            </flux:text>
+                                        </div>
+                                        <div class="prose prose-sm max-w-none">
+                                            {!! $comment->comment_body !!}
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <form wire:submit="addComment">
+                        <flux:composer
+                            wire:model="commentBody"
+                            label="Comment"
+                            label:sr-only
+                            placeholder="Add a comment..."
+                        >
+                            <x-slot name="input">
+                                <flux:editor variant="borderless" toolbar="bold italic bullet ordered | link | align" />
+                            </x-slot>
+
+                            <x-slot name="actionsLeading">
+                                <flux:button size="sm" variant="subtle" icon="paper-clip" disabled />
+                            </x-slot>
+
+                            <x-slot name="actionsTrailing">
+                                <flux:button type="submit" size="sm" variant="primary" color="zinc">
+                                    Add comment
+                                </flux:button>
+                            </x-slot>
+                        </flux:composer>
                     </form>
                 </div>
 

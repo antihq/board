@@ -4,7 +4,6 @@ use App\Models\Board;
 use App\Models\Card;
 use App\Models\Column;
 use App\Models\Tag;
-use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -226,4 +225,22 @@ it('handles mixed assignment and removal of team members', function () {
     expect($card->fresh()->assignees)->toHaveCount(3);
     expect($card->fresh()->assignees->pluck('id'))->toContain($member1->id, $member3->id, $user->id);
     expect($card->fresh()->assignees->pluck('id'))->not->toContain($member2->id);
+});
+
+it('allows team members to add comments to cards', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('commentBody', 'This is a test comment')
+        ->call('addComment');
+
+    expect($card->fresh()->comments)->toHaveCount(1);
+
+    $comment = $card->fresh()->comments->first();
+    expect($comment->comment_body)->toBe('This is a test comment');
+    expect($comment->user->is($user))->toBeTrue();
 });

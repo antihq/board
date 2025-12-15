@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Column;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,12 +19,9 @@ class CardFactory extends Factory
     public function definition(): array
     {
         return [
-            'title' => $this->faker->sentence(4),
-            'description' => '<p>'.$this->faker->paragraph().'</p>',
+            'title' => 'Test Card Title',
             'position' => 1,
-            'column_id' => function () {
-                return \App\Models\Column::factory()->create()->id;
-            },
+            'column_id' => Column::factory(),
             'user_id' => User::factory(),
         ];
     }
