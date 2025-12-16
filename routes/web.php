@@ -7,12 +7,12 @@ Route::livewire('/', 'pages::welcome');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard/', 'pages::dashboard');
-    Route::livewire('boards', 'pages::boards.index');
-    Route::livewire('cards', 'pages::cards');
+    Route::livewire('projects', 'pages::projects.index');
+    Route::livewire('tasks', 'pages::tasks');
 
-    Route::livewire('boards/{board}', 'pages::boards.show');
-    Route::livewire('cards/{card}', 'pages::cards.show');
-    Route::livewire('cards/{card}/edit', 'pages::cards.edit');
+    Route::livewire('projects/{project}', 'pages::projects.show');
+    Route::livewire('tasks/{task}', 'pages::tasks.show');
+    Route::livewire('tasks/{task}/edit', 'pages::tasks.edit');
 });
 
 Route::middleware(['auth'])->group(function () {

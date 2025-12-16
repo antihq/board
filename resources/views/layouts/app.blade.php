@@ -17,7 +17,7 @@
 
             <flux:navbar class="-mb-px max-lg:hidden">
                 <flux:navbar.item
-                    href="/cards?assigned[0]={{ Auth::user()->id }}"
+                    href="/tasks?assigned[0]={{ Auth::user()->id }}"
                     :accent="false"
                     :current="false"
                     wire:navigate
@@ -25,7 +25,7 @@
                     Assigned to me
                 </flux:navbar.item>
                 <flux:navbar.item
-                    href="/cards?created[0]={{ Auth::user()->id }}"
+                    href="/tasks?created[0]={{ Auth::user()->id }}"
                     :accent="false"
                     :current="false"
                     wire:navigate
@@ -37,12 +37,12 @@
             <flux:separator vertical class="mx-1 my-5" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                <livewire:boards-dropdown />
+                <livewire:projects-dropdown />
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
                     <flux:navmenu>
                         @foreach (Auth::user()->currentTeam->tags as $tag)
-                            <flux:navmenu.item href="/cards?tags[0]={{ $tag->id }}" wire:navigate>
+                            <flux:navmenu.item href="/tasks?tags[0]={{ $tag->id }}" wire:navigate>
                                 {{ $tag->name }}
                             </flux:navmenu.item>
                         @endforeach
@@ -119,7 +119,7 @@
             <flux:separator variant="subtle" />
 
             <flux:sidebar.nav>
-                <flux:button href="/boards" variant="ghost" align="start" wire:navigate>Boards</flux:button>
+                <flux:button href="/projects" variant="ghost" align="start" wire:navigate>Projects</flux:button>
             </flux:sidebar.nav>
         </flux:sidebar>
 
@@ -129,8 +129,8 @@
 
         <flux:toast />
 
-        <flux:modal name="create-board" class="md:w-[512px]">
-            <livewire:create-board-form @created="$flux.modal('create-board').close();" />
+        <flux:modal name="create-project" class="md:w-[512px]">
+            <livewire:create-project-form @created="$flux.modal('create-project').close();" />
         </flux:modal>
 
         <flux:footer class="border-zinc-200 lg:border-t dark:border-zinc-700" container>

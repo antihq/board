@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comments', function (Blueprint $table) {
+        Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('task_id');
+            $table->foreignId('project_id');
             $table->foreignId('user_id');
-            $table->text('comment_body');
+            $table->string('title', 255);
+            $table->text('description')->nullable();
+            $table->foreignId('section_id')->nullable();
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('comments');
+        Schema::dropIfExists('tasks');
     }
 };

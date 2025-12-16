@@ -30,9 +30,9 @@ class Team extends Model
         return $this->hasMany(TeamInvitation::class);
     }
 
-    public function boards()
+    public function projects()
     {
-        return $this->hasMany(Board::class);
+        return $this->hasMany(Project::class);
     }
 
     public function tags()

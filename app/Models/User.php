@@ -122,10 +122,10 @@ class User extends Authenticatable
     }
 
     /**
-     * Cards assigned to this user.
+     * Tasks assigned to this user.
      */
-    public function assignedCards()
+    public function assignedTasks()
     {
-        return $this->belongsToMany(Card::class, 'card_assignments');
+        return $this->belongsToMany(Task::class, 'task_assignments');
     }
 }

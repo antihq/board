@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('task_id');
-            $table->foreignId('user_id');
-            $table->text('comment_body');
+        Schema::create('tag_task', function (Blueprint $table) {
+            $table->foreignId('tag_id')->constrained();
+            $table->foreignId('task_id')->constrained();
             $table->timestamps();
         });
     }
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('comments');
+        Schema::dropIfExists('tasks_tag');
     }
 };
