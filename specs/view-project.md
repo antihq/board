@@ -1,0 +1,26 @@
+- Add new tasks
+    - Only to the "Maybe?" section
+- View tasks on a modal
+- Clicking on the task title should allow editing the task
+
+- Edit task details:
+    - Title
+    - Description
+    - Change section
+    - Assign task to members
+    - Add tags
+    - Mark as done (same as changing section to Done)
+    - Move/change task to another project
+        - When moving to another project, which section should it be placed in?
+    - Task can be pinned
+        - What does pinning do?
+    - Users can stop watching the task
+        - What does stop watching do?
+    - Users can promote it to a golden ticket
+        - What does this promotion do?
+    - Users can add a background image to the task
+        - What does it do?
+    - Task can be deleted
+    - Users can see who other members are subscribed to this task
+    - Users can add comments to the task
+    - It shows the task movement activity
