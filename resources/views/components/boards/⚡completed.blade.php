@@ -39,7 +39,7 @@ new class extends Component
 @endplaceholder
 
 <flux:kanban.column :$attributes>
-    <flux:kanban.column.header heading="Completed" count="{{ $this->completedCards->count() }}" />
+    <flux:kanban.column.header heading="Done" count="{{ $this->completedCards->count() }}" />
     <flux:kanban.column.cards wire:sort="moveCard" wire:sort:group="columns">
         @foreach ($this->completedCards as $card)
             <livewire:boards.card :$card wire:key="{{ $card->id }}" wire:sort:item="{{ $card->id }}" />
