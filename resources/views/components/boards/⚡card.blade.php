@@ -13,7 +13,7 @@ new class extends Component
 
     public ?string $description;
 
-    public int $column;
+    public ?int $column;
 
     public bool $show = false;
 

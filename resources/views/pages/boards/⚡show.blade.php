@@ -48,6 +48,10 @@ new #[Title('Board')] class extends Component
         ></div>
         <div class="h-full w-full overflow-x-auto">
             <flux:kanban wire:sort="moveColumn">
+                <livewire:boards.postponed :board="$board" wire:key="postponed" wire:sort:item="postpone" />
+
+                <livewire:boards.opened :board="$board" wire:key="opened" wire:sort:item="open" />
+
                 @foreach ($this->board->columns as $column)
                     <livewire:boards.column
                         :column="$column"
@@ -55,6 +59,8 @@ new #[Title('Board')] class extends Component
                         wire:sort:item="{{ $column->id }}"
                     />
                 @endforeach
+
+                <livewire:boards.completed :board="$board" wire:key="completed" wire:sort:item="complete" />
 
                 <flux:kanban.column>
                     <flux:kanban.column.footer class="pt-2">

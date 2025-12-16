@@ -28,8 +28,6 @@ new class extends Component
             'name' => $this->pull('name'),
             'user_id' => Auth::id(),
         ]);
-
-        $board->createDefaultColumns();
     }
 }; ?>
 

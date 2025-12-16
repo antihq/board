@@ -1,25 +1,27 @@
 <?php
 
+use App\Models\Board;
 use App\Models\Card;
-use App\Models\Column;
 use Livewire\Attributes\Async;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
 new class extends Component
 {
-    public Column $column;
+    public Board $board;
+
+    #[Computed]
+    public function postponedCards()
+    {
+        return $this->board->cards()->postponed()->orderBy('position', 'asc')->get();
+    }
 
     #[Renderless, Async]
     public function moveCard($item, $position)
     {
-        $card = $this->column->board->cards()->findOrFail($item);
-
-        if ($card->column_id === $this->column->id) {
-            $card->moveInto($this->column, $position);
-        } else {
-            $card->moveToColumn($this->column, $position);
-        }
+        $card = $this->board->cards()->findOrFail($item);
+        $card->moveToPostponed($position);
     }
 };
 ?>
@@ -34,9 +36,9 @@ new class extends Component
 @endplaceholder
 
 <flux:kanban.column :$attributes>
-    <flux:kanban.column.header :heading="$column->name" :count="$this->column->cards->count()" />
+    <flux:kanban.column.header heading="Not now" count="{{ $this->postponedCards->count() }}" />
     <flux:kanban.column.cards wire:sort="moveCard" wire:sort:group="columns">
-        @foreach ($this->column->cards as $card)
+        @foreach ($this->postponedCards as $card)
             <livewire:boards.card :$card wire:key="{{ $card->id }}" wire:sort:item="{{ $card->id }}" />
         @endforeach
     </flux:kanban.column.cards>

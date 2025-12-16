@@ -26,8 +26,6 @@ new class extends Component
             'user_id' => Auth::id(),
         ]);
 
-        $board->createDefaultColumns();
-
         $this->reset('name');
 
         $this->dispatch('created');

@@ -28,20 +28,6 @@ class Board extends Model
 
     public function cards()
     {
-        return $this->hasManyThrough(Card::class, Column::class)->orderBy('position');
-    }
-
-    public function maybeColumn()
-    {
-        return $this->columns()->where('name', 'Maybe?')->first();
-    }
-
-    public function createDefaultColumns()
-    {
-        return $this->columns()->createMany([
-            ['name' => 'Not Now', 'position' => 1],
-            ['name' => 'Maybe?', 'position' => 2],
-            ['name' => 'Done', 'position' => 3],
-        ]);
+        return $this->hasMany(Card::class);
     }
 }

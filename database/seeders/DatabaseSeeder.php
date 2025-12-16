@@ -40,14 +40,11 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $mainUser->id,
             ]);
 
-            // Create columns with correct positioning
+            // Create traditional columns (excluding status containers)
             $columns = collect([
-                ['name' => 'Not Now', 'position' => 1],
-                ['name' => 'Maybe?', 'position' => 2],
-                ['name' => 'In Progress', 'position' => 3],
-                ['name' => 'Review', 'position' => 4],
-                ['name' => 'Testing', 'position' => 5],
-                ['name' => 'Done', 'position' => 6],
+                ['name' => 'In Progress', 'position' => 1],
+                ['name' => 'Review', 'position' => 2],
+                ['name' => 'Testing', 'position' => 3],
             ])->map(fn ($column) => Column::factory()->create(array_merge($column, ['board_id' => $board->id])));
 
             // Create tags
@@ -68,19 +65,19 @@ class DatabaseSeeder extends Seeder
             // Create cards with proper positioning
             $allUsers = collect([$mainUser, ...$teamMembers]);
 
-            // Cards for "Not Now" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'Not Now'), [
-                ['title' => 'Research new authentication methods', 'description' => 'Investigate OAuth2, JWT, and other modern auth solutions'],
-                ['title' => 'Plan Q2 roadmap', 'description' => 'Define priorities and timeline for next quarter'],
-                ['title' => 'Evaluate monitoring tools', 'description' => 'Compare Sentry, Bugsnag, and custom solutions'],
-            ], $allUsers, $tags, 1);
-
-            // Cards for "Maybe?" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'Maybe?'), [
+            // Create cards for "Maybe?" status container (opened)
+            $this->createOpenedCards($board, [
                 ['title' => 'Add dark mode support', 'description' => 'Implement theme switching for better UX'],
                 ['title' => 'Create mobile app', 'description' => 'Develop React Native or Flutter version'],
                 ['title' => 'Implement real-time notifications', 'description' => 'Add WebSocket support for live updates'],
-            ], $allUsers, $tags, 1);
+            ], $allUsers, $tags, 0);
+
+            // Create cards for "Not Now" status container (postponed)
+            $this->createPostponedCards($board, [
+                ['title' => 'Research new authentication methods', 'description' => 'Investigate OAuth2, JWT, and other modern auth solutions'],
+                ['title' => 'Plan Q2 roadmap', 'description' => 'Define priorities and timeline for next quarter'],
+                ['title' => 'Evaluate monitoring tools', 'description' => 'Compare Sentry, Bugsnag, and custom solutions'],
+            ], $allUsers, $tags, 0);
 
             // Cards for "In Progress" column
             $this->createCardsForColumn($columns->firstWhere('name', 'In Progress'), [
@@ -101,13 +98,13 @@ class DatabaseSeeder extends Seeder
                 ['title' => 'Performance testing', 'description' => 'Load testing for 1000 concurrent users'],
             ], $allUsers, $tags, 1);
 
-            // Cards for "Done" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'Done'), [
+            // Create cards for "Done" status container (completed)
+            $this->createCompletedCards($board, [
                 ['title' => 'Setup CI/CD pipeline', 'description' => 'Configure GitHub Actions for automated testing and deployment'],
                 ['title' => 'Implement user registration', 'description' => 'Complete signup flow with email verification'],
                 ['title' => 'Add team management', 'description' => 'Create team creation and member management features'],
                 ['title' => 'Database migration system', 'description' => 'Setup Laravel migrations for schema management'],
-            ], $allUsers, $tags, 1);
+            ], $allUsers, $tags, 0);
         });
     }
 
@@ -123,6 +120,99 @@ class DatabaseSeeder extends Seeder
                 'column_id' => $column->id,
                 'position' => $startPosition + $index,
                 'user_id' => $users->random()->id,
+            ]);
+
+            // Randomly assign tags (0-3 tags per card)
+            $selectedTags = $tags->random(rand(0, min(3, $tags->count())));
+            if ($selectedTags->isNotEmpty()) {
+                $card->tags()->attach($selectedTags->pluck('id'));
+            }
+
+            // Randomly assign users (0-2 assignees per card)
+            if (rand(0, 1)) { // 50% chance of having assignees
+                $assignees = $users->random(rand(1, min(2, $users->count())));
+                $card->assignees()->attach($assignees->pluck('id'));
+            }
+        }
+    }
+
+    /**
+     * Create cards for the "opened" status container
+     */
+    private function createOpenedCards(Board $board, array $cardData, $users, $tags, int $startPosition): void
+    {
+        foreach ($cardData as $index => $data) {
+            $card = Card::factory()->create([
+                'title' => $data['title'],
+                'description' => '<p>'.$data['description'].'</p>',
+                'board_id' => $board->id,
+                'column_id' => null,
+                'position' => $startPosition + $index,
+                'user_id' => $users->random()->id,
+                'postponed_at' => null,
+                'completed_at' => null,
+            ]);
+
+            // Randomly assign tags (0-3 tags per card)
+            $selectedTags = $tags->random(rand(0, min(3, $tags->count())));
+            if ($selectedTags->isNotEmpty()) {
+                $card->tags()->attach($selectedTags->pluck('id'));
+            }
+
+            // Randomly assign users (0-2 assignees per card)
+            if (rand(0, 1)) { // 50% chance of having assignees
+                $assignees = $users->random(rand(1, min(2, $users->count())));
+                $card->assignees()->attach($assignees->pluck('id'));
+            }
+        }
+    }
+
+    /**
+     * Create cards for the "postponed" status container
+     */
+    private function createPostponedCards(Board $board, array $cardData, $users, $tags, int $startPosition): void
+    {
+        foreach ($cardData as $index => $data) {
+            $card = Card::factory()->create([
+                'title' => $data['title'],
+                'description' => '<p>'.$data['description'].'</p>',
+                'board_id' => $board->id,
+                'column_id' => null,
+                'position' => $startPosition + $index,
+                'user_id' => $users->random()->id,
+                'postponed_at' => now(),
+                'completed_at' => null,
+            ]);
+
+            // Randomly assign tags (0-3 tags per card)
+            $selectedTags = $tags->random(rand(0, min(3, $tags->count())));
+            if ($selectedTags->isNotEmpty()) {
+                $card->tags()->attach($selectedTags->pluck('id'));
+            }
+
+            // Randomly assign users (0-2 assignees per card)
+            if (rand(0, 1)) { // 50% chance of having assignees
+                $assignees = $users->random(rand(1, min(2, $users->count())));
+                $card->assignees()->attach($assignees->pluck('id'));
+            }
+        }
+    }
+
+    /**
+     * Create cards for the "completed" status container
+     */
+    private function createCompletedCards(Board $board, array $cardData, $users, $tags, int $startPosition): void
+    {
+        foreach ($cardData as $index => $data) {
+            $card = Card::factory()->create([
+                'title' => $data['title'],
+                'description' => '<p>'.$data['description'].'</p>',
+                'board_id' => $board->id,
+                'column_id' => null,
+                'position' => $startPosition + $index,
+                'user_id' => $users->random()->id,
+                'postponed_at' => null,
+                'completed_at' => now(),
             ]);
 
             // Randomly assign tags (0-3 tags per card)

@@ -11,7 +11,7 @@ it('loads existing card tags in pillbox', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
     $tag1 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
     $tag2 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Feature']);
 
@@ -28,7 +28,7 @@ it('creates new tags when user types new tag name', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
@@ -45,7 +45,7 @@ it('attaches existing tags to cards', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
     $tag = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
 
     Livewire::actingAs($user)
@@ -61,7 +61,7 @@ it('handles mixed new and existing tags', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
     $existingTag = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
 
     Livewire::actingAs($user)
@@ -77,7 +77,7 @@ it('removes tags from cards when deselected', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
     $tag1 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
     $tag2 = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Feature']);
 
@@ -98,7 +98,7 @@ it('does not create duplicate tags for same team', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     $tag = Tag::factory()->create(['team_id' => $user->currentTeam->id, 'name' => 'Bug']);
 
@@ -118,7 +118,7 @@ it('loads existing card assignees in pillbox', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     $card->assignees()->attach($member->id);
 
@@ -137,7 +137,7 @@ it('assigns multiple team members to cards', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
@@ -156,7 +156,7 @@ it('removes team members from cards when deselected', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     $card->assignees()->attach([$member1->id, $member2->id]);
 
@@ -177,7 +177,7 @@ it('prevents assignment of users outside the team', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
@@ -193,7 +193,7 @@ it('allows team owner to be assigned to cards', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
@@ -213,7 +213,7 @@ it('handles mixed assignment and removal of team members', function () {
 
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     $card->assignees()->attach([$member1->id, $member2->id]);
 
@@ -231,7 +231,7 @@ it('allows team members to add comments to cards', function () {
     $user = User::factory()->withPersonalTeam()->create();
     $board = Board::factory()->for($user->currentTeam)->create();
     $column = Column::factory()->for($board)->create();
-    $card = Card::factory()->for($column)->for($user)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
 
     Livewire::actingAs($user)
         ->test('boards.card', ['card' => $card])
