@@ -84,19 +84,19 @@ class DatabaseSeeder extends Seeder
                 ['title' => 'Fix login redirect issue', 'description' => 'Users are not being redirected properly after login'],
                 ['title' => 'Optimize database queries', 'description' => 'Slow loading times on dashboard need to be addressed'],
                 ['title' => 'Add user profile page', 'description' => 'Create comprehensive profile management interface'],
-            ], $allUsers, $tags, 1);
+            ], $allUsers, $tags, 0);
 
             // Cards for "Review" column
             $this->createCardsForColumn($board, $columns->firstWhere('name', 'Review'), [
                 ['title' => 'API documentation update', 'description' => 'Update OpenAPI spec with new endpoints'],
                 ['title' => 'Code review: payment integration', 'description' => 'Review Stripe integration implementation'],
-            ], $allUsers, $tags, 1);
+            ], $allUsers, $tags, 0);
 
             // Cards for "Testing" column
             $this->createCardsForColumn($board, $columns->firstWhere('name', 'Testing'), [
                 ['title' => 'Write unit tests for auth service', 'description' => 'Achieve 90% code coverage'],
                 ['title' => 'Performance testing', 'description' => 'Load testing for 1000 concurrent users'],
-            ], $allUsers, $tags, 1);
+            ], $allUsers, $tags, 0);
 
             // Create cards for "Done" status container (completed)
             $this->createCompletedCards($board, [
