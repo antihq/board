@@ -10,13 +10,10 @@ return new class extends Migration
     {
         Schema::create('one_time_passwords', function (Blueprint $table) {
             $table->id();
-
             $table->string('password');
             $table->text('origin_properties')->nullable();
-
             $table->dateTime('expires_at');
             $table->morphs('authenticatable');
-
             $table->timestamps();
         });
     }

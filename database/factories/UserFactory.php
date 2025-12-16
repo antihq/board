@@ -53,37 +53,4 @@ class UserFactory extends Factory
                 ->create();
         });
     }
-
-    /**
-     * Indicate that the user has a personal team with an active subscription.
-     */
-    public function withPersonalTeamAndSubscription(array $teamOverrides = [], array $subOverrides = [], array $itemOverrides = []): static
-    {
-        return $this->afterCreating(function ($user) use ($teamOverrides, $subOverrides, $itemOverrides) {
-            $team = Team::factory()
-                ->state(array_merge([
-                    'user_id' => $user->id,
-                    'personal' => true,
-                    'name' => $user->name,
-                ], $teamOverrides))
-                ->create();
-
-            $subscription = Subscription::factory()
-                ->state(array_merge([
-                    'team_id' => $team->id,
-                    'type' => 'default',
-                    'stripe_id' => 'sub_'.Str::random(24),
-                    'stripe_status' => 'active',
-                ], $subOverrides))
-                ->create();
-
-            SubscriptionItem::factory()
-                ->state(array_merge([
-                    'subscription_id' => $subscription->id,
-                    'stripe_price' => config('services.stripe.price_id'),
-                    'quantity' => 1,
-                ], $itemOverrides))
-                ->create();
-        });
-    }
 }

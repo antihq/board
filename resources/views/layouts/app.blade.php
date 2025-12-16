@@ -4,14 +4,13 @@
     class="dark antialiased lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950"
 >
     <head>
-        @include('partials.head', ['title' => (isset($title) ? $title.' - ' : '').auth()->user()->currentTeam->name.' - '.config('app.name')])
+        @include('partials.head', ['title' => (isset($title) ? $title.' - ' : '').auth()->user()->teams()->first()->name.' - '.config('app.name')])
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-900 dark:lg:bg-zinc-950">
         <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700" container>
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
             <div class="flex h-full items-center max-lg:hidden">
-                <livewire:teams-dropdown />
                 {{-- <flux:separator vertical class="mx-1 my-5" /> --}}
             </div>
 
@@ -74,8 +73,6 @@
             class="border-e border-zinc-200 bg-white lg:hidden dark:border-zinc-700 dark:bg-zinc-900"
         >
             <flux:sidebar.header>
-                <livewire:teams-dropdown />
-
                 <flux:sidebar.collapse
                     class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2"
                 />

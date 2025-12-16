@@ -48,6 +48,11 @@ class User extends Authenticatable
         ];
     }
 
+    public function teams()
+    {
+        return $this->hasMany(Team::class);
+    }
+
     /**
      * Get the user's initials
      */
@@ -58,66 +63,5 @@ class User extends Authenticatable
             ->take(2)
             ->map(fn ($word) => Str::substr($word, 0, 1))
             ->implode('');
-    }
-
-    public function teams()
-    {
-        return $this->hasMany(Team::class);
-    }
-
-    /**
-     * Teams where the user is a member (not owner).
-     */
-    public function memberTeams()
-    {
-        return $this->belongsToMany(Team::class, 'team_user');
-    }
-
-    /**
-     * All teams the user owns or is a member of (unique).
-     */
-    public function allTeams()
-    {
-        return $this->teams
-            ->merge($this->memberTeams)
-            ->unique('id')
-            ->values();
-    }
-
-    /**
-     * Get the user's current team.
-     */
-    public function currentTeam()
-    {
-        if (is_null($this->current_team_id)) {
-            $this->assignPersonalTeamAsCurrent();
-
-            $this->fresh();
-        }
-
-        return $this->belongsTo(Team::class, 'current_team_id');
-    }
-
-    /**
-     * Assign the user's personal team as their current team.
-     */
-    private function assignPersonalTeamAsCurrent(): void
-    {
-        tap($this->teams()->where('personal', true)->first(), function ($personalTeam) {
-            if ($personalTeam) {
-                $this->current_team_id = $personalTeam->id;
-                $this->save();
-            }
-        });
-    }
-
-    /**
-     * Switch the user's current team.
-     */
-    public function switchTeam(Team $team): void
-    {
-        $this->current_team_id = $team->id;
-
-        $this->save();
     }
 }

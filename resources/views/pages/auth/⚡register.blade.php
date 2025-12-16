@@ -9,7 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::simple'), Title('Sign up')] class extends Component
+new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
 {
     public string $name = '';
 

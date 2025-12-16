@@ -4,7 +4,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::simple'), Title('Login')] class extends Component
+new #[Layout('layouts::auth'), Title('Login')] class extends Component
 {
     //
 };

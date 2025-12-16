@@ -1,9 +1,8 @@
 <?php
 
-use App\Http\Controllers\TeamInvitationAcceptController;
 use Illuminate\Support\Facades\Route;
 
-Route::livewire('/', 'pages::welcome');
+Route::redirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard');
@@ -13,19 +12,13 @@ Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
     Route::livewire('settings/profile', 'pages::settings.profile');
-    Route::livewire('settings/password', 'pages::settings.password');
     Route::livewire('settings/appearance', 'pages::settings.appearance');
-
-    Route::livewire('teams/create', 'pages::teams.create');
-    Route::livewire('teams/{team}/settings/members', 'pages::teams.settings.members');
-    Route::livewire('teams/{team}/settings/general', 'pages::teams.settings.general');
-    Route::livewire('teams/{team}', 'pages::teams.settings.general');
-
-    Route::get('teams/invitations/{invitation}/accept', TeamInvitationAcceptController::class)
-        ->middleware('signed')
-        ->name('teams.invitations.accept');
 });
 
-require __DIR__.'/auth.php';
+Route::middleware('guest')->group(function () {
+    Route::livewire('login', 'pages::auth.login')->name('login');
 
-require __DIR__.'/billing.php';
+    Route::livewire('register', 'pages::auth.register');
+});
+
+Route::post('logout', App\Livewire\Actions\Logout::class);

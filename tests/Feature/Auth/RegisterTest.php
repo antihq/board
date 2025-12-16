@@ -25,8 +25,8 @@ it('creates a user with personal team', function () {
     $user = User::first();
     expect($user)->not->toBeNull();
 
-    $team = $user->currentTeam;
+    $team = $user->teams()->first();
     expect($team)->not->toBeNull();
-    expect($team->user->is($user))->toBeTrue();
+    expect($team->owner->is($user))->toBeTrue();
     expect($team->personal)->toBeTrue();
 });
