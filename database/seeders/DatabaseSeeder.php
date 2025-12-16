@@ -80,20 +80,20 @@ class DatabaseSeeder extends Seeder
             ], $allUsers, $tags, 0);
 
             // Cards for "In Progress" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'In Progress'), [
+            $this->createCardsForColumn($board, $columns->firstWhere('name', 'In Progress'), [
                 ['title' => 'Fix login redirect issue', 'description' => 'Users are not being redirected properly after login'],
                 ['title' => 'Optimize database queries', 'description' => 'Slow loading times on dashboard need to be addressed'],
                 ['title' => 'Add user profile page', 'description' => 'Create comprehensive profile management interface'],
             ], $allUsers, $tags, 1);
 
             // Cards for "Review" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'Review'), [
+            $this->createCardsForColumn($board, $columns->firstWhere('name', 'Review'), [
                 ['title' => 'API documentation update', 'description' => 'Update OpenAPI spec with new endpoints'],
                 ['title' => 'Code review: payment integration', 'description' => 'Review Stripe integration implementation'],
             ], $allUsers, $tags, 1);
 
             // Cards for "Testing" column
-            $this->createCardsForColumn($columns->firstWhere('name', 'Testing'), [
+            $this->createCardsForColumn($board, $columns->firstWhere('name', 'Testing'), [
                 ['title' => 'Write unit tests for auth service', 'description' => 'Achieve 90% code coverage'],
                 ['title' => 'Performance testing', 'description' => 'Load testing for 1000 concurrent users'],
             ], $allUsers, $tags, 1);
@@ -111,12 +111,13 @@ class DatabaseSeeder extends Seeder
     /**
      * Create cards for a specific column with proper positioning
      */
-    private function createCardsForColumn(Column $column, array $cardData, $users, $tags, int $startPosition): void
+    private function createCardsForColumn(Board $board, Column $column, array $cardData, $users, $tags, int $startPosition): void
     {
         foreach ($cardData as $index => $data) {
             $card = Card::factory()->create([
                 'title' => $data['title'],
                 'description' => '<p>'.$data['description'].'</p>',
+                'board_id' => $board->id,
                 'column_id' => $column->id,
                 'position' => $startPosition + $index,
                 'user_id' => $users->random()->id,
