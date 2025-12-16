@@ -1,2 +1,0 @@
-- Only a name is needed to create a new project.
-- It creates three default sections: Not now, Maybe? and Done
