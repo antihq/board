@@ -15,6 +15,8 @@ new class extends Component
 
     public ?int $column;
 
+    public ?string $location = null;
+
     public bool $show = false;
 
     public array $assignedUserIds = [];
@@ -52,6 +54,7 @@ new class extends Component
         $this->title = $this->card->title;
         $this->description = $this->card->description;
         $this->column = $this->card->column_id;
+        $this->location = $this->currentLocation;
         $this->tags = $this->card->tags->pluck('id')->toArray();
         $this->assignedUserIds = $this->card->assignees->pluck('id')->toArray();
     }
@@ -66,13 +69,61 @@ new class extends Component
         $this->show = false;
     }
 
+    #[Computed]
+    public function currentLocation(): string
+    {
+        if ($this->card->isCompleted()) {
+            return 'completed';
+        }
+
+        if ($this->card->isPostponed()) {
+            return 'postponed';
+        }
+
+        if ($this->card->column_id) {
+            return 'column:'.$this->card->column_id;
+        }
+
+        return 'opened';
+    }
+
     public function move()
     {
-        $column = $this->card->board->columns()->findOrFail($this->column);
+        if (! $this->location) {
+            return;
+        }
 
-        $this->card->update([
-            'column_id' => $column->id,
-        ]);
+        [$targetType, $targetId] = $this->parseLocation($this->location);
+
+        // Always move to position 0 (top)
+        $targetPosition = 0;
+
+        match ($targetType) {
+            'postponed' => $this->card->moveToPostponed($targetPosition),
+            'opened' => $this->card->moveToOpened($targetPosition),
+            'completed' => $this->card->moveToCompleted($targetPosition),
+            'column' => $this->card->moveToColumn(
+                $this->card->board->columns()->findOrFail($targetId),
+                $targetPosition
+            ),
+            default => null,
+        };
+
+        // Update the current location to match
+        $this->location = $this->currentLocation;
+    }
+
+    private function parseLocation(string $location): array
+    {
+        if (in_array($location, ['postponed', 'opened', 'completed'])) {
+            return [$location, null];
+        }
+
+        if (str_starts_with($location, 'column:')) {
+            return ['column', (int) str_replace('column:', '', $location)];
+        }
+
+        return ['opened', null];
     }
 
     public function addTag()
@@ -281,17 +332,25 @@ new class extends Component
 
                 <div class="w-70 space-y-6 rounded-lg bg-zinc-100 p-4.5">
                     <flux:radio.group
-                        wire:model="column"
+                        wire:model="location"
                         variant="buttons"
                         class="w-full *:flex-1"
-                        label="Move to column"
+                        label="Move to"
                         wire:change="move"
                     >
-                        @foreach ($this->card->board->columns as $column)
-                            <flux:radio :value="$column->id" size="sm">
-                                {{ $column->name }}
-                            </flux:radio>
-                        @endforeach
+                        <flux:radio value="postponed" size="sm">Not now</flux:radio>
+
+                        <flux:radio value="opened" size="sm">Maybe?</flux:radio>
+
+                        @if ($this->card->board->columns->isNotEmpty())
+                            @foreach ($this->card->board->columns as $column)
+                                <flux:radio value="column:{{ $column->id }}" size="sm">
+                                    {{ $column->name }}
+                                </flux:radio>
+                            @endforeach
+                        @endif
+
+                        <flux:radio value="completed" size="sm">Done</flux:radio>
                     </flux:radio.group>
 
                     <flux:pillbox

@@ -25,4 +25,29 @@ class CardFactory extends Factory
             'position' => 0,
         ];
     }
+
+    public function postponed()
+    {
+        return $this->state(fn (array $attributes) => [
+            'postponed_at' => now(),
+            'column_id' => null,
+        ]);
+    }
+
+    public function completed()
+    {
+        return $this->state(fn (array $attributes) => [
+            'completed_at' => now(),
+            'column_id' => null,
+        ]);
+    }
+
+    public function opened()
+    {
+        return $this->state(fn (array $attributes) => [
+            'postponed_at' => null,
+            'completed_at' => null,
+            'column_id' => null,
+        ]);
+    }
 }

@@ -244,3 +244,189 @@ it('allows team members to add comments to cards', function () {
     expect($comment->comment_body)->toBe('This is a test comment');
     expect($comment->user->is($user))->toBeTrue();
 });
+
+// Unified location movement tests
+it('sets correct location for cards in different states on mount', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+
+    // Test card in column
+    $cardInColumn = Card::factory()->for($board)->for($column)->for($user)->create();
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $cardInColumn]);
+    expect($component->get('location'))->toBe('column:'.$column->id);
+
+    // Test postponed card
+    $cardPostponed = Card::factory()->for($board)->for($user)->postponed()->create();
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $cardPostponed]);
+    expect($component->get('location'))->toBe('postponed');
+
+    // Test completed card
+    $cardCompleted = Card::factory()->for($board)->for($user)->completed()->create();
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $cardCompleted]);
+    expect($component->get('location'))->toBe('completed');
+
+    // Test opened card (default state)
+    $cardOpened = Card::factory()->for($board)->for($user)->create();
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $cardOpened]);
+    expect($component->get('location'))->toBe('opened');
+});
+
+it('moves card from column to postponed state', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'postponed')
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBeNull();
+    expect($freshCard->postponed_at)->not->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('moves card from column to opened state', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'opened')
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBeNull();
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('moves card from column to completed state', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'completed')
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBeNull();
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->not->toBeNull();
+});
+
+it('moves card between columns', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column1 = Column::factory()->for($board)->create();
+    $column2 = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column1)->for($user)->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'column:'.$column2->id)
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBe($column2->id);
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('moves card from postponed to column', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($user)->postponed()->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'column:'.$column->id)
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBe($column->id);
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('moves card from opened to column', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($user)->create(); // opened by default
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'column:'.$column->id)
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBe($column->id);
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('moves card from completed to column', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($user)->completed()->create();
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'column:'.$column->id)
+        ->call('move');
+
+    $freshCard = $card->fresh();
+    expect($freshCard->column_id)->toBe($column->id);
+    expect($freshCard->postponed_at)->toBeNull();
+    expect($freshCard->completed_at)->toBeNull();
+});
+
+it('does not move card when location is null', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
+
+    $originalState = [
+        'column_id' => $card->column_id,
+        'postponed_at' => $card->postponed_at,
+        'completed_at' => $card->completed_at,
+        'position' => $card->position,
+    ];
+
+    Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', null)
+        ->call('move');
+
+    expect($card->fresh()->toArray())->toMatchArray($originalState);
+});
+
+it('updates location after successful move', function () {
+    $user = User::factory()->withPersonalTeam()->create();
+    $board = Board::factory()->for($user->currentTeam)->create();
+    $column = Column::factory()->for($board)->create();
+    $card = Card::factory()->for($board)->for($column)->for($user)->create();
+
+    $component = Livewire::actingAs($user)
+        ->test('boards.card', ['card' => $card])
+        ->set('location', 'postponed')
+        ->call('move');
+
+    expect($component->get('location'))->toBe('postponed');
+});
