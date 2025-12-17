@@ -33,6 +33,13 @@ new class extends Component
 
     public function sortItem($item, $position)
     {
+        // Validate position bounds - positions are 1-based
+        $totalSections = $this->project->sections()->count();
+        
+        if ($position < 1 || $position > $totalSections) {
+            return;
+        }
+
         $section = $this->project->sections()->findOrFail($item);
         $oldOrder = $section->order;
 

@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sections', function (Blueprint $table) {
-            $table->integer('order')->after('project_id')->default(0);
+            $table->integer('order')->after('project_id')->default(1);
         });
     }
 

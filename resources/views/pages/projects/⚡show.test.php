@@ -50,22 +50,22 @@ it('reorders sections correctly when moving forward', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    // Create three sections
-    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 0]);
-    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 1]);
-    $section3 = $project->sections()->create(['title' => 'Section 3', 'order' => 2]);
+    // Create three sections with 1-based indexing
+    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
+    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);
+    $section3 = $project->sections()->create(['title' => 'Section 3', 'order' => 3]);
 
     // Move section 1 to position 2 (after section 2)
     Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
-        ->call('sortItem', $section1->id, 1);
+        ->call('sortItem', $section1->id, 2);
 
     $sections = $project->sections()->ordered()->get();
     expect($sections[0]->title)->toBe('Section 2');
-    expect($sections[0]->order)->toBe(0);
+    expect($sections[0]->order)->toBe(1);
     expect($sections[1]->title)->toBe('Section 1');
-    expect($sections[1]->order)->toBe(1);
+    expect($sections[1]->order)->toBe(2);
     expect($sections[2]->title)->toBe('Section 3');
-    expect($sections[2]->order)->toBe(2);
+    expect($sections[2]->order)->toBe(3);
 });
 
 it('reorders sections correctly when moving backward', function () {
@@ -73,22 +73,22 @@ it('reorders sections correctly when moving backward', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    // Create three sections
-    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 0]);
-    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 1]);
-    $section3 = $project->sections()->create(['title' => 'Section 3', 'order' => 2]);
+    // Create three sections with 1-based indexing
+    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
+    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);
+    $section3 = $project->sections()->create(['title' => 'Section 3', 'order' => 3]);
 
-    // Move section 3 to position 0 (before section 1)
+    // Move section 3 to position 1 (before section 1)
     Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
-        ->call('sortItem', $section3->id, 0);
+        ->call('sortItem', $section3->id, 1);
 
     $sections = $project->sections()->ordered()->get();
     expect($sections[0]->title)->toBe('Section 3');
-    expect($sections[0]->order)->toBe(0);
+    expect($sections[0]->order)->toBe(1);
     expect($sections[1]->title)->toBe('Section 1');
-    expect($sections[1]->order)->toBe(1);
+    expect($sections[1]->order)->toBe(2);
     expect($sections[2]->title)->toBe('Section 2');
-    expect($sections[2]->order)->toBe(2);
+    expect($sections[2]->order)->toBe(3);
 });
 
 it('does not change order when moving to same position', function () {
@@ -96,12 +96,46 @@ it('does not change order when moving to same position', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    $section = $project->sections()->create(['title' => 'Test Section', 'order' => 0]);
+    $section = $project->sections()->create(['title' => 'Test Section', 'order' => 1]);
     $originalOrder = $section->order;
 
     Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
-        ->call('sortItem', $section->id, 0);
+        ->call('sortItem', $section->id, 1);
 
     $section->refresh();
     expect($section->order)->toBe($originalOrder);
+});
+
+it('does not allow moving to position 0 (invalid)', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+
+    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
+    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);
+
+    $originalOrder = $section1->order;
+
+    Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
+        ->call('sortItem', $section1->id, 0); // Invalid position
+
+    $section1->refresh();
+    expect($section1->order)->toBe($originalOrder); // Should not change
+});
+
+it('does not allow moving to position greater than total sections', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+
+    $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
+    $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);
+
+    $originalOrder = $section1->order;
+
+    Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
+        ->call('sortItem', $section1->id, 5); // Invalid position (greater than total sections)
+
+    $section1->refresh();
+    expect($section1->order)->toBe($originalOrder); // Should not change
 });
