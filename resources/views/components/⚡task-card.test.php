@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Comment;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Comment;
 use Livewire\Livewire;
 
 it('saves task description successfully', function () {
