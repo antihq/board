@@ -80,7 +80,6 @@ new class extends Component
                     <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
                         Add task
                     </flux:button>
-                    <flux:button size="sm" variant="subtle">Cancel</flux:button>
                 </x-slot>
             </flux:composer>
         </form>
