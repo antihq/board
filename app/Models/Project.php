@@ -17,4 +17,9 @@ class Project extends Model
     {
         return $this->hasMany(Task::class)->latest();
     }
+
+    public function sections()
+    {
+        return $this->hasMany(Section::class)->latest();
+    }
 }
