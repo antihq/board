@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Team;
-use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 new class extends Component
@@ -10,7 +9,7 @@ new class extends Component
 
     public string $name = '';
 
-    public function createProject()
+    public function create()
     {
         $this->validate([
             'name' => 'required',
@@ -30,7 +29,7 @@ new class extends Component
             <flux:menu.item icon="plus">New project</flux:menu.item>
 
             <flux:modal name="add-project" class="md:w-96">
-                <form wire:submit="createProject">
+                <form wire:submit="create">
                     <div class="space-y-6">
                         <div>
                             <flux:heading size="lg">New project</flux:heading>
