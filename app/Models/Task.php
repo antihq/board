@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
 {
+    use HasFactory;
+
     protected $guarded = [];
 
     public function project()
@@ -33,13 +36,28 @@ class Task extends Model
         return $this->belongsTo(User::class, 'reopened_by');
     }
 
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+
+    public function sectionMover()
+    {
+        return $this->belongsTo(User::class, 'section_moved_by');
+    }
+
     public function scopeInbox($query)
     {
-        return $query->whereNull('completed_at');
+        return $query->whereNull('completed_at')->whereNull('section_id');
     }
 
     public function scopeDone($query)
     {
         return $query->whereNotNull('completed_at');
+    }
+
+    public function scopeSectioned($query)
+    {
+        return $query->whereNotNull('section_id');
     }
 }
