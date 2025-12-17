@@ -56,9 +56,9 @@ class Task extends Model
         return $this->belongsTo(User::class, 'section_moved_by');
     }
 
-    public function comments()
+    public function checklistItems()
     {
-        return $this->hasMany(Comment::class)->oldest();
+        return $this->hasMany(ChecklistItem::class);
     }
 
     public function scopeInbox($query)

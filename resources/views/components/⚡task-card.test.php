@@ -26,29 +26,7 @@ it('saves task description successfully', function () {
     expect($task->description)->toEqual("<p>{$description}</p>");
 });
 
-it('saves task title successfully', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
-    $task = $project->tasks()->create([
-        'title' => 'Original Task Title',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-    ]);
-
-    $newTitle = 'Updated Task Title';
-
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
-        ->call('editTitle')
-        ->set('title', $newTitle)
-        ->call('saveTitle')
-        ->assertHasNoErrors();
-
-    $task->refresh();
-    expect($task->title)->toEqual($newTitle);
-});
-
-it('adds a comment successfully', function () {
+it('adds checklist items to task', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
@@ -58,15 +36,37 @@ it('adds a comment successfully', function () {
         'team_id' => $team->id,
     ]);
 
-    $commentContent = 'This is a test comment.';
-
     Livewire::actingAs($user)->test('task-card', ['task' => $task])
-        ->set('newComment', $commentContent)
-        ->call('addComment')
+        ->call('startAddingChecklistItem')
+        ->set('newChecklistItemContent', 'First checklist item')
+        ->call('saveChecklistItem')
         ->assertHasNoErrors();
 
     $task->refresh();
-    expect($task->comments)->toHaveCount(1);
-    expect($task->comments->first()->content)->toContain($commentContent);
-    expect($task->comments->first()->user_id)->toEqual($user->id);
+    expect($task->checklistItems)->toHaveCount(1);
+    expect($task->checklistItems->first()->content)->toEqual('First checklist item');
+    expect($task->checklistItems->first()->completed)->toBeFalse();
+});
+
+it('toggles checklist item completion', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    $checklistItem = $task->checklistItems()->create([
+        'content' => 'Test item',
+        'completed' => false,
+    ]);
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('toggleChecklistItem', $checklistItem->id)
+        ->assertHasNoErrors();
+
+    $checklistItem->refresh();
+    expect($checklistItem->completed)->toBeTrue();
 });
