@@ -59,54 +59,64 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
     }
 }; ?>
 
-<div class="isolate flex min-h-dvh items-center justify-center">
-    @if ($displayingRegisterForm)
-        <div class="w-full max-w-md rounded-xl bg-white shadow-md ring-1 ring-black/5">
-            <div class="p-7 sm:p-11">
-                <form wire:submit="register" class="space-y-8">
-                    <div class="flex items-start">
-                        <a href="/" wire:navigate>
-                            <img src="/logo@2x.png" alt="" class="h-9" />
-                        </a>
-                    </div>
+<div class="isolate flex max-lg:flex-col min-h-dvh items-center justify-center max-w-7xl mx-auto gap-12">
+    <div>
+        <h1 class="text-6xl/[0.9] font-medium tracking-tight text-balance text-gray-950 sm:text-8xl/[0.8] md:text-9xl/[0.8]">
+            Kanban decaffeinated.
+        </h1>
 
-                    <div>
-                        <flux:heading level="1" class="text-base/6! font-medium">Create an account</flux:heading>
-                        <flux:text class="mt-1 text-sm/5">
-                            Enter your details to create your account and verify your email
-                        </flux:text>
-                    </div>
+        <flux:spacer class="my-7 sm:my-11" />
+    </div>
 
-                    <flux:input
-                        wire:model="name"
-                        label="Name"
-                        type="text"
-                        required
-                        autofocus
-                        autocomplete="name"
-                        placeholder="Full name"
-                    />
+    <div class="w-full max-w-md">
+        @if ($displayingRegisterForm)
+            <div class="rounded-xl bg-white shadow-md ring-1 ring-black/5">
+                <div class="p-7 sm:p-11">
+                    <form wire:submit="register" class="space-y-8">
+                        <div class="flex items-start">
+                            <a href="/" wire:navigate>
+                                <img src="/logo@2x.png" alt="" class="h-9" />
+                            </a>
+                        </div>
 
-                    <flux:input
-                        wire:model="email"
-                        label="Email address"
-                        type="email"
-                        required
-                        autocomplete="email"
-                        placeholder="email@example.com"
-                    />
+                        <div>
+                            <flux:heading level="1" class="text-base/6! font-medium">Create an account</flux:heading>
+                            <flux:text class="mt-1 text-sm/5">
+                                Enter your details to create your account and verify your email
+                            </flux:text>
+                        </div>
 
-                    <flux:button variant="primary" color="zinc" type="submit" class="w-full rounded-full!">
-                        Create account
-                    </flux:button>
-                </form>
+                        <flux:input
+                            wire:model="name"
+                            label="Name"
+                            type="text"
+                            required
+                            autofocus
+                            autocomplete="name"
+                            placeholder="Full name"
+                        />
+
+                        <flux:input
+                            wire:model="email"
+                            label="Email address"
+                            type="email"
+                            required
+                            autocomplete="email"
+                            placeholder="email@example.com"
+                        />
+
+                        <flux:button variant="primary" color="zinc" type="submit" class="w-full rounded-full!">
+                            Create account
+                        </flux:button>
+                    </form>
+                </div>
+                <div class="m-1.5 rounded-lg bg-zinc-50 py-4 text-center text-sm/5 ring-1 ring-black/5">
+                    Already have an account?
+                    <flux:link href="/login" :accent="false" wire:navigate>Log in</flux:link>
+                </div>
             </div>
-            <div class="m-1.5 rounded-lg bg-zinc-50 py-4 text-center text-sm/5 ring-1 ring-black/5">
-                Already have an account?
-                <flux:link href="/login" :accent="false" wire:navigate>Log in</flux:link>
-            </div>
-        </div>
-    @else
-        <livewire:one-time-password :email="$email" />
-    @endif
+        @else
+            <livewire:one-time-password :email="$email" />
+        @endif
+    </div>
 </div>
