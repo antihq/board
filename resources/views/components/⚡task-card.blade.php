@@ -106,9 +106,16 @@ new class extends Component
                     </flux:composer>
                 </form>
             @else
-                <div class="flex items-center gap-2">
-                    <flux:heading size="lg">{{ $task->title }}</flux:heading>
-                    <flux:button size="xs" wire:click="editTitle">Edit</flux:button>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <flux:heading size="lg">{{ $task->title }}</flux:heading>
+                        <flux:button size="xs" wire:click="editTitle">Edit</flux:button>
+                    </div>
+                    @if ($task->completed_at)
+                        <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
+                    @else
+                        <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
+                    @endif
                 </div>
             @endif
         </div>
