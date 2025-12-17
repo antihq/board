@@ -101,6 +101,7 @@ new class extends Component
                                 label="Section title"
                                 label:sr-only
                                 placeholder="Enter section title..."
+                                submit="enter"
                             >
                                 <x-slot name="actionsLeading">
                                     <flux:button type="submit" size="sm" variant="primary" color="green">

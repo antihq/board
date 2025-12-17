@@ -15,9 +15,11 @@ new class extends Component
             'name' => 'required',
         ]);
 
-        $this->team->projects()->create([
+        $project = $this->team->projects()->create([
             'name' => $this->pull('name'),
         ]);
+
+        $this->redirect("/{$this->team->id}/{$project->id}", navigate: true);
     }
 };
 ?>

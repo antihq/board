@@ -75,6 +75,7 @@ new class extends Component
                 label="Task title"
                 label:sr-only
                 placeholder="Enter task title..."
+                submit="enter"
             >
                 <x-slot name="actionsLeading">
                     <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
