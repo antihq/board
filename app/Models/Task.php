@@ -56,6 +56,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'section_moved_by');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->oldest();
+    }
+
     public function checklistItems()
     {
         return $this->hasMany(ChecklistItem::class);
