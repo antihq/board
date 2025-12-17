@@ -35,7 +35,7 @@ new class extends Component
     {
         // Validate position bounds - positions are 1-based
         $totalSections = $this->project->sections()->count();
-        
+
         if ($position < 1 || $position > $totalSections) {
             return;
         }
@@ -84,8 +84,13 @@ new class extends Component
             <flux:kanban wire:sort="sortItem">
                 <livewire:columns.inbox :project="$project" wire:sort:ignore />
                 @foreach ($this->sections as $section)
-                    <livewire:columns.section :section="$section" wire:key="{{ $section->id }}" wire:sort:item="{{ $section->id }}" />
+                    <livewire:columns.section
+                        :section="$section"
+                        wire:key="{{ $section->id }}"
+                        wire:sort:item="{{ $section->id }}"
+                    />
                 @endforeach
+
                 <livewire:columns.done :project="$project" wire:sort:ignore />
                 <flux:kanban.column wire:sort:ignore>
                     <flux:kanban.column.footer class="pt-2">

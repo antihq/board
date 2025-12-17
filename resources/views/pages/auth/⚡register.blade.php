@@ -59,15 +59,7 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
     }
 }; ?>
 
-<div class="isolate flex max-lg:flex-col min-h-dvh items-center justify-center max-w-7xl mx-auto gap-12">
-    <div>
-        <h1 class="text-6xl/[0.9] font-medium tracking-tight text-balance text-gray-950 sm:text-8xl/[0.8] md:text-9xl/[0.8]">
-            Kanban decaffeinated.
-        </h1>
-
-        <flux:spacer class="my-7 sm:my-11" />
-    </div>
-
+<div class="isolate mx-auto flex min-h-dvh max-w-7xl items-center justify-center gap-12 max-lg:flex-col">
     <div class="w-full max-w-md">
         @if ($displayingRegisterForm)
             <div class="rounded-xl bg-white shadow-md ring-1 ring-black/5">
