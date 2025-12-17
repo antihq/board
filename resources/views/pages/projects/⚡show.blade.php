@@ -19,5 +19,6 @@ new class extends Component
 
     <flux:kanban>
         <livewire:columns.inbox :project="$project" />
+        <livewire:columns.done :project="$project" />
     </flux:kanban>
 </div>

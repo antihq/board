@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Project;
+use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -22,14 +24,34 @@ new class extends Component
             'title' => $this->pull('title'),
         ]);
     }
+
+    #[Computed]
+    public function tasks()
+    {
+        return $this->project->tasks()->inbox()->latest()->get();
+    }
+
+    public function sortItem($item, $position)
+    {
+        $task = $this->project->tasks()->findOrFail($item);
+
+        if ($task->completed_at !== null) {
+            $task->update([
+                'completed_at' => null,
+                'completed_by' => null,
+                'reopened_at' => now(),
+                'reopened_by' => Auth::id(),
+            ]);
+        }
+    }
 };
 ?>
 
 <flux:kanban.column>
-    <flux:kanban.column.header heading="Inbox" count="{{ $project->tasks->count() }}" />
-    <flux:kanban.column.cards>
-        @foreach ($project->tasks as $task)
-            <flux:kanban.card heading="{{ $task->title }}" />
+    <flux:kanban.column.header heading="Inbox" count="{{ $this->tasks->count() }}" />
+    <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="cards">
+        @foreach ($this->tasks as $task)
+            <flux:kanban.card heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
         @endforeach
     </flux:kanban.column.cards>
     <flux:kanban.column.footer>
