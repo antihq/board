@@ -23,5 +23,5 @@ it('saves task description successfully', function () {
         ->assertHasNoErrors();
 
     $task->refresh();
-    expect($task->description)->toEqual($description);
+    expect($task->description)->toEqual("<p>{$description}</p>");
 });

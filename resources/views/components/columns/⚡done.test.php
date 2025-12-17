@@ -30,7 +30,7 @@ it('does not modify already completed task when moved to done', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    $completedAt = now()->subDay();
+    $completedAt = now()->subDay()->startOfSecond();
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -75,7 +75,7 @@ it('removes section assignment when completed task moved to done', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    $completedAt = now()->subDay();
+    $completedAt = now()->subDay()->startOfSecond();
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -83,7 +83,7 @@ it('removes section assignment when completed task moved to done', function () {
         'completed_at' => $completedAt,
         'completed_by' => $user->id,
         'section_id' => 1,
-        'section_moved_at' => now()->subDay(),
+        'section_moved_at' => now()->subDay()->startOfSecond(),
         'section_moved_by' => $user->id,
     ]);
 
