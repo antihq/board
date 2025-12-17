@@ -38,25 +38,6 @@ new class extends Component
         $this->newChecklistItemContent = '';
     }
 
-    public function editDescription()
-    {
-        $this->description = $this->task->description ?? '';
-        $this->isEditingDescription = true;
-    }
-
-    public function saveDescription()
-    {
-        $this->validate([
-            'description' => 'nullable|string|max:5000',
-        ]);
-
-        $this->task->update([
-            'description' => $this->description,
-        ]);
-
-        $this->isEditingDescription = false;
-    }
-
     public function editTitle()
     {
         $this->title = $this->task->title;
@@ -74,6 +55,25 @@ new class extends Component
         ]);
 
         $this->isEditingTitle = false;
+    }
+
+    public function editDescription()
+    {
+        $this->description = $this->task->description ?? '';
+        $this->isEditingDescription = true;
+    }
+
+    public function saveDescription()
+    {
+        $this->validate([
+            'description' => 'nullable|string|max:5000',
+        ]);
+
+        $this->task->update([
+            'description' => $this->description,
+        ]);
+
+        $this->isEditingDescription = false;
     }
 
     public function cancelEdit()
@@ -114,12 +114,6 @@ new class extends Component
         ]);
     }
 
-    #[Computed]
-    public function checklistItems()
-    {
-        return $this->task->checklistItems()->latest()->get();
-    }
-
     public function addComment()
     {
         $this->validate([
@@ -130,6 +124,12 @@ new class extends Component
             'user_id' => Auth::id(),
             'content' => $this->pull('newComment'),
         ]);
+    }
+
+    #[Computed]
+    public function checklistItems()
+    {
+        return $this->task->checklistItems()->latest()->get();
     }
 
     #[Computed]
