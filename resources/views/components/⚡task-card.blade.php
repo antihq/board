@@ -79,7 +79,11 @@ new class extends Component
 
 <flux:modal class="w-full max-w-[95vw] md:w-[600px]">
     <x-slot name="trigger">
-        <flux:kanban.card as="button" heading="{{ $this->isEditingTitle ? $this->title : $task->title }}" wire:sort:item="{{ $task->id }}" />
+        <flux:kanban.card
+            as="button"
+            heading="{{ $this->isEditingTitle ? $this->title : $task->title }}"
+            wire:sort:item="{{ $task->id }}"
+        />
     </x-slot>
 
     <div class="space-y-6">
@@ -104,9 +108,7 @@ new class extends Component
             @else
                 <div class="flex items-center gap-2">
                     <flux:heading size="lg">{{ $task->title }}</flux:heading>
-                    <flux:button size="xs" wire:click="editTitle">
-                        Edit
-                    </flux:button>
+                    <flux:button size="xs" wire:click="editTitle">Edit</flux:button>
                 </div>
             @endif
         </div>
