@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\ChecklistItem;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Section;
@@ -184,6 +185,9 @@ class DatabaseSeeder extends Seeder
 
         // Add comments to tasks
         $this->addCommentsToTasks($team, $user);
+
+        // Add checklist items to tasks
+        $this->addChecklistItemsToTasks();
     }
 
     /**
@@ -269,6 +273,142 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user->id,
             'content' => '<p>Thanks! I\'ll need the <strong>logo files</strong> in different formats and the brand guidelines document.</p>',
             'created_at' => now()->subHours(2),
+        ]);
+    }
+
+    /**
+     * Add example checklist items to existing tasks to demonstrate checklist functionality.
+     */
+    private function addChecklistItemsToTasks(): void
+    {
+        // Get specific tasks to add checklist items to
+        $wireframeTask = Task::where('title', 'Create wireframes for homepage')->first();
+        $contactFormTask = Task::where('title', 'Implement contact form functionality')->first();
+        $apiTask = Task::where('title', 'Set up API endpoints')->first();
+        $marketingTask = Task::where('title', 'Design marketing materials')->first();
+
+        // Checklist items for wireframe task (completed task with detailed breakdown)
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Header section with navigation menu',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Hero section with call-to-action button',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Features showcase grid layout',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Customer testimonials section',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Customer logos section (added based on feedback)',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'content' => 'Footer with company links and social media',
+            'completed' => true,
+        ]);
+
+        // Checklist items for contact form task (some completed, some in progress)
+        ChecklistItem::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'content' => 'Create HTML form structure',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'content' => 'Add client-side validation',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'content' => 'Integrate reCAPTCHA v3 invisible version',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'content' => 'Set up email sending functionality',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'content' => 'Add success/error message handling',
+            'completed' => false,
+        ]);
+
+        // Checklist items for API task (mix of completed and pending)
+        ChecklistItem::factory()->create([
+            'task_id' => $apiTask->id,
+            'content' => 'User authentication endpoints',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $apiTask->id,
+            'content' => 'User profile management endpoints',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $apiTask->id,
+            'content' => 'Data synchronization endpoints',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $apiTask->id,
+            'content' => 'API documentation with examples',
+            'completed' => false,
+        ]);
+
+        // Checklist items for marketing task (mostly pending)
+        ChecklistItem::factory()->create([
+            'task_id' => $marketingTask->id,
+            'content' => 'Create social media post templates',
+            'completed' => true,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $marketingTask->id,
+            'content' => 'Design Instagram story templates',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $marketingTask->id,
+            'content' => 'Create LinkedIn article graphics',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $marketingTask->id,
+            'content' => 'Design email newsletter template',
+            'completed' => false,
+        ]);
+
+        ChecklistItem::factory()->create([
+            'task_id' => $marketingTask->id,
+            'content' => 'Create print ad designs for magazines',
+            'completed' => false,
         ]);
     }
 }
