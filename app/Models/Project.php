@@ -23,6 +23,6 @@ class Project extends Model
 
     public function sections()
     {
-        return $this->hasMany(Section::class)->latest();
+        return $this->hasMany(Section::class)->ordered();
     }
 }

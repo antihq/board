@@ -20,4 +20,9 @@ class Section extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('order');
+    }
 }
