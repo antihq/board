@@ -35,12 +35,7 @@ new class extends Component
                             <flux:heading size="lg">New project</flux:heading>
                             <flux:text class="mt-2">Create a new project for your team.</flux:text>
                         </div>
-                        <flux:input
-                            wire:model="name"
-                            label="Project name"
-                            placeholder="Enter project name"
-                            required
-                        />
+                        <flux:input wire:model="name" label="Project name" placeholder="Enter project name" required />
                         <div class="flex">
                             <flux:spacer />
                             <flux:button type="submit" variant="primary">Create project</flux:button>
@@ -49,10 +44,12 @@ new class extends Component
                 </form>
             </flux:modal>
         </flux:modal.trigger>
-        @unless($team->projects->isEmpty())
+        @unless ($team->projects->isEmpty())
             <flux:menu.separator />
             @foreach ($team->projects as $project)
-                <flux:navmenu.item href="#">{{ $project->name }}</flux:navmenu.item>
+                <flux:navmenu.item href="/{{ $team->id }}/{{ $project->id }}" wire:navigate>
+                    {{ $project->name }}
+                </flux:navmenu.item>
             @endforeach
         @endunless
     </flux:navmenu>

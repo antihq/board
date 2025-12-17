@@ -23,4 +23,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('/dashboard', 'pages::dashboard');
 
     Route::livewire('/{team}', 'pages::teams.show');
+    Route::livewire('/{team}/{project}', 'pages::projects.show');
 });
