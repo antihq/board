@@ -25,3 +25,25 @@ it('saves task description successfully', function () {
     $task->refresh();
     expect($task->description)->toEqual("<p>{$description}</p>");
 });
+
+it('saves task title successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Original Task Title',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    $newTitle = 'Updated Task Title';
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('editTitle')
+        ->set('title', $newTitle)
+        ->call('saveTitle')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->title)->toEqual($newTitle);
+});

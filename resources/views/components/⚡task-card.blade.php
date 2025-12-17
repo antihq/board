@@ -13,6 +13,10 @@ new class extends Component
 
     public bool $isEditingDescription = false;
 
+    public bool $isEditingTitle = false;
+
+    public string $title = '';
+
     public function openModal()
     {
         $this->showModal = true;
@@ -22,6 +26,7 @@ new class extends Component
     {
         $this->showModal = false;
         $this->isEditingDescription = false;
+        $this->isEditingTitle = false;
     }
 
     public function editDescription()
@@ -43,50 +48,93 @@ new class extends Component
         $this->isEditingDescription = false;
     }
 
+    public function editTitle()
+    {
+        $this->title = $this->task->title;
+        $this->isEditingTitle = true;
+    }
+
+    public function saveTitle()
+    {
+        $this->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $this->task->update([
+            'title' => $this->title,
+        ]);
+
+        $this->isEditingTitle = false;
+    }
+
     public function cancelEdit()
     {
         $this->isEditingDescription = false;
         $this->description = '';
+        $this->isEditingTitle = false;
+        $this->title = '';
     }
 };
 ?>
 
-<flux:modal class="max-w-[95vw] md:w-[600px]">
+<flux:modal class="w-full max-w-[95vw] md:w-[600px]">
     <x-slot name="trigger">
-        <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
+        <flux:kanban.card as="button" heading="{{ $this->isEditingTitle ? $this->title : $task->title }}" wire:sort:item="{{ $task->id }}" />
     </x-slot>
 
     <div class="space-y-6">
         <div>
-            <flux:heading size="lg">{{ $task->title }}</flux:heading>
+            @if ($this->isEditingTitle)
+                <form wire:submit="saveTitle">
+                    <flux:composer
+                        wire:model="title"
+                        rows="1"
+                        label="Task Title"
+                        label:sr-only
+                        placeholder="Enter task title..."
+                        submit="enter"
+                        inline
+                    >
+                        <x-slot name="actionsTrailing">
+                            <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
+                        </x-slot>
+                    </flux:composer>
+                </form>
+            @else
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ $task->title }}</flux:heading>
+                    <flux:button size="xs" wire:click="editTitle">
+                        Edit
+                    </flux:button>
+                </div>
+            @endif
         </div>
 
         @if ($this->isEditingDescription)
             <form wire:submit="saveDescription">
-                <div class="space-y-4">
-                    <div>
-                        <flux:composer
-                            wire:model="description"
-                            rows="6"
-                            max-rows="12"
-                            label="Task Description"
-                            placeholder="Add a detailed description..."
-                            submit="enter"
-                        >
-                            <x-slot name="input">
-                                <flux:editor
-                                    variant="borderless"
-                                    toolbar="heading | bold italic | bullet ordered | link"
-                                    placeholder="Add a detailed description..."
-                                />
-                            </x-slot>
-                            <x-slot name="actionsLeading"></x-slot>
-                            <x-slot name="actionsTrailing">
-                                <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
-                                <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
-                            </x-slot>
-                        </flux:composer>
-                    </div>
+                <div>
+                    <flux:composer
+                        wire:model="description"
+                        rows="6"
+                        max-rows="12"
+                        label="Task Description"
+                        label:sr-only
+                        placeholder="Add a detailed description..."
+                    >
+                        <x-slot name="input">
+                            <flux:editor
+                                variant="borderless"
+                                toolbar="heading | bold italic | bullet ordered | link"
+                                placeholder="Add a detailed description..."
+                            />
+                        </x-slot>
+                        <x-slot name="actionsLeading"></x-slot>
+                        <x-slot name="actionsTrailing">
+                            <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
+                        </x-slot>
+                    </flux:composer>
                 </div>
             </form>
         @else
