@@ -83,7 +83,9 @@
             <flux:separator variant="subtle" />
 
             <flux:sidebar.nav>
-                <flux:button href="/projects" variant="ghost" align="start" wire:navigate>Projects</flux:button>
+                @if (request()->team)
+                    <livewire:projects-dropdown :team="request()->team" />
+                @endif
             </flux:sidebar.nav>
         </flux:sidebar>
 
