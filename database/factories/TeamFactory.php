@@ -24,25 +24,4 @@ class TeamFactory extends Factory
             'user_id' => User::factory(),
         ];
     }
-
-    /**
-     * Indicate that the team has an active subscription.
-     */
-    public function withSubscription(array $overrides = []): static
-    {
-        return $this->afterCreating(function ($team) use ($overrides) {
-            $subscription = Subscription::factory()
-                ->for($team, 'owner')
-                ->state($overrides)
-                ->create();
-
-            SubscriptionItem::factory()
-                ->for($subscription)
-                ->state([
-                    'stripe_price' => config('services.stripe.price_id'),
-                    'quantity' => 1,
-                ])
-                ->create();
-        });
-    }
 }
