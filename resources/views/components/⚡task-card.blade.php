@@ -226,7 +226,10 @@ new class extends Component
                     <flux:checkbox.group label="Checklist">
                         @foreach ($this->checklistItems as $item)
                             <flux:field variant="inline">
-                                <flux:checkbox wire:change="toggleChecklistItem({{ $item->id }})" :checked="$item->completed" />
+                                <flux:checkbox
+                                    wire:change="toggleChecklistItem({{ $item->id }})"
+                                    :checked="$item->completed"
+                                />
                                 <flux:label @class(['line-through' => $item->completed])>
                                     {{ $item->content }}
                                 </flux:label>
