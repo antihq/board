@@ -5,8 +5,6 @@ namespace Database\Factories;
 use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Laravel\Cashier\Subscription;
-use Laravel\Cashier\SubscriptionItem;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
