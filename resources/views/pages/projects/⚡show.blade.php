@@ -2,7 +2,6 @@
 
 use App\Models\Project;
 use App\Models\Team;
-use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 

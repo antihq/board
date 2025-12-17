@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tasks', function (Blueprint $table) {
+        Schema::create('tasks', function (Blueprint $table) {
             $table->foreignId('project_id')->nullable();
             $table->foreignId('team_id')->nullable();
+            $table->foreignId('user_id')->nullable();
             $table->string('title');
+            $table->timestamps();
         });
     }
 
