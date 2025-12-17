@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
@@ -10,7 +9,7 @@ it('creates a new task successfully', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project']);
 
-    Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
+    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
         ->set('title', 'Test Task')
         ->call('createTask')
         ->assertHasNoErrors();
