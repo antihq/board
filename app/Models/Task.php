@@ -56,6 +56,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'section_moved_by');
     }
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->latest();
+    }
+
     public function scopeInbox($query)
     {
         return $query->whereNull('completed_at')->whereNull('section_id');

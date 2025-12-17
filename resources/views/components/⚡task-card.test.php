@@ -2,6 +2,7 @@
 
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Comment;
 use Livewire\Livewire;
 
 it('saves task description successfully', function () {
@@ -46,4 +47,27 @@ it('saves task title successfully', function () {
 
     $task->refresh();
     expect($task->title)->toEqual($newTitle);
+});
+
+it('adds a comment successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    $commentContent = 'This is a test comment.';
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('newComment', $commentContent)
+        ->call('addComment')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(1);
+    expect($task->comments->first()->content)->toContain($commentContent);
+    expect($task->comments->first()->user_id)->toEqual($user->id);
 });

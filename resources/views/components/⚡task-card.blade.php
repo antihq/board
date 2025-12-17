@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Task;
+use App\Models\User;
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 
 new class extends Component
 {
@@ -17,6 +19,8 @@ new class extends Component
 
     public string $title = '';
 
+    public string $newComment = '';
+
     public function openModal()
     {
         $this->showModal = true;
@@ -27,6 +31,7 @@ new class extends Component
         $this->showModal = false;
         $this->isEditingDescription = false;
         $this->isEditingTitle = false;
+        $this->newComment = '';
     }
 
     public function editDescription()
@@ -73,6 +78,24 @@ new class extends Component
         $this->description = '';
         $this->isEditingTitle = false;
         $this->title = '';
+    }
+
+    public function addComment()
+    {
+        $this->validate([
+            'newComment' => 'required|string|max:5000',
+        ]);
+
+        $this->task->comments()->create([
+            'user_id' => Auth::id(),
+            'content' => $this->pull('newComment'),
+        ]);
+    }
+
+    #[Computed]
+    public function comments()
+    {
+        return $this->task->comments()->with('user')->get();
     }
 };
 ?>
@@ -158,5 +181,64 @@ new class extends Component
                 @endif
             </div>
         @endif
+
+        <flux:separator variant="subtle" />
+
+        <!-- Comments Section -->
+        <div class="space-y-4">
+            @unless ($this->comments->isEmpty())
+                <flux:heading class="text-xs!">Comments</flux:heading>
+
+                <!-- Comments List -->
+                <div class="space-y-3">
+                    @foreach ($this->comments as $comment)
+                        <div class="flex gap-3">
+                            <flux:avatar
+                                circle
+                                size="sm"
+                                name="{{ $comment->user->name }}"
+                                color="auto"
+                                color:seed="{{ $comment->user->id }}"
+                                tooltip="{{ $comment->user->name }}"
+                                src="https://unavatar.io/gravatar/{{ auth()->user()->email }}"
+                            />
+                            <div class="flex-1 space-y-1">
+                                <div class="flex items-center gap-2">
+                                    <flux:heading>{{ $comment->user->name }}</flux:heading>
+                                    <flux:text class="text-xs">{{ $comment->created_at->diffForHumans() }}</flux:text>
+                                </div>
+                                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                                    {!! $comment->content !!}
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endunless
+
+            <!-- Add Comment Form -->
+            <form wire:submit="addComment" class="space-y-3">
+                <flux:composer
+                    wire:model="newComment"
+                    rows="3"
+                    max-rows="8"
+                    label="Add a comment"
+                    label:sr-only
+                    placeholder="Write a comment..."
+                >
+                    <x-slot name="input">
+                        <flux:editor
+                            variant="borderless"
+                            toolbar="bold italic | link"
+                            placeholder="Write a comment..."
+                        />
+                    </x-slot>
+                    <x-slot name="actionsLeading"></x-slot>
+                    <x-slot name="actionsTrailing">
+                        <flux:button type="submit" size="sm" variant="primary" color="green">Comment</flux:button>
+                    </x-slot>
+                </flux:composer>
+            </form>
+        </div>
     </div>
 </flux:modal>
