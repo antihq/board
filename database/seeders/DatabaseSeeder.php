@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Section;
 use App\Models\Task;
@@ -179,6 +180,95 @@ class DatabaseSeeder extends Seeder
             'completed_by' => $user->id,
             'reopened_at' => now()->subHours(6),
             'reopened_by' => $user->id,
+        ]);
+
+        // Add comments to tasks
+        $this->addCommentsToTasks($team, $user);
+    }
+
+    /**
+     * Add comments to existing tasks to demonstrate the commenting feature.
+     */
+    private function addCommentsToTasks($team, $user): void
+    {
+        // Get some tasks to add comments to
+        $wireframeTask = Task::where('title', 'Create wireframes for homepage')->first();
+        $contactFormTask = Task::where('title', 'Implement contact form functionality')->first();
+        $apiTask = Task::where('title', 'Set up API endpoints')->first();
+        $marketingTask = Task::where('title', 'Design marketing materials')->first();
+
+        // Comments for wireframe task (completed task with feedback)
+        Comment::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>The <strong>wireframes</strong> look great! I especially like the hero section design.</p><p>One suggestion: maybe we should add a customer logos section below the features?</p>',
+            'created_at' => now()->subDays(4),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Good point! I\'ll add that section to the wireframes. It will help with social proof.</p>',
+            'created_at' => now()->subDays(3),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $wireframeTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>✅ Updated! The customer logos section has been added to the bottom of the homepage wireframe.</p>',
+            'created_at' => now()->subDays(2),
+        ]);
+
+        // Comments for contact form task (technical discussion)
+        Comment::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Should we use <strong>reCAPTCHA</strong> for spam protection on the contact form?</p>',
+            'created_at' => now()->subHours(3),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $contactFormTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Yes, definitely. Let\'s implement v3 with the invisible version to keep the user experience smooth.</p>',
+            'created_at' => now()->subHours(2),
+        ]);
+
+        // Comments for API task (development progress)
+        Comment::factory()->create([
+            'task_id' => $apiTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>🚀 API endpoints for user authentication and profile management are now live!</p>',
+            'created_at' => now()->subDays(1),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $apiTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Great work! Can you also add the endpoints for <strong>data synchronization</strong>?</p>',
+            'created_at' => now()->subHours(12),
+        ]);
+
+        // Comments for marketing materials task (ongoing work)
+        Comment::factory()->create([
+            'task_id' => $marketingTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Starting work on the marketing materials. I\'m thinking of using our brand colors consistently across all designs.</p>',
+            'created_at' => now()->subHours(6),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $marketingTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Perfect! Let me know if you need any assets from the design team.</p>',
+            'created_at' => now()->subHours(4),
+        ]);
+
+        Comment::factory()->create([
+            'task_id' => $marketingTask->id,
+            'user_id' => $user->id,
+            'content' => '<p>Thanks! I\'ll need the <strong>logo files</strong> in different formats and the brand guidelines document.</p>',
+            'created_at' => now()->subHours(2),
         ]);
     }
 }
