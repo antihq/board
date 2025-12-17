@@ -51,13 +51,9 @@ new class extends Component
 };
 ?>
 
-<flux:modal class="md:w-[600px] max-w-[95vw]">
+<flux:modal class="max-w-[95vw] md:w-[600px]">
     <x-slot name="trigger">
-        <flux:kanban.card
-            as="button"
-            heading="{{ $task->title }}"
-            wire:sort:item="{{ $task->id }}"
-        />
+        <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
     </x-slot>
 
     <div class="space-y-6">
@@ -69,7 +65,7 @@ new class extends Component
             <form wire:submit="saveDescription">
                 <div class="space-y-4">
                     <div>
-                        <flux:composer 
+                        <flux:composer
                             wire:model="description"
                             rows="6"
                             max-rows="12"
@@ -78,21 +74,16 @@ new class extends Component
                             submit="enter"
                         >
                             <x-slot name="input">
-                                <flux:editor 
-                                    variant="borderless" 
+                                <flux:editor
+                                    variant="borderless"
                                     toolbar="heading | bold italic | bullet ordered | link"
                                     placeholder="Add a detailed description..."
                                 />
                             </x-slot>
-                            <x-slot name="actionsLeading">
-                            </x-slot>
+                            <x-slot name="actionsLeading"></x-slot>
                             <x-slot name="actionsTrailing">
-                                <flux:button type="button" size="sm" wire:click="cancelEdit">
-                                    Cancel
-                                </flux:button>
-                                <flux:button type="submit" size="sm" variant="primary" color="green">
-                                    Save
-                                </flux:button>
+                                <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
+                                <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
                             </x-slot>
                         </flux:composer>
                     </div>
@@ -101,16 +92,12 @@ new class extends Component
         @else
             <div class="space-y-4">
                 @if ($task->description)
-                    <div class="prose prose-sm prose-zinc max-w-none dark:prose-invert">
+                    <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
                         {!! $task->description !!}
                     </div>
-                    <flux:button size="xs" wire:click="editDescription">
-                        Edit description
-                    </flux:button>
+                    <flux:button size="xs" wire:click="editDescription">Edit description</flux:button>
                 @else
-                    <flux:button size="xs" wire:click="editDescription">
-                        Add description
-                    </flux:button>
+                    <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
                 @endif
             </div>
         @endif

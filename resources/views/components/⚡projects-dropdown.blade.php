@@ -37,7 +37,13 @@ new class extends Component
                         <flux:heading size="lg">New project</flux:heading>
                         <flux:text class="mt-2">Create a new project for your team.</flux:text>
                     </div>
-                    <flux:input wire:model="name" label="Project name" placeholder="Enter project name" autofocus required />
+                    <flux:input
+                        wire:model="name"
+                        label="Project name"
+                        placeholder="Enter project name"
+                        autofocus
+                        required
+                    />
                     <div class="flex">
                         <flux:spacer />
                         <flux:button type="submit" variant="primary" size="sm" color="green">

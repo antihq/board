@@ -87,7 +87,8 @@ class Task extends Model
      */
     private function sanitizeHtml(string $html): string
     {
-        $editor = new Editor();
+        $editor = new Editor;
+
         return $editor->sanitize($html);
     }
 }
