@@ -44,10 +44,10 @@ new class extends Component
         <div class="h-full w-full overflow-x-auto">
             <flux:kanban>
                 <livewire:columns.inbox :project="$project" />
-                <livewire:columns.done :project="$project" />
                 @foreach ($this->sections as $section)
                     <livewire:columns.section :section="$section" />
                 @endforeach
+                <livewire:columns.done :project="$project" />
                 <flux:kanban.column>
                     <flux:kanban.column.footer class="pt-2">
                         <form wire:submit.prevent="createSection">
