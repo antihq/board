@@ -20,3 +20,26 @@ it('creates a new task successfully', function () {
     expect($task->user_id)->toEqual($user->id);
     expect($task->team_id)->toEqual($team->id);
 });
+
+it('reopens a completed task when moved to inbox', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'completed_at' => now()->subDay(),
+        'completed_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+        ->call('sortItem', $task->id, 0);
+
+    $task->refresh();
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
+    expect($task->reopened_at)->not->toBeNull();
+    expect($task->reopened_by)->toEqual($user->id);
+});
