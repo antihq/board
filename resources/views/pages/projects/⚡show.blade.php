@@ -13,6 +13,11 @@ new class extends Component
 
     public string $title = '';
 
+    public function mount()
+    {
+        $this->authorize('view', $this->team);
+    }
+
     public function createSection()
     {
         $this->validate([
