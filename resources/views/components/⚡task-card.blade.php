@@ -152,7 +152,10 @@ new class extends Component
             <div class="mt-4 space-y-2">
                 @foreach ($this->checklistItems as $item)
                     <flux:field variant="inline">
-                        <flux:checkbox wire:change="toggleChecklistItem({{ $item->id }})" :checked="$item->completed" />
+                        <flux:checkbox
+                            wire:change="toggleChecklistItem({{ $item->id }})"
+                            :checked="$item->completed"
+                        />
                         <flux:label @class(['line-through' => $item->completed])>
                             {{ $item->content }}
                         </flux:label>
@@ -169,16 +172,15 @@ new class extends Component
                             inline
                         >
                             <x-slot name="actionsTrailing">
-                                <flux:button type="button" size="sm" wire:click="cancelAddingChecklistItem">Cancel</flux:button>
+                                <flux:button type="button" size="sm" wire:click="cancelAddingChecklistItem">
+                                    Cancel
+                                </flux:button>
                                 <flux:button type="submit" size="sm" variant="primary" color="green">Add</flux:button>
                             </x-slot>
                         </flux:composer>
                     </form>
                 @else
-                    <flux:button
-                        size="xs"
-                        wire:click="startAddingChecklistItem"
-                    >
+                    <flux:button size="xs" wire:click="startAddingChecklistItem">
                         {{ $this->checklistItems->isEmpty() ? 'Add checklist' : 'Add checklist item' }}
                     </flux:button>
                 @endif
