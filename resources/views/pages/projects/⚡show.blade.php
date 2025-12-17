@@ -76,7 +76,7 @@ new class extends Component
 };
 ?>
 
-<div class="h-full">
+<div class="h-full overflow-hidden">
     <flux:heading level="1">{{ $project->name }}</flux:heading>
 
     <flux:spacer class="my-4" />
