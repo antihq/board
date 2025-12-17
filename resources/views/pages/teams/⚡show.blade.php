@@ -6,6 +6,11 @@ use Livewire\Component;
 new class extends Component
 {
     public Team $team;
+
+    public function mount()
+    {
+        $this->authorize('view', $this->team);
+    }
 };
 ?>
 
