@@ -43,3 +43,55 @@ it('reopens a completed task when moved to inbox', function () {
     expect($task->reopened_at)->not->toBeNull();
     expect($task->reopened_by)->toEqual($user->id);
 });
+
+it('removes section assignment when task moved to inbox', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'section_id' => 1,
+        'section_moved_at' => now()->subDay(),
+        'section_moved_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+        ->call('sortItem', $task->id, 0);
+
+    $task->refresh();
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->toBeNull();
+    expect($task->section_moved_by)->toBeNull();
+});
+
+it('removes section assignment and reopens completed task when moved to inbox', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'completed_at' => now()->subDay(),
+        'completed_by' => $user->id,
+        'section_id' => 1,
+        'section_moved_at' => now()->subDay(),
+        'section_moved_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+        ->call('sortItem', $task->id, 0);
+
+    $task->refresh();
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->toBeNull();
+    expect($task->section_moved_by)->toBeNull();
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
+    expect($task->reopened_at)->not->toBeNull();
+    expect($task->reopened_by)->toEqual($user->id);
+});

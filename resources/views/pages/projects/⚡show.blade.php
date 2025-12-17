@@ -40,14 +40,11 @@ new class extends Component
     <flux:kanban>
         <livewire:columns.inbox :project="$project" />
         <livewire:columns.done :project="$project" />
+        @foreach ($this->sections as $section)
+            <livewire:columns.section :section="$section" />
+        @endforeach
         <flux:kanban.column>
-            <flux:kanban.column.header heading="Sections" count="{{ $this->sections->count() }}" />
-            <flux:kanban.column.cards>
-                @foreach ($this->sections as $section)
-                    <flux:kanban.card heading="{{ $section->title }}" />
-                @endforeach
-            </flux:kanban.column.cards>
-            <flux:kanban.column.footer>
+            <flux:kanban.column.footer class="pt-2">
                 <form wire:submit.prevent="createSection">
                     <flux:composer
                         wire:model="title"

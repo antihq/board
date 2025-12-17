@@ -17,11 +17,5 @@
       "command": ["php", "./artisan", "boost:mcp"],
       "enabled": true
     }
-  },
-  "formatter": {
-    "php": {
-      "command": ["./.opencode/format.sh", "$FILE"],
-      "extensions": [".php"]
-    },
   }
 }

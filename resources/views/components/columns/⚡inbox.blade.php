@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Project;
-use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -31,17 +30,31 @@ new class extends Component
         return $this->project->tasks()->inbox()->latest()->get();
     }
 
-    public function sortItem($item, $position)
+    public function sortItem($item, $_position)
     {
         $task = $this->project->tasks()->findOrFail($item);
 
+        $updateData = [];
+
         if ($task->completed_at !== null) {
-            $task->update([
+            $updateData = [
                 'completed_at' => null,
                 'completed_by' => null,
                 'reopened_at' => now(),
                 'reopened_by' => Auth::id(),
+            ];
+        }
+
+        if ($task->section_id !== null) {
+            $updateData = array_merge($updateData, [
+                'section_id' => null,
+                'section_moved_at' => null,
+                'section_moved_by' => null,
             ]);
+        }
+
+        if (!empty($updateData)) {
+            $task->update($updateData);
         }
     }
 };
