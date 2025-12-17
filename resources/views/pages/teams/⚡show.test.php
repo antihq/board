@@ -20,4 +20,3 @@ it('denies non-team owner from viewing team', function () {
     Livewire::actingAs($nonOwner)->test('pages::teams.show', ['team' => $team])
         ->assertForbidden();
 });
-
