@@ -117,7 +117,7 @@ new class extends Component
                         </form>
                     </flux:kanban.column.footer>
                 </flux:kanban.column>
-                <div class="w-48 h-full shrink-0">&nbsp;</div>
+                <div class="h-full w-48 shrink-0">&nbsp;</div>
             </flux:kanban>
         </div>
     </div>
