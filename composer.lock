@@ -2161,16 +2161,16 @@
         },
         {
             "name": "livewire/flux",
-            "version": "v2.9.2",
+            "version": "v2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/flux.git",
-                "reference": "6572847f70a18e7cf136bb31201d4064f5c8ade1"
+                "reference": "52a639e889c9616b60f3619e9e282a162efdd0cc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/flux/zipball/6572847f70a18e7cf136bb31201d4064f5c8ade1",
-                "reference": "6572847f70a18e7cf136bb31201d4064f5c8ade1",
+                "url": "https://api.github.com/repos/livewire/flux/zipball/52a639e889c9616b60f3619e9e282a162efdd0cc",
+                "reference": "52a639e889c9616b60f3619e9e282a162efdd0cc",
                 "shasum": ""
             },
             "require": {
@@ -2183,7 +2183,7 @@
                 "symfony/console": "^6.0|^7.0"
             },
             "conflict": {
-                "livewire/blaze": "<0.1.0"
+                "livewire/blaze": "<1.0.0"
             },
             "type": "library",
             "extra": {
@@ -2221,25 +2221,25 @@
             ],
             "support": {
                 "issues": "https://github.com/livewire/flux/issues",
-                "source": "https://github.com/livewire/flux/tree/v2.9.2"
+                "source": "https://github.com/livewire/flux/tree/v2.10.0"
             },
-            "time": "2025-12-04T17:09:39+00:00"
+            "time": "2025-12-17T02:28:28+00:00"
         },
         {
             "name": "livewire/flux-pro",
-            "version": "2.9.2",
+            "version": "2.10.0",
             "dist": {
                 "type": "zip",
-                "url": "https://composer.fluxui.dev/download/a0843966-980f-472e-ac02-3fff5b0dd424/flux-pro-2.9.2.zip",
-                "reference": "9a53a80c3922fc44df95b0653164efc1180019f2",
-                "shasum": "e45cbb87c256d537ec5d0bb9c62e7da59dd4893a"
+                "url": "https://composer.fluxui.dev/download/a09c79fb-0bec-4d1c-abe5-3b477dadcc04/flux-pro-2.10.0.zip",
+                "reference": "80595513ff5c6223be89f7a701b4c5dcfe760823",
+                "shasum": "72b9936fe575244df10b5427794f573a5c21ea88"
             },
             "require": {
                 "illuminate/console": "^10.0|^11.0|^12.0",
                 "illuminate/support": "^10.0|^11.0|^12.0",
                 "illuminate/view": "^10.0|^11.0|^12.0",
                 "laravel/prompts": "^0.1.24|^0.2|^0.3",
-                "livewire/flux": "2.9.2|dev-main",
+                "livewire/flux": "2.10.0|dev-main",
                 "livewire/livewire": "^3.7.0|^4.0",
                 "php": "^8.1",
                 "symfony/console": "^6.0|^7.0"
@@ -2296,20 +2296,20 @@
                 "livewire",
                 "ui"
             ],
-            "time": "2025-12-05T01:19:53+00:00"
+            "time": "2025-12-17T02:40:19+00:00"
         },
         {
             "name": "livewire/livewire",
-            "version": "v4.0.0-beta.4",
+            "version": "v4.0.0-beta.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "fc81faf15cc6164cca7c8a89fa672fcaa0893420"
+                "reference": "f868b14968caafbdd50f219698544315347d8a73"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/fc81faf15cc6164cca7c8a89fa672fcaa0893420",
-                "reference": "fc81faf15cc6164cca7c8a89fa672fcaa0893420",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/f868b14968caafbdd50f219698544315347d8a73",
+                "reference": "f868b14968caafbdd50f219698544315347d8a73",
                 "shasum": ""
             },
             "require": {
@@ -2364,7 +2364,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v4.0.0-beta.4"
+                "source": "https://github.com/livewire/livewire/tree/v4.0.0-beta.5"
             },
             "funding": [
                 {
@@ -2372,7 +2372,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-12-06T22:41:24+00:00"
+            "time": "2025-12-17T02:05:33+00:00"
         },
         {
             "name": "monolog/monolog",

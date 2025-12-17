@@ -97,7 +97,7 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
                             placeholder="email@example.com"
                         />
 
-                        <flux:button variant="primary" color="zinc" type="submit" class="w-full rounded-full!">
+                        <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
                             Create account
                         </flux:button>
                     </form>

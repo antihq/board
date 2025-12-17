@@ -20,7 +20,7 @@
                 autofocus
             />
 
-            <flux:button variant="primary" color="zinc" type="submit" class="w-full rounded-full! text-base!">
+            <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
                 Sign in
             </flux:button>
         </form>
