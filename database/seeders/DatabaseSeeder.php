@@ -75,6 +75,7 @@ class DatabaseSeeder extends Seeder
             'user_id' => $user->id,
             'completed_at' => now()->subDays(5),
             'completed_by' => $user->id,
+            'description' => '<p>Create detailed <strong>wireframes</strong> for the new homepage design. Include:</p><ul><li>Header section with navigation</li><li>Hero section with call-to-action</li><li>Features showcase</li><li>Customer testimonials</li><li>Footer with links</li></ul>',
         ]);
 
         Task::factory()->create([

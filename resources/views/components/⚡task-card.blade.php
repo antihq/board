@@ -9,6 +9,10 @@ new class extends Component
 
     public bool $showModal = false;
 
+    public string $description = '';
+
+    public bool $isEditingDescription = false;
+
     public function openModal()
     {
         $this->showModal = true;
@@ -17,52 +21,98 @@ new class extends Component
     public function closeModal()
     {
         $this->showModal = false;
+        $this->isEditingDescription = false;
+    }
+
+    public function editDescription()
+    {
+        $this->description = $this->task->description ?? '';
+        $this->isEditingDescription = true;
+    }
+
+    public function saveDescription()
+    {
+        $this->validate([
+            'description' => 'nullable|string|max:5000',
+        ]);
+
+        $this->task->update([
+            'description' => $this->description,
+        ]);
+
+        $this->isEditingDescription = false;
+    }
+
+    public function cancelEdit()
+    {
+        $this->isEditingDescription = false;
+        $this->description = '';
     }
 };
 ?>
 
-
-<flux:modal class="md:w-96">
+<flux:modal class="md:w-[600px] max-w-[95vw]">
     <x-slot name="trigger">
         <flux:kanban.card
             as="button"
             heading="{{ $task->title }}"
             wire:sort:item="{{ $task->id }}"
-            class="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
         />
     </x-slot>
+
     <div class="space-y-6">
         <div>
             <flux:heading size="lg">{{ $task->title }}</flux:heading>
-            <flux:text class="mt-2">Task details and information.</flux:text>
         </div>
 
-        <div class="space-y-4">
-            <div class="flex justify-between">
-                <flux:text size="sm">Created</flux:text>
-                <flux:text size="sm">{{ $task->created_at?->format('M j, Y') }}</flux:text>
+        @if ($this->isEditingDescription)
+            <form wire:submit="saveDescription">
+                <div class="space-y-4">
+                    <div>
+                        <flux:composer 
+                            wire:model="description"
+                            rows="6"
+                            max-rows="12"
+                            label="Task Description"
+                            placeholder="Add a detailed description..."
+                            submit="enter"
+                        >
+                            <x-slot name="input">
+                                <flux:editor 
+                                    variant="borderless" 
+                                    toolbar="heading | bold italic | bullet ordered | link"
+                                    placeholder="Add a detailed description..."
+                                />
+                            </x-slot>
+                            <x-slot name="actionsLeading">
+                            </x-slot>
+                            <x-slot name="actionsTrailing">
+                                <flux:button type="button" size="sm" wire:click="cancelEdit">
+                                    Cancel
+                                </flux:button>
+                                <flux:button type="submit" size="sm" variant="primary" color="green">
+                                    Save
+                                </flux:button>
+                            </x-slot>
+                        </flux:composer>
+                    </div>
+                </div>
+            </form>
+        @else
+            <div class="space-y-4">
+                @if ($task->description)
+                    <div class="prose prose-sm prose-zinc max-w-none dark:prose-invert">
+                        {!! $task->description !!}
+                    </div>
+                    <flux:button size="xs" wire:click="editDescription">
+                        Edit description
+                    </flux:button>
+                @else
+                    <flux:button size="xs" wire:click="editDescription">
+                        Add description
+                    </flux:button>
+                @endif
             </div>
-
-            @if ($task->completed_at)
-                <div class="flex justify-between">
-                    <flux:text size="sm">Completed</flux:text>
-                    <flux:text size="sm">{{ $task->completed_at->format('M j, Y') }}</flux:text>
-                </div>
-            @endif
-
-            @if ($task->section)
-                <div class="flex justify-between">
-                    <flux:text size="sm">Section</flux:text>
-                    <flux:text size="sm">{{ $task->section->title }}</flux:text>
-                </div>
-            @endif
-        </div>
-
-        <div class="flex">
-            <flux:spacer />
-            <flux:modal.close>
-                <flux:button variant="ghost">Close</flux:button>
-            </flux:modal.close>
-        </div>
+        @endif
     </div>
 </flux:modal>
