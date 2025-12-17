@@ -34,7 +34,7 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:button size="sm" variant="ghost" square>
-                    <flux:avatar size="xs" :name="Auth::user()->name" color="auto" initials:single />
+                    <flux:avatar size="xs" src="https://unavatar.io/gravatar/{{ auth()->user()->email }}" :name="Auth::user()->name" color="auto" initials:single />
                 </flux:button>
 
                 <flux:menu>

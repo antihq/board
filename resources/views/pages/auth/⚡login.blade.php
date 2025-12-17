@@ -24,7 +24,7 @@ new #[Layout('layouts::auth'), Title('Login')] class extends Component
 
         @env('local')
             <div class="flex justify-center py-7 text-sm">
-                <x-login-link email="oliver@example.com" label="Login as Oliver" :redirect-url="url('dashboard')" />
+                <x-login-link email="oliver@antihq.com" label="Login as Oliver" :redirect-url="url('dashboard')" />
             </div>
         @endenv
     </div>

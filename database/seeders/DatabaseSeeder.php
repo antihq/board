@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $user = User::factory()->withPersonalTeam(['name' => 'Oliver\'s Team'])->create([
             'name' => 'Oliver Servín',
-            'email' => 'oliver@example.com',
+            'email' => 'oliver@antihq.com',
         ]);
 
         $team = $user->teams()->first();
