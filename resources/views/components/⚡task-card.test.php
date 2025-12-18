@@ -260,3 +260,50 @@ it('reopens a task successfully', function () {
     expect($task->section_moved_at)->not->toBeNull();
     expect($task->section_moved_by)->toEqual($user->id);
 });
+
+it('toggles task priority from unprioritized to prioritized', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->prioritized_at)->toBeNull();
+    expect($task->prioritized_by)->toBeNull();
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('togglePriority')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->prioritized_at)->not->toBeNull();
+    expect($task->prioritized_by)->toEqual($user->id);
+    expect($task->prioritized_at->format('Y-m-d H:i'))->toEqual(now()->format('Y-m-d H:i'));
+});
+
+it('toggles task priority from prioritized to unprioritized', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'prioritized_at' => now()->subHour(),
+        'prioritized_by' => $user->id,
+    ]);
+
+    expect($task->prioritized_at)->not->toBeNull();
+    expect($task->prioritized_by)->toEqual($user->id);
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('togglePriority')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->prioritized_at)->toBeNull();
+    expect($task->prioritized_by)->toBeNull();
+});

@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -249,6 +250,23 @@ new class extends Component {
         $this->task->touch();
     }
 
+    public function togglePriority()
+    {
+        if ($this->task->prioritized_at) {
+            $this->task->update([
+                'prioritized_at' => null,
+                'prioritized_by' => null,
+            ]);
+        } else {
+            $this->task->update([
+                'prioritized_at' => now(),
+                'prioritized_by' => Auth::id(),
+            ]);
+        }
+
+        $this->task->touch();
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -317,11 +335,17 @@ new class extends Component {
                         <flux:heading size="lg">{{ $task->title }}</flux:heading>
                         <flux:button size="xs" wire:click="editTitle">Edit</flux:button>
                     </div>
-                    @if ($task->completed_at)
-                        <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
-                    @else
-                        <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
-                    @endif
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if ($task->prioritized_at)
+                            <flux:badge color="amber" size="lg" icon="star">Top priority</flux:badge>
+                        @endif
+
+                        @if ($task->completed_at)
+                            <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
+                        @else
+                            <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
+                        @endif
+                    </div>
                 </div>
             @endif
         </div>
@@ -409,6 +433,24 @@ new class extends Component {
                             <flux:text class="text-xs">No section assigned</flux:text>
                         @endif
                     </div>
+                @endif
+            </div>
+
+            <!-- Priority Section -->
+            <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                    <flux:heading>Priority</flux:heading>
+                    @if ($task->prioritized_at)
+                        <flux:button size="xs" wire:click="togglePriority">Not urgent</flux:button>
+                    @else
+                        <flux:button size="xs" wire:click="togglePriority">Top priority</flux:button>
+                    @endif
+                </div>
+
+                @if ($task->prioritized_at)
+                    <flux:text class="text-xs">Marked as top priority by {{ $task->prioritizer?->name }}</flux:text>
+                @else
+                    <flux:text class="text-xs">Not urgent</flux:text>
                 @endif
             </div>
 

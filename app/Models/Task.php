@@ -19,6 +19,7 @@ class Task extends Model
         'completed_at' => 'datetime',
         'reopened_at' => 'datetime',
         'section_moved_at' => 'datetime',
+        'prioritized_at' => 'datetime',
     ];
 
     public function project()
@@ -56,6 +57,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'section_moved_by');
     }
 
+    public function prioritizer()
+    {
+        return $this->belongsTo(User::class, 'prioritized_by');
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class)->oldest();
@@ -84,6 +90,11 @@ class Task extends Model
     public function scopeSectioned($query)
     {
         return $query->whereNotNull('section_id');
+    }
+
+    public function scopePriority($query)
+    {
+        return $query->whereNotNull('prioritized_at');
     }
 
     /**
