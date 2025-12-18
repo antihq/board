@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -32,6 +33,10 @@ new class extends Component {
 
     public bool $isManagingTags = false;
 
+    public bool $isManagingSection = false;
+
+    public ?int $selectedSection = null;
+
     public function mount()
     {
         $this->completedChecklistItems = $this->task
@@ -44,6 +49,8 @@ new class extends Component {
             ->tags()
             ->pluck('tags.id')
             ->toArray();
+
+        $this->selectedSection = $this->task->section_id;
     }
 
     public function openModal()
@@ -171,6 +178,29 @@ new class extends Component {
         $this->tagSearch = '';
     }
 
+    public function startManagingSection()
+    {
+        $this->isManagingSection = true;
+    }
+
+    public function cancelManagingSection()
+    {
+        $this->isManagingSection = false;
+    }
+
+    public function updatedSelectedSection()
+    {
+        $section = $this->selectedSection ? $this->task->project->sections()->findOrFail($this->selectedSection) : null;
+
+        $this->task->update([
+            'section_id' => $section?->id,
+            'section_moved_at' => now(),
+            'section_moved_by' => Auth::id(),
+        ]);
+
+        $this->task->touch();
+    }
+
     public function createTag()
     {
         $this->validate([
@@ -220,6 +250,15 @@ new class extends Component {
         return $this->task->team
             ->tags()
             ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function projectSections()
+    {
+        return $this->task->project
+            ->sections()
+            ->orderBy('order')
             ->get();
     }
 };
@@ -305,59 +344,105 @@ new class extends Component {
 
         <flux:separator variant="subtle" />
 
-        <!-- Tags Section -->
-        <div>
-            @if ($this->isManagingTags)
-                <div class="space-y-2">
-                    <flux:pillbox
-                        wire:model.live="selectedTags"
-                        variant="combobox"
-                        label="Tags"
-                        placeholder="Select tags..."
-                        size="sm"
-                        multiple
-                    >
-                        <x-slot name="input">
-                            <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
-                        </x-slot>
-
-                        @foreach ($this->teamTags as $tag)
-                            <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
-                                {{ $tag->name }}
-                            </flux:pillbox.option>
-                        @endforeach
-
-                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
-                            Create "
-                            <span wire:text="tagSearch"></span>
-                            "
-                        </flux:pillbox.option.create>
-                    </flux:pillbox>
-
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <flux:heading>Tags</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingTags">Manage</flux:button>
-                    </div>
-                    @unless ($task->tags->isEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($task->tags as $tag)
-                                <flux:badge>{{ $tag->name }}</flux:badge>
+        <!-- Tags and Section Grid -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Section Section -->
+            <div>
+                @if ($this->isManagingSection)
+                    <div class="space-y-2">
+                        <flux:select
+                            variant="listbox"
+                            searchable
+                            wire:model.live="selectedSection"
+                            label="Section"
+                            placeholder="Select a section..."
+                            size="sm"
+                        >
+                            <flux:select.option value="">No section</flux:select.option>
+                            @foreach ($this->projectSections as $section)
+                                <flux:select.option :value="$section->id" wire:key="section-{{ $section->id }}">
+                                    {{ $section->title }}
+                                </flux:select.option>
                             @endforeach
+                        </flux:select>
+
+                        <div class="flex gap-2">
+                            <flux:spacer />
+                            <flux:button wire:click="cancelManagingSection" size="sm" variant="primary" color="green">
+                                Done
+                            </flux:button>
                         </div>
-                    @else
-                        <flux:text class="text-xs">No tags assigned</flux:text>
-                    @endunless
-                </div>
-            @endif
+                    </div>
+                @else
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <flux:heading>Section</flux:heading>
+                            <flux:button size="xs" wire:click="startManagingSection">Manage</flux:button>
+                        </div>
+
+                        @if ($task->section)
+                            <flux:badge>{{ $task->section->title }}</flux:badge>
+                        @else
+                            <flux:text class="text-xs">No section assigned</flux:text>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tags Section -->
+            <div>
+                @if ($this->isManagingTags)
+                    <div class="space-y-2">
+                        <flux:pillbox
+                            wire:model.live="selectedTags"
+                            variant="combobox"
+                            label="Tags"
+                            placeholder="Select tags..."
+                            size="sm"
+                            multiple
+                        >
+                            <x-slot name="input">
+                                <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
+                            </x-slot>
+
+                            @foreach ($this->teamTags as $tag)
+                                <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
+                                    {{ $tag->name }}
+                                </flux:pillbox.option>
+                            @endforeach
+
+                            <flux:pillbox.option.create wire:click="createTag" min-length="2">
+                                Create "
+                                <span wire:text="tagSearch"></span>
+                                "
+                            </flux:pillbox.option.create>
+                        </flux:pillbox>
+
+                        <div class="flex gap-2">
+                            <flux:spacer />
+                            <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
+                                Done
+                            </flux:button>
+                        </div>
+                    </div>
+                @else
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <flux:heading>Tags</flux:heading>
+                            <flux:button size="xs" wire:click="startManagingTags">Manage</flux:button>
+                        </div>
+                        @unless ($task->tags->isEmpty())
+                            <div class="flex flex-wrap gap-2">
+                                @foreach ($task->tags as $tag)
+                                    <flux:badge>{{ $tag->name }}</flux:badge>
+                                @endforeach
+                            </div>
+                        @else
+                            <flux:text class="text-xs">No tags assigned</flux:text>
+                        @endunless
+                    </div>
+                @endif
+            </div>
         </div>
 
         <flux:separator variant="subtle" />

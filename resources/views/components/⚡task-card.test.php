@@ -127,7 +127,7 @@ it('updates selected tags successfully', function () {
         'team_id' => $team->id,
     ]);
 
-    // Create some existing tags for the team
+    // Create some existing tags for team
     $tag1 = $team->tags()->create(['name' => 'Bug Fix']);
     $tag2 = $team->tags()->create(['name' => 'Feature']);
 
@@ -147,4 +147,49 @@ it('updates selected tags successfully', function () {
     $task->refresh();
     expect($task->tags)->toHaveCount(2);
     expect($task->tags->pluck('id')->toArray())->toEqual([$tag1->id, $tag2->id]);
+});
+
+it('updates selected section successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Create some existing sections for project
+    $section1 = $project->sections()->create(['title' => 'To Do', 'order' => 1]);
+    $section2 = $project->sections()->create(['title' => 'In Progress', 'order' => 2]);
+
+    // Test assigning to first section
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('selectedSection', $section1->id)
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->section_id)->toEqual($section1->id);
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->section_moved_by)->toEqual($user->id);
+
+    // Test switching to second section
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('selectedSection', $section2->id)
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->section_id)->toEqual($section2->id);
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->section_moved_by)->toEqual($user->id);
+
+    // Test removing section assignment
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('selectedSection', null)
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->section_moved_by)->toEqual($user->id);
 });
