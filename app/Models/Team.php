@@ -27,6 +27,11 @@ class Team extends Model
         return $this->hasMany(Task::class);
     }
 
+    public function tags()
+    {
+        return $this->hasMany(Tag::class);
+    }
+
     protected function casts(): array
     {
         return [

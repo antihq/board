@@ -93,3 +93,58 @@ it('toggles checklist item completion', function () {
     $checklistItem->refresh();
     expect($checklistItem->completed)->toBeTrue();
 });
+
+it('creates a new tag successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    $tagName = 'Bug Fix';
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('tagSearch', $tagName)
+        ->call('createTag')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->tags)->toHaveCount(1);
+    expect($task->tags->first()->name)->toEqual($tagName);
+    expect($task->tags->first()->team_id)->toEqual($team->id);
+});
+
+it('updates selected tags successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Create some existing tags for the team
+    $tag1 = $team->tags()->create(['name' => 'Bug Fix']);
+    $tag2 = $team->tags()->create(['name' => 'Feature']);
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('selectedTags', [$tag1->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->tags)->toHaveCount(1);
+    expect($task->tags->first()->id)->toEqual($tag1->id);
+
+    // Update to include both tags
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->set('selectedTags', [$tag1->id, $tag2->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->tags)->toHaveCount(2);
+    expect($task->tags->pluck('id')->toArray())->toEqual([$tag1->id, $tag2->id]);
+});

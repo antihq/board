@@ -66,6 +66,11 @@ class Task extends Model
         return $this->hasMany(ChecklistItem::class);
     }
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class);
+    }
+
     public function scopeInbox($query)
     {
         return $query->whereNull('completed_at')->whereNull('section_id');

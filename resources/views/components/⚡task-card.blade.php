@@ -1,11 +1,12 @@
 <?php
 
 use App\Models\Task;
-use Livewire\Component;
-use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
+use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -26,12 +27,23 @@ new class extends Component {
 
     public array $completedChecklistItems = [];
 
+    public array $selectedTags = [];
+
+    public string $tagSearch = '';
+
+    public bool $isManagingTags = false;
+
     public function mount()
     {
         $this->completedChecklistItems = $this->task
             ->checklistItems()
             ->where('completed', true)
             ->pluck('id')
+            ->toArray();
+
+        $this->selectedTags = $this->task
+            ->tags()
+            ->pluck('tags.id')
             ->toArray();
     }
 
@@ -143,6 +155,38 @@ new class extends Component {
         ]);
     }
 
+    public function startManagingTags()
+    {
+        $this->isManagingTags = true;
+    }
+
+    public function cancelManagingTags()
+    {
+        $this->isManagingTags = false;
+        $this->tagSearch = '';
+    }
+
+    public function createTag()
+    {
+        $this->validate([
+            'tagSearch' => 'required|string|max:255',
+        ]);
+
+        $tag = $this->task->team->tags()->create([
+            'name' => $this->pull('tagSearch'),
+        ]);
+
+        $this->task->tags()->attach($tag->id);
+        $this->selectedTags[] = $tag->id;
+        $this->tagSearch = '';
+    }
+
+    public function updatedSelectedTags()
+    {
+        $tags = $this->task->team->tags()->findMany($this->selectedTags);
+        $this->task->tags()->sync($tags->pluck('id'));
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -158,6 +202,15 @@ new class extends Component {
         return $this->task
             ->comments()
             ->with('user')
+            ->get();
+    }
+
+    #[Computed]
+    public function teamTags()
+    {
+        return $this->task->team
+            ->tags()
+            ->orderBy('name')
             ->get();
     }
 };
@@ -240,6 +293,63 @@ new class extends Component {
                 @endif
             </div>
         @endif
+
+        <flux:separator variant="subtle" />
+
+        <!-- Tags Section -->
+        <div>
+            @if ($this->isManagingTags)
+                <div class="space-y-2">
+                    <flux:pillbox
+                        wire:model.live="selectedTags"
+                        variant="combobox"
+                        label="Tags"
+                        placeholder="Select tags..."
+                        size="sm"
+                        multiple
+                    >
+                        <x-slot name="input">
+                            <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
+                        </x-slot>
+
+                        @foreach ($this->teamTags as $tag)
+                            <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
+                                {{ $tag->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+
+                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
+                            Create "
+                            <span wire:text="tagSearch"></span>
+                            "
+                        </flux:pillbox.option.create>
+                    </flux:pillbox>
+
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
+                            Done
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <flux:heading>Tags</flux:heading>
+                        <flux:button size="xs" wire:click="startManagingTags">Manage</flux:button>
+                    </div>
+                    @unless ($task->tags->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->tags as $tag)
+                                <flux:badge>{{ $tag->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No tags assigned</flux:text>
+                    @endunless
+                </div>
+            @endif
+        </div>
 
         <flux:separator variant="subtle" />
 

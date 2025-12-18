@@ -6,6 +6,7 @@ use App\Models\ChecklistItem;
 use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Section;
+use App\Models\Tag;
 use App\Models\Task;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -183,11 +184,17 @@ class DatabaseSeeder extends Seeder
             'reopened_by' => $user->id,
         ]);
 
+        // Create tags for the team
+        $this->createTeamTags($team);
+
         // Add comments to tasks
         $this->addCommentsToTasks($team, $user);
 
         // Add checklist items to tasks
         $this->addChecklistItemsToTasks();
+
+        // Assign tags to tasks
+        $this->assignTagsToTasks($team);
     }
 
     /**
@@ -410,5 +417,107 @@ class DatabaseSeeder extends Seeder
             'content' => 'Create print ad designs for magazines',
             'completed' => false,
         ]);
+    }
+
+    /**
+     * Create example tags for the team.
+     */
+    private function createTeamTags($team): void
+    {
+        $team->tags()->createMany([
+            ['name' => 'Bug Fix'],
+            ['name' => 'Feature'],
+            ['name' => 'Design'],
+            ['name' => 'Development'],
+            ['name' => 'Testing'],
+            ['name' => 'Documentation'],
+            ['name' => 'Marketing'],
+            ['name' => 'Research'],
+            ['name' => 'High Priority'],
+            ['name' => 'Low Priority'],
+        ]);
+    }
+
+    /**
+     * Assign tags to existing tasks to demonstrate tag functionality.
+     */
+    private function assignTagsToTasks($team): void
+    {
+        // Get the created tags
+        $bugFixTag = $team->tags()->where('name', 'Bug Fix')->first();
+        $featureTag = $team->tags()->where('name', 'Feature')->first();
+        $designTag = $team->tags()->where('name', 'Design')->first();
+        $developmentTag = $team->tags()->where('name', 'Development')->first();
+        $testingTag = $team->tags()->where('name', 'Testing')->first();
+        $documentationTag = $team->tags()->where('name', 'Documentation')->first();
+        $marketingTag = $team->tags()->where('name', 'Marketing')->first();
+        $researchTag = $team->tags()->where('name', 'Research')->first();
+        $highPriorityTag = $team->tags()->where('name', 'High Priority')->first();
+        $lowPriorityTag = $team->tags()->where('name', 'Low Priority')->first();
+
+        // Get specific tasks to assign tags to
+        $wireframeTask = Task::where('title', 'Create wireframes for homepage')->first();
+        $colorPaletteTask = Task::where('title', 'Design color palette and typography')->first();
+        $htmlTemplatesTask = Task::where('title', 'Build responsive HTML templates')->first();
+        $contactFormTask = Task::where('title', 'Implement contact form functionality')->first();
+        $crossBrowserTask = Task::where('title', 'Cross-browser testing')->first();
+        $requirementsTask = Task::where('title', 'Define app requirements and features')->first();
+        $userFlowTask = Task::where('title', 'Design user flow diagrams')->first();
+        $apiTask = Task::where('title', 'Set up API endpoints')->first();
+        $authTask = Task::where('title', 'Implement user authentication')->first();
+        $socialMediaTask = Task::where('title', 'Develop social media strategy')->first();
+        $marketingMaterialsTask = Task::where('title', 'Design marketing materials')->first();
+        $emailCampaignTask = Task::where('title', 'Schedule email campaign')->first();
+
+        // Assign tags to website project tasks
+        if ($wireframeTask) {
+            $wireframeTask->tags()->attach([$designTag->id, $highPriorityTag->id]);
+        }
+
+        if ($colorPaletteTask) {
+            $colorPaletteTask->tags()->attach([$designTag->id]);
+        }
+
+        if ($htmlTemplatesTask) {
+            $htmlTemplatesTask->tags()->attach([$developmentTag->id, $featureTag->id]);
+        }
+
+        if ($contactFormTask) {
+            $contactFormTask->tags()->attach([$developmentTag->id, $bugFixTag->id]);
+        }
+
+        if ($crossBrowserTask) {
+            $crossBrowserTask->tags()->attach([$testingTag->id, $bugFixTag->id]);
+        }
+
+        // Assign tags to mobile app project tasks
+        if ($requirementsTask) {
+            $requirementsTask->tags()->attach([$researchTag->id, $documentationTag->id]);
+        }
+
+        if ($userFlowTask) {
+            $userFlowTask->tags()->attach([$designTag->id, $researchTag->id]);
+        }
+
+        if ($apiTask) {
+            $apiTask->tags()->attach([$developmentTag->id, $featureTag->id]);
+        }
+
+        if ($authTask) {
+            $authTask->tags()->attach([$developmentTag->id, $highPriorityTag->id]);
+        }
+
+        // Assign tags to marketing project tasks
+        if ($socialMediaTask) {
+            $socialMediaTask->tags()->attach([$marketingTag->id, $researchTag->id]);
+        }
+
+        if ($marketingMaterialsTask) {
+            $marketingMaterialsTask->tags()->attach([$marketingTag->id, $designTag->id]);
+        }
+
+        if ($emailCampaignTask) {
+            $emailCampaignTask->tags()->attach([$marketingTag->id, $lowPriorityTag->id]);
+        }
     }
 }
