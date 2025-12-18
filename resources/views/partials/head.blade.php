@@ -14,4 +14,6 @@
 <link href="https://fonts.bunny.net/css?family=inter:400,500,600&display=swap" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+@if ($dark ?? true)
+    @fluxAppearance
+@endif
