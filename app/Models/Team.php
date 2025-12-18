@@ -12,13 +12,6 @@ class Team extends Model
 
     protected $guarded = [];
 
-    protected function casts(): array
-    {
-        return [
-            'personal' => 'boolean',
-        ];
-    }
-
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -32,5 +25,12 @@ class Team extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'personal' => 'boolean',
+        ];
     }
 }

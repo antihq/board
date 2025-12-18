@@ -11,15 +11,15 @@ class ChecklistItem extends Model
 
     protected $guarded = [];
 
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+
     protected function casts(): array
     {
         return [
             'completed' => 'boolean',
         ];
-    }
-
-    public function task()
-    {
-        return $this->belongsTo(Task::class);
     }
 }
