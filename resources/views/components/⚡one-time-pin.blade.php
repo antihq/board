@@ -8,8 +8,7 @@ use Livewire\Component;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Spatie\OneTimePasswords\Rules\OneTimePasswordRule;
 
-new class extends Component
-{
+new class extends Component {
     public ?string $email = null;
 
     public string $oneTimePassword = '';
