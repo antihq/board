@@ -5,8 +5,7 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -59,14 +58,16 @@ new class extends Component
         // Update orders of other sections
         if ($oldOrder < $position) {
             // Moving down: decrement orders of sections in between
-            $this->project->sections()
+            $this->project
+                ->sections()
                 ->where('id', '!=', $section->id)
                 ->where('order', '>', $oldOrder)
                 ->where('order', '<=', $position)
                 ->decrement('order');
         } else {
             // Moving up: increment orders of sections in between
-            $this->project->sections()
+            $this->project
+                ->sections()
                 ->where('id', '!=', $section->id)
                 ->where('order', '>=', $position)
                 ->where('order', '<', $oldOrder)

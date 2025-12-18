@@ -9,8 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
-{
+new #[Layout('layouts::auth'), Title('Sign up')] class extends Component {
     public string $name = '';
 
     public string $email = '';
@@ -21,16 +20,10 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'email',
-                'max:255',
-                Rule::unique(User::class),
-            ],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class)],
         ]);
 
-        event(new Registered($user = $this->createUser()));
+        event(new Registered(($user = $this->createUser())));
 
         $user->sendOneTimePassword();
 
@@ -40,22 +33,27 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component
     protected function createUser(): User
     {
         return DB::transaction(function () {
-            return tap(User::create([
-                'name' => $this->name,
-                'email' => $this->email,
-            ]), function (User $user) {
-                $this->createTeam($user);
-            });
+            return tap(
+                User::create([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                ]),
+                function (User $user) {
+                    $this->createTeam($user);
+                },
+            );
         });
     }
 
     protected function createTeam(User $user): void
     {
-        $user->teams()->save(Team::forceCreate([
-            'user_id' => $user->id,
-            'name' => explode(' ', $user->name, 2)[0]."'s Team",
-            'personal' => true,
-        ]));
+        $user->teams()->save(
+            Team::forceCreate([
+                'user_id' => $user->id,
+                'name' => explode(' ', $user->name, 2)[0] . "'s Team",
+                'personal' => true,
+            ]),
+        );
     }
 }; ?>
 

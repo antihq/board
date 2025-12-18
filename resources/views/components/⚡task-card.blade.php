@@ -5,8 +5,7 @@ use Livewire\Component;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Auth;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -29,7 +28,8 @@ new class extends Component
 
     public function mount()
     {
-        $this->completedChecklistItems = $this->task->checklistItems()
+        $this->completedChecklistItems = $this->task
+            ->checklistItems()
             ->where('completed', true)
             ->pluck('id')
             ->toArray();
@@ -118,12 +118,14 @@ new class extends Component
 
     public function updatedCompletedChecklistItems()
     {
-        $this->task->checklistItems()
+        $this->task
+            ->checklistItems()
             ->whereIn('id', $this->completedChecklistItems)
             ->where('completed', false)
             ->update(['completed' => true]);
 
-        $this->task->checklistItems()
+        $this->task
+            ->checklistItems()
             ->whereNotIn('id', $this->completedChecklistItems)
             ->where('completed', true)
             ->update(['completed' => false]);
@@ -144,13 +146,19 @@ new class extends Component
     #[Computed]
     public function checklistItems()
     {
-        return $this->task->checklistItems()->oldest()->get();
+        return $this->task
+            ->checklistItems()
+            ->oldest()
+            ->get();
     }
 
     #[Computed]
     public function comments()
     {
-        return $this->task->comments()->with('user')->get();
+        return $this->task
+            ->comments()
+            ->with('user')
+            ->get();
     }
 };
 ?>

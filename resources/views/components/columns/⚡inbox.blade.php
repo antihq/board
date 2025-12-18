@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
@@ -27,7 +26,11 @@ new class extends Component
     #[Computed]
     public function tasks()
     {
-        return $this->project->tasks()->inbox()->latest()->get();
+        return $this->project
+            ->tasks()
+            ->inbox()
+            ->latest()
+            ->get();
     }
 
     public function sortItem($item, $_position)
@@ -53,7 +56,7 @@ new class extends Component
             ]);
         }
 
-        if (!empty($updateData)) {
+        if (! empty($updateData)) {
             $task->update($updateData);
         }
     }
