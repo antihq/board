@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "prepare": "husky install"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
@@ -22,6 +23,8 @@
     },
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.19",
+        "husky": "^8.0.0",
+        "lint-staged": "^16.2.7",
         "prettier": "^3.6.2",
         "prettier-plugin-blade": "^2.1.21",
         "prettier-plugin-tailwindcss": "^0.6.14"
