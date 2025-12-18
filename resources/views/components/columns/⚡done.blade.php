@@ -14,7 +14,7 @@ new class extends Component {
         return $this->project
             ->tasks()
             ->done()
-            ->orderByRaw('prioritized_at DESC NULLS LAST, updated_at DESC')
+            ->orderByRaw('CASE WHEN prioritized_at IS NULL THEN 1 ELSE 0 END, prioritized_at DESC, updated_at DESC')
             ->get();
     }
 
