@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     #[Computed]
@@ -13,7 +14,7 @@ new class extends Component {
     {
         return $this->section
             ->tasks()
-            ->latest('section_moved_at')
+            ->latest('updated_at')
             ->get();
     }
 

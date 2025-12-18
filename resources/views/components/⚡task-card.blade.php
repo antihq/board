@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -119,6 +120,8 @@ new class extends Component {
             'content' => $this->pull('newChecklistItemContent'),
             'completed' => false,
         ]);
+
+        $this->task->touch();
     }
 
     public function cancelAddingChecklistItem()
@@ -140,6 +143,8 @@ new class extends Component {
             ->whereNotIn('id', $this->completedChecklistItems)
             ->where('completed', true)
             ->update(['completed' => false]);
+
+        $this->task->touch();
     }
 
     public function addComment()
@@ -152,6 +157,8 @@ new class extends Component {
             'user_id' => Auth::id(),
             'content' => $this->pull('newComment'),
         ]);
+
+        $this->task->touch();
     }
 
     public function startManagingTags()
@@ -178,12 +185,16 @@ new class extends Component {
         $this->task->tags()->attach($tag->id);
         $this->selectedTags[] = $tag->id;
         $this->tagSearch = '';
+
+        $this->task->touch();
     }
 
     public function updatedSelectedTags()
     {
         $tags = $this->task->team->tags()->findMany($this->selectedTags);
         $this->task->tags()->sync($tags->pluck('id'));
+
+        $this->task->touch();
     }
 
     #[Computed]

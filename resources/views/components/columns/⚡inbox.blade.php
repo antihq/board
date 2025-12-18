@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -29,7 +30,7 @@ new class extends Component {
         return $this->project
             ->tasks()
             ->inbox()
-            ->latest()
+            ->latest('updated_at')
             ->get();
     }
 
