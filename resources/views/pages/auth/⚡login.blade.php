@@ -4,22 +4,38 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth'), Title('Login')] class extends Component {
+new #[Layout('layouts::auth'), Title('Login')] class extends Component
+{
     //
 };
 ?>
 
 <div class="isolate mx-auto flex min-h-dvh max-w-7xl items-center justify-center gap-12 max-lg:flex-col">
-    <div>
-        <h1
-            class="text-5xl/[0.9] font-medium tracking-tight text-balance hyphens-auto text-zinc-950 max-lg:text-center sm:text-8xl/[0.8] md:text-9xl/[0.8]"
-        >
-            Kanban, decaffeinated.
-        </h1>
-    </div>
-
     <div class="w-full max-w-md">
-        <livewire:one-time-password />
+        <div class="w-full max-w-md rounded-xl bg-white shadow-md ring-1 ring-black/5">
+            <div class="p-7 sm:p-11">
+                <div class="space-y-8">
+                    <div class="flex items-start">
+                        <a href="/" wire:navigate>
+                            <img src="/logo@2x.png" alt="" class="h-9" />
+                        </a>
+                    </div>
+
+                    <div>
+                        <flux:heading level="1" class="text-base/6! font-medium">Welcome back!</flux:heading>
+                        <flux:text class="mt-1 text-sm/5">Sign in to your account to continue.</flux:text>
+                    </div>
+
+                    <livewire:one-time-pin />
+
+                    <flux:separator text="or" />
+
+                    <flux:button href="/register" class="w-full text-base!" wire:navigate>
+                        Create an account
+                    </flux:button>
+                </div>
+            </div>
+        </div>
 
         @env('local')
             <div class="flex justify-center py-7 text-sm">

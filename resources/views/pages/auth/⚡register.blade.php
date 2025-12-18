@@ -9,7 +9,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth'), Title('Sign up')] class extends Component {
+new #[Layout('layouts::auth'), Title('Register')] class extends Component
+{
     public string $name = '';
 
     public string $email = '';
@@ -58,6 +59,14 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component {
 }; ?>
 
 <div class="isolate mx-auto flex min-h-dvh max-w-7xl items-center justify-center gap-12 max-lg:flex-col">
+    <div>
+        <h1
+            class="text-5xl/[0.9] font-medium tracking-tight text-balance hyphens-auto text-zinc-950 max-lg:text-center sm:text-8xl/[0.8] md:text-9xl/[0.8]"
+        >
+            Kanban, decaffeinated.
+        </h1>
+    </div>
+
     <div class="w-full max-w-md">
         @if ($displayingRegisterForm)
             <div class="rounded-xl bg-white shadow-md ring-1 ring-black/5">
@@ -98,11 +107,11 @@ new #[Layout('layouts::auth'), Title('Sign up')] class extends Component {
                         <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
                             Create account
                         </flux:button>
+
+                        <flux:separator text="or" />
+
+                        <flux:button href="/sign-in" class="w-full text-base!" wire:navigate>Sign in</flux:button>
                     </form>
-                </div>
-                <div class="m-1.5 rounded-lg bg-zinc-50 py-4 text-center text-sm/5 ring-1 ring-black/5">
-                    Already have an account?
-                    <flux:link href="/login" :accent="false" wire:navigate>Log in</flux:link>
                 </div>
             </div>
         @else
