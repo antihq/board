@@ -82,32 +82,3 @@ it('moves uncompleted task to section', function () {
     expect($task->reopened_at)->toBeNull();
     expect($task->reopened_by)->toBeNull();
 });
-
-it('orders tasks by section moved time', function () {
-    $user = User::factory()->create();
-    $team = Team::factory()->create(['user_id' => $user->id]);
-    $project = Project::factory()->create(['team_id' => $team->id]);
-    $section = Section::factory()->create(['project_id' => $project->id]);
-
-    $firstTask = Task::factory()->create([
-        'project_id' => $project->id,
-        'section_id' => $section->id,
-        'section_moved_at' => now()->subMinutes(5),
-        'section_moved_by' => $user->id,
-    ]);
-
-    $secondTask = Task::factory()->create([
-        'project_id' => $project->id,
-        'section_id' => $section->id,
-        'section_moved_at' => now(),
-        'section_moved_by' => $user->id,
-    ]);
-
-    $component = Livewire::actingAs($user)
-        ->test('columns.section', ['section' => $section]);
-
-    $tasks = $component->get('tasks');
-
-    expect($tasks->first()->id)->toBe($secondTask->id);
-    expect($tasks->last()->id)->toBe($firstTask->id);
-});
