@@ -144,7 +144,7 @@ new class extends Component
     #[Computed]
     public function checklistItems()
     {
-        return $this->task->checklistItems()->latest()->get();
+        return $this->task->checklistItems()->oldest()->get();
     }
 
     #[Computed]
