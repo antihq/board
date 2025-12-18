@@ -14,8 +14,8 @@ new class extends Component {
         return $this->project
             ->tasks()
             ->done()
-            ->orderByDesc('prioritized_at')
-            ->orderByDesc('updated_at')
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->get();
     }
 

@@ -29,8 +29,8 @@ new class extends Component {
         return $this->project
             ->tasks()
             ->inbox()
-            ->orderByDesc('prioritized_at')
-            ->orderByDesc('updated_at')
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->get();
     }
 
