@@ -193,3 +193,70 @@ it('updates selected section successfully', function () {
     expect($task->section_moved_at)->not->toBeNull();
     expect($task->section_moved_by)->toEqual($user->id);
 });
+
+it('closes a task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $section = $project->sections()->create(['title' => 'In Progress', 'order' => 1]);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'section_id' => $section->id,
+        'section_moved_at' => now()->subHour(),
+        'section_moved_by' => $user->id,
+    ]);
+
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
+    expect($task->section_id)->toEqual($section->id);
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('closeTask')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_by)->toEqual($user->id);
+    expect($task->reopened_at)->toBeNull();
+    expect($task->reopened_by)->toBeNull();
+    expect($task->section_id)->toEqual($section->id);
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->section_moved_by)->toEqual($user->id);
+});
+
+it('reopens a task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project']);
+    $section = $project->sections()->create(['title' => 'In Progress', 'order' => 1]);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'section_id' => $section->id,
+        'section_moved_at' => now()->subHour(),
+        'section_moved_by' => $user->id,
+        'completed_at' => now()->subMinutes(30),
+        'completed_by' => $user->id,
+    ]);
+
+    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_by)->toEqual($user->id);
+    expect($task->reopened_at)->toBeNull();
+    expect($task->reopened_by)->toBeNull();
+
+    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+        ->call('reopenTask')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
+    expect($task->reopened_at)->not->toBeNull();
+    expect($task->reopened_by)->toEqual($user->id);
+    expect($task->section_id)->toEqual($section->id);
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->section_moved_by)->toEqual($user->id);
+});

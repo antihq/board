@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     #[Computed]
@@ -31,14 +32,6 @@ new class extends Component {
                 'reopened_at' => null,
                 'reopened_by' => null,
             ];
-        }
-
-        if ($task->section_id !== null) {
-            $updateData = array_merge($updateData, [
-                'section_id' => null,
-                'section_moved_at' => null,
-                'section_moved_by' => null,
-            ]);
         }
 
         if (! empty($updateData)) {

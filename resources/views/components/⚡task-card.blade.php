@@ -166,6 +166,30 @@ new class extends Component {
         $this->task->touch();
     }
 
+    public function closeTask()
+    {
+        $this->task->update([
+            'completed_at' => now(),
+            'completed_by' => Auth::id(),
+            'reopened_at' => null,
+            'reopened_by' => null,
+        ]);
+
+        $this->task->touch();
+    }
+
+    public function reopenTask()
+    {
+        $this->task->update([
+            'completed_at' => null,
+            'completed_by' => null,
+            'reopened_at' => now(),
+            'reopened_by' => Auth::id(),
+        ]);
+
+        $this->task->touch();
+    }
+
     public function startManagingTags()
     {
         $this->isManagingTags = true;
@@ -539,6 +563,11 @@ new class extends Component {
                     </x-slot>
                     <x-slot name="actionsLeading"></x-slot>
                     <x-slot name="actionsTrailing">
+                        @unless ($task->completed_at)
+                            <flux:button type="button" size="sm" wire:click="closeTask">Close task</flux:button>
+                        @else
+                            <flux:button type="button" size="sm" wire:click="reopenTask">Reopen task</flux:button>
+                        @endunless
                         <flux:button type="submit" size="sm" variant="primary" color="green">Comment</flux:button>
                     </x-slot>
                 </flux:composer>
