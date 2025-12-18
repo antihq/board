@@ -25,6 +25,16 @@ new class extends Component
 
     public string $newChecklistItemContent = '';
 
+    public array $completedChecklistItems = [];
+
+    public function mount()
+    {
+        $this->completedChecklistItems = $this->task->checklistItems()
+            ->where('completed', true)
+            ->pluck('id')
+            ->toArray();
+    }
+
     public function openModal()
     {
         $this->showModal = true;
@@ -106,12 +116,17 @@ new class extends Component
         $this->newChecklistItemContent = '';
     }
 
-    public function toggleChecklistItem($checklistItemId)
+    public function updatedCompletedChecklistItems()
     {
-        $checklistItem = $this->task->checklistItems()->findOrFail($checklistItemId);
-        $checklistItem->update([
-            'completed' => !$checklistItem->completed,
-        ]);
+        $this->task->checklistItems()
+            ->whereIn('id', $this->completedChecklistItems)
+            ->where('completed', false)
+            ->update(['completed' => true]);
+
+        $this->task->checklistItems()
+            ->whereNotIn('id', $this->completedChecklistItems)
+            ->where('completed', true)
+            ->update(['completed' => false]);
     }
 
     public function addComment()
@@ -223,14 +238,13 @@ new class extends Component
         <div>
             <div class="space-y-2">
                 @unless ($this->checklistItems->isEmpty())
-                    <flux:checkbox.group label="Checklist">
+                    <flux:checkbox.group label="Checklist" wire:model.live="completedChecklistItems">
                         @foreach ($this->checklistItems as $item)
-                            <flux:field variant="inline">
+                            <flux:field variant="inline" wire:key="{{ $item->id }}">
                                 <flux:checkbox
-                                    wire:change="toggleChecklistItem({{ $item->id }})"
-                                    :checked="$item->completed"
+                                    :value="$item->id"
                                 />
-                                <flux:label @class(['line-through' => $item->completed])>
+                                <flux:label @class(['line-through' => in_array($item->id, $completedChecklistItems)])>
                                     {{ $item->content }}
                                 </flux:label>
                             </flux:field>
