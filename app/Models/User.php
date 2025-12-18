@@ -40,6 +40,13 @@ class User extends Authenticatable
         return $this->hasMany(Team::class);
     }
 
+    public function joinedTeams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members')
+            ->withTimestamps()
+            ->withPivot('role');
+    }
+
     /**
      * Get the user's initials
      */

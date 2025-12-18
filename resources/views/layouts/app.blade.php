@@ -30,6 +30,28 @@
 
             <flux:navbar class="me-4">
                 {{-- <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" /> --}}
+                @if (request()->team)
+                    <flux:modal name="invite-people" class="w-full max-w-md">
+                        <x-slot name="trigger">
+                            <flux:button size="sm" inset="top bottom" variant="ghost">Invite people</flux:button>
+                        </x-slot>
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">Invite people to {{ request()->team->name }}</flux:heading>
+                                <flux:text class="mt-2">
+                                    Share this link with people you want to invite to join your team.
+                                </flux:text>
+                            </div>
+
+                            <flux:input
+                                readonly
+                                copyable
+                                :value="route('teams.join', [request()->team, request()->team->invitation_code])"
+                                label="Team invite link"
+                            />
+                        </div>
+                    </flux:modal>
+                @endif
             </flux:navbar>
 
             <flux:dropdown position="top" align="end">

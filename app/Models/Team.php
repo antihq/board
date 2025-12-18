@@ -32,6 +32,13 @@ class Team extends Model
         return $this->hasMany(Tag::class);
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'team_members')
+            ->withTimestamps()
+            ->withPivot('role');
+    }
+
     protected function casts(): array
     {
         return [

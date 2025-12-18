@@ -20,7 +20,8 @@ class TeamPolicy
      */
     public function view(User $user, Team $team): bool
     {
-        return $user->id === $team->user_id;
+        return $user->id === $team->user_id ||
+               $team->users()->where('users.id', $user->id)->exists();
     }
 
     /**

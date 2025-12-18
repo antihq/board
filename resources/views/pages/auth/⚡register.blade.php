@@ -4,12 +4,14 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component {
+new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component
+{
     public string $name = '';
 
     public string $email = '';
@@ -52,6 +54,7 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class exten
                 'user_id' => $user->id,
                 'name' => explode(' ', $user->name, 2)[0] . "'s Team",
                 'personal' => true,
+                'invitation_code' => Str::random(8),
             ]),
         );
     }
