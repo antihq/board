@@ -87,7 +87,7 @@ it('toggles checklist item completion', function () {
     ]);
 
     Livewire::actingAs($user)->test('task-card', ['task' => $task])
-        ->call('toggleChecklistItem', $checklistItem->id)
+        ->set('completedChecklistItems', [$checklistItem->id])
         ->assertHasNoErrors();
 
     $checklistItem->refresh();
