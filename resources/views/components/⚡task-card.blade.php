@@ -215,7 +215,7 @@ new class extends Component {
 };
 ?>
 
-<flux:modal class="max-w-[95vw] md:w-[600px]">
+<flux:modal class="w-full max-w-[95vw] md:w-[600px]">
     <x-slot name="trigger">
         <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
     </x-slot>
