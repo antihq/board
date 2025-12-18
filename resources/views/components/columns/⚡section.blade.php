@@ -5,14 +5,16 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Section $section;
 
     #[Computed]
     public function tasks()
     {
-        return $this->section->tasks()->latest('section_moved_at')->get();
+        return $this->section
+            ->tasks()
+            ->latest('section_moved_at')
+            ->get();
     }
 
     public function sortItem($item, $_position)

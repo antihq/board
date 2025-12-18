@@ -8,8 +8,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Profile settings')] class extends Component
-{
+new #[Title('Profile settings')] class extends Component {
     public string $name = '';
 
     public string $email = '';
@@ -51,11 +50,7 @@ new #[Title('Profile settings')] class extends Component
 
         $user->save();
 
-        Flux::toast(
-            heading: 'Saved',
-            text: 'Profile updated successfully.',
-            variant: 'success'
-        );
+        Flux::toast(heading: 'Saved', text: 'Profile updated successfully.', variant: 'success');
     }
 }; ?>
 

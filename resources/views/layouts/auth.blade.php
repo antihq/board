@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="text-zinc-950 antialiased dark:text-white">
     <head>
-        @include('partials.head', [
-            'title' => (isset($title) ? $title.' - ' : '').config('app.name'),
-            'dark' => false,
-        ])
+        @include(
+            'partials.head',
+            [
+                'title' => (isset($title) ? $title . ' - ' : '') . config('app.name'),
+                'dark' => false,
+            ]
+        )
     </head>
     <body class="bg-zinc-50 dark:bg-zinc-900">
         <flux:main>
