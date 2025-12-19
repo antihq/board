@@ -19,9 +19,11 @@ new class extends Component {
     #[Computed]
     public function tasks()
     {
-        return Task::where('user_id', Auth::id())
+        return $this->team
+            ->tasks()
+            ->where('user_id', Auth::id())
             ->with(['project', 'team'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('updated_at', 'desc')
             ->get();
     }
 };
