@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -482,12 +481,7 @@ new class extends Component
 
                     <div class="flex gap-2">
                         <flux:spacer />
-                        <flux:button
-                            wire:click="cancelManagingSection"
-                            size="sm"
-                            variant="primary"
-                            color="green"
-                        >
+                        <flux:button wire:click="cancelManagingSection" size="sm" variant="primary" color="green">
                             Done
                         </flux:button>
                     </div>
@@ -591,9 +585,7 @@ new class extends Component
                     @foreach ($this->checklistItems as $item)
                         <flux:field variant="inline" wire:key="{{ $item->id }}">
                             <flux:checkbox :value="$item->id" />
-                            <flux:label
-                                @class(['line-through' => in_array($item->id, $completedChecklistItems)])
-                            >
+                            <flux:label @class(['line-through' => in_array($item->id, $completedChecklistItems)])>
                                 {{ $item->content }}
                             </flux:label>
                         </flux:field>
@@ -614,9 +606,7 @@ new class extends Component
                             <flux:button type="button" size="sm" wire:click="cancelAddingChecklistItem">
                                 Cancel
                             </flux:button>
-                            <flux:button type="submit" size="sm" variant="primary" color="green">
-                                Add
-                            </flux:button>
+                            <flux:button type="submit" size="sm" variant="primary" color="green">Add</flux:button>
                         </x-slot>
                     </flux:composer>
                 </form>
@@ -675,11 +665,7 @@ new class extends Component
                 placeholder="Write a comment..."
             >
                 <x-slot name="input">
-                    <flux:editor
-                        variant="borderless"
-                        toolbar="bold italic | link"
-                        placeholder="Write a comment..."
-                    />
+                    <flux:editor variant="borderless" toolbar="bold italic | link" placeholder="Write a comment..." />
                 </x-slot>
                 <x-slot name="actionsLeading"></x-slot>
                 <x-slot name="actionsTrailing">
