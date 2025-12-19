@@ -108,6 +108,10 @@
             class="border-e border-zinc-200 bg-white lg:hidden dark:border-zinc-700 dark:bg-zinc-900"
         >
             <flux:sidebar.header>
+                @if ($team)
+                    <livewire:teams-dropdown :$team />
+                @endif
+
                 <flux:sidebar.collapse
                     class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2"
                 />

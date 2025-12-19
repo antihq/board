@@ -41,7 +41,7 @@ new class extends Component
 ?>
 
 <flux:button.group>
-    <flux:button href="/{{ $team->id }}" variant="subtle" size="sm" inset="left" wire:navigate>
+    <flux:button href="/{{ $team->id }}" variant="subtle" size="sm" wire:navigate>
         {{ $team->name }}
     </flux:button>
     <flux:dropdown position="top" align="start">
