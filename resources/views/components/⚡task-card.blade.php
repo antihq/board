@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -307,7 +306,7 @@ new class extends Component
 };
 ?>
 
-<flux:modal class="w-full max-w-[95vw] lg:max-w-216">
+<flux:modal class="w-full max-w-[95vw] lg:max-w-150">
     <x-slot name="trigger">
         <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
     </x-slot>
