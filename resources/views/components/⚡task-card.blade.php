@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -427,7 +428,7 @@ new class extends Component {
                         </div>
 
                         @if ($task->section)
-                            <flux:badge>{{ $task->section->title }}</flux:badge>
+                            <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
                         @else
                             <flux:text class="text-xs">No section assigned</flux:text>
                         @endif
@@ -447,9 +448,9 @@ new class extends Component {
                 </div>
 
                 @if ($task->prioritized_at)
-                    <flux:text class="text-xs">Marked as top priority by {{ $task->prioritizer?->name }}</flux:text>
+                    <flux:badge size="sm" color="amber">Top priority</flux:badge>
                 @else
-                    <flux:text class="text-xs">Not urgent</flux:text>
+                    <flux:badge size="sm">Not urgent</flux:badge>
                 @endif
             </div>
 
