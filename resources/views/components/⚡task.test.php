@@ -16,7 +16,7 @@ it('saves task description successfully', function () {
 
     $description = 'This is a test description for the task.';
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('editDescription')
         ->set('description', $description)
         ->call('saveDescription')
@@ -38,7 +38,7 @@ it('adds a comment successfully', function () {
 
     $commentContent = 'This is a test comment.';
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('newComment', $commentContent)
         ->call('addComment')
         ->assertHasNoErrors();
@@ -59,7 +59,7 @@ it('adds checklist items to task', function () {
         'team_id' => $team->id,
     ]);
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('startAddingChecklistItem')
         ->set('newChecklistItemContent', 'First checklist item')
         ->call('saveChecklistItem')
@@ -86,7 +86,7 @@ it('toggles checklist item completion', function () {
         'completed' => false,
     ]);
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('completedChecklistItems', [$checklistItem->id])
         ->assertHasNoErrors();
 
@@ -106,7 +106,7 @@ it('creates a new tag successfully', function () {
 
     $tagName = 'Bug Fix';
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('tagSearch', $tagName)
         ->call('createTag')
         ->assertHasNoErrors();
@@ -131,7 +131,7 @@ it('updates selected tags successfully', function () {
     $tag1 = $team->tags()->create(['name' => 'Bug Fix']);
     $tag2 = $team->tags()->create(['name' => 'Feature']);
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('selectedTags', [$tag1->id])
         ->assertHasNoErrors();
 
@@ -140,7 +140,7 @@ it('updates selected tags successfully', function () {
     expect($task->tags->first()->id)->toEqual($tag1->id);
 
     // Update to include both tags
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('selectedTags', [$tag1->id, $tag2->id])
         ->assertHasNoErrors();
 
@@ -164,7 +164,7 @@ it('updates selected section successfully', function () {
     $section2 = $project->sections()->create(['title' => 'In Progress', 'order' => 2]);
 
     // Test assigning to first section
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('selectedSection', $section1->id)
         ->assertHasNoErrors();
 
@@ -174,7 +174,7 @@ it('updates selected section successfully', function () {
     expect($task->section_moved_by)->toEqual($user->id);
 
     // Test switching to second section
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('selectedSection', $section2->id)
         ->assertHasNoErrors();
 
@@ -184,7 +184,7 @@ it('updates selected section successfully', function () {
     expect($task->section_moved_by)->toEqual($user->id);
 
     // Test removing section assignment
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('selectedSection', null)
         ->assertHasNoErrors();
 
@@ -212,7 +212,7 @@ it('closes a task successfully', function () {
     expect($task->completed_by)->toBeNull();
     expect($task->section_id)->toEqual($section->id);
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('closeTask')
         ->assertHasNoErrors();
 
@@ -247,7 +247,7 @@ it('reopens a task successfully', function () {
     expect($task->reopened_at)->toBeNull();
     expect($task->reopened_by)->toBeNull();
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('reopenTask')
         ->assertHasNoErrors();
 
@@ -274,7 +274,7 @@ it('toggles task priority from unprioritized to prioritized', function () {
     expect($task->prioritized_at)->toBeNull();
     expect($task->prioritized_by)->toBeNull();
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('togglePriority')
         ->assertHasNoErrors();
 
@@ -299,7 +299,7 @@ it('toggles task priority from prioritized to unprioritized', function () {
     expect($task->prioritized_at)->not->toBeNull();
     expect($task->prioritized_by)->toEqual($user->id);
 
-    Livewire::actingAs($user)->test('task-card', ['task' => $task])
+    Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('togglePriority')
         ->assertHasNoErrors();
 

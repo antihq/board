@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     #[Computed]
@@ -45,7 +46,13 @@ new class extends Component {
     <flux:kanban.column.header heading="Done" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
         @foreach ($this->tasks as $task)
-            <livewire:task-card :task="$task" wire:key="task-{{ $task->id }}" />
+            <flux:modal class="w-full max-w-[95vw] lg:max-w-150" wire:key="task-{{ $task->id }}">
+                <x-slot name="trigger">
+                    <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}" />
+                </x-slot>
+
+                <livewire:task :task="$task" wire:key="task-{{ $task->id }}" lazy />
+            </flux:modal>
         @endforeach
     </flux:kanban.column.cards>
 </flux:kanban.column>

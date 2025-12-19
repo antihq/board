@@ -22,7 +22,9 @@
                         <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
                         <flux:navmenu>
                             <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
-                            <flux:navmenu.item disabled>Added by me</flux:navmenu.item>
+                            <flux:navmenu.item href="/{{ $team->id }}/added-tasks" wire:navigate>
+                                Added by me
+                            </flux:navmenu.item>
                         </flux:navmenu>
                     </flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down" disabled>Tags</flux:navbar.item>
