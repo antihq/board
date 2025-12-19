@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -278,8 +279,6 @@ new class extends Component {
     #[Computed]
     public function comments()
     {
-        sleep(1);
-
         return $this->task
             ->comments()
             ->with('user')
