@@ -9,7 +9,7 @@
         @include('partials.head', ['title' => (isset($title) ? $title . ' - ' : '') . $team?->name . ' - ' . config('app.name')])
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-900 dark:lg:bg-zinc-950">
-        <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700" container>
+        <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
             <flux:navbar class="-mb-px max-lg:hidden">

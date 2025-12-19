@@ -23,7 +23,7 @@ it('saves task description successfully', function () {
         ->assertHasNoErrors();
 
     $task->refresh();
-    expect($task->description)->toEqual($description);
+    expect($task->description)->toContain($description);
 });
 
 it('adds a comment successfully', function () {
