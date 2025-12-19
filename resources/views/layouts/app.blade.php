@@ -22,23 +22,9 @@
             <flux:navbar class="-mb-px max-lg:hidden">
                 @if ($team)
                     <livewire:projects-dropdown :team="$team" />
-                @endif
-            </flux:navbar>
-
-            {{-- <flux:separator vertical class="mx-1 my-5" /> --}}
-
-            <flux:navbar class="-mb-px max-lg:hidden">
-                {{--  --}}
-            </flux:navbar>
-
-            <flux:spacer />
-
-            <flux:navbar class="me-4">
-                {{-- <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" /> --}}
-                @if ($team)
-                    <flux:modal name="invite-people" class="w-full max-w-md">
+                    <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
                         <x-slot name="trigger">
-                            <flux:button size="sm" inset="top bottom" variant="ghost">Invite people</flux:button>
+                            <flux:button size="sm" variant="subtle">Invite people</flux:button>
                         </x-slot>
                         <div class="space-y-6">
                             <div>
@@ -57,6 +43,18 @@
                         </div>
                     </flux:modal>
                 @endif
+            </flux:navbar>
+
+            {{-- <flux:separator vertical class="mx-1 my-5" /> --}}
+
+            <flux:navbar class="-mb-px max-lg:hidden">
+                {{--  --}}
+            </flux:navbar>
+
+            <flux:spacer />
+
+            <flux:navbar class="me-4">
+                {{-- <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" /> --}}
             </flux:navbar>
 
             <flux:dropdown position="top" align="end">
