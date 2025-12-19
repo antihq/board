@@ -12,15 +12,10 @@
         <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700" container>
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
-            <div class="flex h-full items-center max-lg:hidden">
-                @if ($team)
-                    <livewire:teams-dropdown :team="$team" />
-                    <flux:separator vertical class="mx-1 my-5" />
-                @endif
-            </div>
-
             <flux:navbar class="-mb-px max-lg:hidden">
                 @if ($team)
+                    <livewire:teams-dropdown :team="$team" />
+                    <flux:separator vertical variant="subtle" class="mx-1 my-1" />
                     <livewire:projects-dropdown :team="$team" />
                     <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
                         <x-slot name="trigger">
