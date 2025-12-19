@@ -1,22 +1,27 @@
+@props(['team' => request()->team])
+
 <!DOCTYPE html>
 <html
     lang="{{ str_replace('_', '-', app()->getLocale()) }}"
     class="dark antialiased lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950"
 >
     <head>
-        @include('partials.head', ['title' => (isset($title) ? $title . ' - ' : '') . request()->team?->name . ' - ' . config('app.name')])
+        @include('partials.head', ['title' => (isset($title) ? $title . ' - ' : '') . $team?->name . ' - ' . config('app.name')])
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-900 dark:lg:bg-zinc-950">
         <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700" container>
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
             <div class="flex h-full items-center max-lg:hidden">
-                {{-- <flux:separator vertical class="mx-1 my-5" /> --}}
+                @if ($team)
+                    <livewire:teams-dropdown :team="$team" />
+                    <flux:separator vertical class="mx-1 my-5" />
+                @endif
             </div>
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                @if (request()->team)
-                    <livewire:projects-dropdown :team="request()->team" />
+                @if ($team)
+                    <livewire:projects-dropdown :team="$team" />
                 @endif
             </flux:navbar>
 
@@ -30,14 +35,14 @@
 
             <flux:navbar class="me-4">
                 {{-- <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" /> --}}
-                @if (request()->team)
+                @if ($team)
                     <flux:modal name="invite-people" class="w-full max-w-md">
                         <x-slot name="trigger">
                             <flux:button size="sm" inset="top bottom" variant="ghost">Invite people</flux:button>
                         </x-slot>
                         <div class="space-y-6">
                             <div>
-                                <flux:heading size="lg">Invite people to {{ request()->team->name }}</flux:heading>
+                                <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
                                 <flux:text class="mt-2">
                                     Share this link with people you want to invite to join your team.
                                 </flux:text>
@@ -46,7 +51,7 @@
                             <flux:input
                                 readonly
                                 copyable
-                                :value="route('teams.join', [request()->team, request()->team->invitation_code])"
+                                :value="route('teams.join', [$team, $team->invitation_code])"
                                 label="Team invite link"
                             />
                         </div>
@@ -111,8 +116,8 @@
             <flux:separator variant="subtle" />
 
             <flux:sidebar.nav>
-                @if (request()->team)
-                    <livewire:projects-dropdown :team="request()->team" />
+                @if ($team)
+                    <livewire:projects-dropdown :team="$team" />
                 @endif
             </flux:sidebar.nav>
         </flux:sidebar>
