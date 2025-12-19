@@ -16,27 +16,42 @@
                 @if ($team)
                     <livewire:teams-dropdown :team="$team" />
                     <flux:separator vertical variant="subtle" class="mx-1 my-1" />
+                    <flux:navbar.item href="/{{ $team->id }}">Home</flux:navbar.item>
                     <livewire:projects-dropdown :team="$team" />
-                    <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
-                        <x-slot name="trigger">
-                            <flux:button size="sm" variant="subtle">Invite people</flux:button>
-                        </x-slot>
-                        <div class="space-y-6">
-                            <div>
-                                <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
-                                <flux:text class="mt-2">
-                                    Share this link with people you want to invite to join your team.
-                                </flux:text>
-                            </div>
+                    <flux:dropdown>
+                        <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
+                        <flux:navmenu>
+                            <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
+                            <flux:navmenu.item disabled>Added by me</flux:navmenu.item>
+                        </flux:navmenu>
+                    </flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down" disabled>Tags</flux:navbar.item>
+                    <flux:dropdown>
+                        <flux:navbar.item icon:trailing="chevron-down">Members</flux:navbar.item>
+                        <flux:navmenu>
+                            <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
+                                <x-slot name="trigger">
+                                    <flux:navmenu.item>Invite people</flux:navmenu.item>
+                                </x-slot>
+                                <div class="space-y-6">
+                                    <div>
+                                        <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
+                                        <flux:text class="mt-2">
+                                            Share this link with people you want to invite to join your team.
+                                        </flux:text>
+                                    </div>
 
-                            <flux:input
-                                readonly
-                                copyable
-                                :value="route('teams.join', [$team, $team->invitation_code])"
-                                label="Team invite link"
-                            />
-                        </div>
-                    </flux:modal>
+                                    <flux:input
+                                        readonly
+                                        copyable
+                                        :value="route('teams.join', [$team, $team->invitation_code])"
+                                        label="Team invite link"
+                                    />
+                                </div>
+                            </flux:modal>
+                        </flux:navmenu>
+                    </flux:dropdown>
+                    <flux:navbar.item disabled>Settings</flux:navbar.item>
                 @endif
             </flux:navbar>
 
@@ -49,7 +64,9 @@
             <flux:spacer />
 
             <flux:navbar class="me-4">
-                {{-- <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" /> --}}
+                <flux:navbar.item icon="bookmark" disabled label="Bookmarks" />
+                <flux:navbar.item icon="magnifying-glass" disabled label="Search" />
+                <flux:navbar.item icon="inbox" disabled label="inbox" />
             </flux:navbar>
 
             <flux:dropdown position="top" align="end">
