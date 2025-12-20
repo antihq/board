@@ -5,7 +5,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component {
+new class extends Component
+{
     use WithPagination;
 
     public Team $team;
@@ -68,7 +69,7 @@ new class extends Component {
     {
         return $this->team
             ->projects()
-            ->orderBy('title')
+            ->orderBy('name')
             ->get();
     }
 
