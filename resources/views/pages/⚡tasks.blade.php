@@ -2,25 +2,31 @@
 
 use App\Models\Team;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component
-{
+new class extends Component {
     use WithPagination;
 
     public Team $team;
 
+    #[Url(as: 'projects')]
     public array $selectedProjects = [];
 
+    #[Url(as: 'tags')]
     public array $selectedTags = [];
 
+    #[Url(as: 'added_by')]
     public array $selectedAddedBy = [];
 
+    #[Url(as: 'closed_by')]
     public array $selectedClosedBy = [];
 
+    #[Url(as: 'sort')]
     public string $sortBy = 'recently_updated';
 
+    #[Url(as: 'search')]
     public ?string $search = null;
 
     public int $perPage = 15;
@@ -153,7 +159,7 @@ new class extends Component
             <div class="flex items-center gap-1">
                 <flux:heading level="1" size="lg">Tasks</flux:heading>
                 @if ($this->activeFiltersCount > 0)
-                    <flux:badge>
+                    <flux:badge wire:click="clearFilters" as="button" icon:trailing="x-mark" size="sm">
                         {{ $this->activeFiltersCount }} {{ Str::plural('filter', $this->activeFiltersCount) }}
                     </flux:badge>
                 @endif
