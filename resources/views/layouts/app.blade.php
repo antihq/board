@@ -153,7 +153,52 @@
 
             <flux:sidebar.nav>
                 @if ($team)
+                    <flux:sidebar.item href="/{{ $team->id }}" current>Home</flux:sidebar.item>
                     <livewire:projects-dropdown :team="$team" />
+                    <flux:sidebar.group expandable heading="Tasks" class="grid">
+                        <flux:sidebar.item disabled>Assigned to me</flux:sidebar.item>
+                        <flux:sidebar.item
+                            href="/{{ $team->id }}/tasks?added_by[0]={{ auth()->user()->id }}"
+                            wire:navigate
+                        >
+                            Added by me
+                        </flux:sidebar.item>
+                        <flux:sidebar.item href="/{{ $team->id }}/tasks" wire:navigate>All tasks</flux:sidebar.item>
+                    </flux:sidebar.group>
+                    <flux:sidebar.group expandable heading="Tags" class="grid">
+                        @foreach ($team->tags()->orderBy('name')->get() as $tag)
+                            <flux:sidebar.item href="/{{ $team->id }}/tasks?tags[0]={{ $tag->id }}" wire:navigate>
+                                {{ $tag->name }}
+                            </flux:sidebar.item>
+                        @endforeach
+
+                        @if ($team->tags()->count() === 0)
+                            <flux:sidebar.item disabled>No tags created</flux:sidebar.item>
+                        @endif
+                    </flux:sidebar.group>
+                    <flux:sidebar.group expandable heading="Members" class="grid">
+                        <flux:modal name="invite-people-mobile" class="w-full max-w-[95vw] md:w-[600px]">
+                            <x-slot name="trigger">
+                                <flux:sidebar.item>Invite people</flux:sidebar.item>
+                            </x-slot>
+                            <div class="space-y-6">
+                                <div>
+                                    <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
+                                    <flux:text class="mt-2">
+                                        Share this link with people you want to invite to join your team.
+                                    </flux:text>
+                                </div>
+
+                                <flux:input
+                                    readonly
+                                    copyable
+                                    :value="route('teams.join', [$team, $team->invitation_code])"
+                                    label="Team invite link"
+                                />
+                            </div>
+                        </flux:modal>
+                    </flux:sidebar.group>
+                    <flux:sidebar.item disabled>Settings</flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>
         </flux:sidebar>
