@@ -26,6 +26,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('{team}', 'pages::teams.show')->name('teams.show');
     Route::livewire('{team}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
     Route::livewire('{team}/tasks', 'pages::tasks')->name('tasks');
-    Route::livewire('{team}/added-tasks', 'pages::added-tasks')->name('added-tasks');
     Route::livewire('{team}/{project}', 'pages::projects.show')->name('projects.show');
 });

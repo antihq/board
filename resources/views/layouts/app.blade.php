@@ -23,7 +23,7 @@
                         <flux:navmenu>
                             <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
                             <flux:navmenu.item
-                                href="/{{ $team->id }}/added-tasks?added_by[0]={{ auth()->user()->id }}"
+                                href="/{{ $team->id }}/tasks?added_by[0]={{ auth()->user()->id }}"
                                 wire:navigate
                             >
                                 Added by me
