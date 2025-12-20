@@ -25,6 +25,10 @@
                             <flux:navmenu.item href="/{{ $team->id }}/added-tasks" wire:navigate>
                                 Added by me
                             </flux:navmenu.item>
+                            <flux:menu.separator />
+                            <flux:navmenu.item href="/{{ $team->id }}/tasks" wire:navigate>
+                                All tasks
+                            </flux:navmenu.item>
                         </flux:navmenu>
                     </flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down" disabled>Tags</flux:navbar.item>
