@@ -22,7 +22,10 @@
                         <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
                         <flux:navmenu>
                             <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
-                            <flux:navmenu.item href="/{{ $team->id }}/added-tasks" wire:navigate>
+                            <flux:navmenu.item
+                                href="/{{ $team->id }}/added-tasks?added_by={{ auth()->user()->id }}"
+                                wire:navigate
+                            >
                                 Added by me
                             </flux:navmenu.item>
                             <flux:menu.separator />
@@ -31,7 +34,20 @@
                             </flux:navmenu.item>
                         </flux:navmenu>
                     </flux:dropdown>
-                    <flux:navbar.item icon:trailing="chevron-down" disabled>Tags</flux:navbar.item>
+                    <flux:dropdown>
+                        <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
+                        <flux:navmenu>
+                            @foreach ($team->tags()->orderBy('name')->get() as $tag)
+                                <flux:navmenu.item href="/{{ $team->id }}/tasks?tags={{ $tag->id }}" wire:navigate>
+                                    {{ $tag->name }}
+                                </flux:navmenu.item>
+                            @endforeach
+
+                            @if ($team->tags()->count() === 0)
+                                <flux:navmenu.item disabled>No tags created</flux:navmenu.item>
+                            @endif
+                        </flux:navmenu>
+                    </flux:dropdown>
                     <flux:dropdown>
                         <flux:navbar.item icon:trailing="chevron-down">Members</flux:navbar.item>
                         <flux:navmenu>
