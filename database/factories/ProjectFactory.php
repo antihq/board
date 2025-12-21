@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use App\Models\Team;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,8 +18,11 @@ class ProjectFactory extends Factory
      */
     public function definition(): array
     {
+        $name = fake()->words(3, true);
+
         return [
-            'name' => fake()->words(3, true),
+            'name' => $name,
+            'handle' => Project::generateUniqueHandle($name),
             'team_id' => Team::factory(),
         ];
     }

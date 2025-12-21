@@ -7,7 +7,7 @@ use Livewire\Livewire;
 it('saves task description successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -29,7 +29,7 @@ it('saves task description successfully', function () {
 it('adds a comment successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -52,7 +52,7 @@ it('adds a comment successfully', function () {
 it('adds checklist items to task', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -74,7 +74,7 @@ it('adds checklist items to task', function () {
 it('toggles checklist item completion', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -97,7 +97,7 @@ it('toggles checklist item completion', function () {
 it('creates a new tag successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -120,7 +120,7 @@ it('creates a new tag successfully', function () {
 it('updates selected tags successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -152,7 +152,7 @@ it('updates selected tags successfully', function () {
 it('updates selected section successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -197,7 +197,7 @@ it('updates selected section successfully', function () {
 it('closes a task successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $section = $project->sections()->create(['title' => 'In Progress', 'order' => 1]);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
@@ -229,7 +229,7 @@ it('closes a task successfully', function () {
 it('reopens a task successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $section = $project->sections()->create(['title' => 'In Progress', 'order' => 1]);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
@@ -264,7 +264,7 @@ it('reopens a task successfully', function () {
 it('toggles task priority from unprioritized to prioritized', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,
@@ -287,7 +287,7 @@ it('toggles task priority from unprioritized to prioritized', function () {
 it('toggles task priority from prioritized to unprioritized', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
     $task = $project->tasks()->create([
         'title' => 'Test Task',
         'user_id' => $user->id,

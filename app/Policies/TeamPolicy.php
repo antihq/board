@@ -8,7 +8,7 @@ use App\Models\User;
 class TeamPolicy
 {
     /**
-     * Determine whether the user can view any models.
+     * Determine whether user can view any models.
      */
     public function viewAny(User $user): bool
     {
@@ -16,7 +16,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determine whether user can view model.
      */
     public function view(User $user, Team $team): bool
     {
@@ -25,7 +25,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determine whether user can create models.
      */
     public function create(User $user): bool
     {
@@ -33,15 +33,15 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether user can update model.
      */
     public function update(User $user, Team $team): bool
     {
-        return false;
+        return $user->id === $team->user_id;
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determine whether user can delete model.
      */
     public function delete(User $user, Team $team): bool
     {
@@ -49,7 +49,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Determine whether user can restore model.
      */
     public function restore(User $user, Team $team): bool
     {
@@ -57,7 +57,7 @@ class TeamPolicy
     }
 
     /**
-     * Determine whether the user can permanently delete the model.
+     * Determine whether user can permanently delete model.
      */
     public function forceDelete(User $user, Team $team): bool
     {

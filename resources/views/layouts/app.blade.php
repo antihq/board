@@ -16,20 +16,20 @@
                 @if ($team)
                     <livewire:teams-dropdown :team="$team" />
                     <flux:separator vertical variant="subtle" class="mx-1 my-1" />
-                    <flux:navbar.item href="/{{ $team->id }}">Home</flux:navbar.item>
+                    <flux:navbar.item href="{{ route('teams.show', $team) }}">Home</flux:navbar.item>
                     <livewire:projects-dropdown :team="$team" />
                     <flux:dropdown>
                         <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
                         <flux:navmenu>
                             <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
                             <flux:navmenu.item
-                                href="/{{ $team->id }}/tasks?added_by[0]={{ auth()->user()->id }}"
+                                href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
                                 wire:navigate
                             >
                                 Added by me
                             </flux:navmenu.item>
                             <flux:menu.separator />
-                            <flux:navmenu.item href="/{{ $team->id }}/tasks" wire:navigate>
+                            <flux:navmenu.item href="{{ route('tasks', $team) }}" wire:navigate>
                                 All tasks
                             </flux:navmenu.item>
                         </flux:navmenu>
@@ -38,7 +38,10 @@
                         <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
                         <flux:navmenu>
                             @foreach ($team->tags()->orderBy('name')->get() as $tag)
-                                <flux:navmenu.item href="/{{ $team->id }}/tasks?tags[0]={{ $tag->id }}" wire:navigate>
+                                <flux:navmenu.item
+                                    href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}"
+                                    wire:navigate
+                                >
                                     {{ $tag->name }}
                                 </flux:navmenu.item>
                             @endforeach
@@ -153,21 +156,26 @@
 
             <flux:sidebar.nav>
                 @if ($team)
-                    <flux:sidebar.item href="/{{ $team->id }}" current>Home</flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('teams.show', $team) }}" current>Home</flux:sidebar.item>
                     <livewire:projects-dropdown :team="$team" />
                     <flux:sidebar.group expandable heading="Tasks" class="grid">
                         <flux:sidebar.item disabled>Assigned to me</flux:sidebar.item>
                         <flux:sidebar.item
-                            href="/{{ $team->id }}/tasks?added_by[0]={{ auth()->user()->id }}"
+                            href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
                             wire:navigate
                         >
                             Added by me
                         </flux:sidebar.item>
-                        <flux:sidebar.item href="/{{ $team->id }}/tasks" wire:navigate>All tasks</flux:sidebar.item>
+                        <flux:sidebar.item href="{{ route('tasks', $team) }}" wire:navigate>
+                            All tasks
+                        </flux:sidebar.item>
                     </flux:sidebar.group>
                     <flux:sidebar.group expandable heading="Tags" class="grid">
                         @foreach ($team->tags()->orderBy('name')->get() as $tag)
-                            <flux:sidebar.item href="/{{ $team->id }}/tasks?tags[0]={{ $tag->id }}" wire:navigate>
+                            <flux:sidebar.item
+                                href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}"
+                                wire:navigate
+                            >
                                 {{ $tag->name }}
                             </flux:sidebar.item>
                         @endforeach
@@ -207,7 +215,7 @@
             {{ $slot }}
         </flux:main>
 
-        <flux:toast />
+        <flux:toast position="bottom center" />
 
         <flux:footer class="border-zinc-200 lg:border-t dark:border-zinc-700" container>
             <flux:text class="text-xs/6 lg:text-sm/6">

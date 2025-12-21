@@ -10,7 +10,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component {
+new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component
+{
     public string $name = '';
 
     public string $email = '';
@@ -48,10 +49,14 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class exten
 
     protected function createTeam(User $user): void
     {
+        $teamName = explode(' ', $user->name, 2)[0] . "'s Team";
+        $handle = Team::generateUniqueHandle($teamName);
+
         $user->teams()->save(
             Team::forceCreate([
                 'user_id' => $user->id,
-                'name' => explode(' ', $user->name, 2)[0] . "'s Team",
+                'name' => $teamName,
+                'handle' => $handle,
                 'personal' => true,
                 'invitation_code' => Str::random(8),
             ]),

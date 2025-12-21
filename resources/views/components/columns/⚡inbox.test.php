@@ -7,7 +7,7 @@ use Livewire\Livewire;
 it('creates a new task successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
         ->set('title', 'Test Task')
@@ -24,7 +24,7 @@ it('creates a new task successfully', function () {
 it('reopens a completed task when moved to inbox', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $task = $project->tasks()->create([
         'title' => 'Test Task',
@@ -47,7 +47,7 @@ it('reopens a completed task when moved to inbox', function () {
 it('removes section assignment when task moved to inbox', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $task = $project->tasks()->create([
         'title' => 'Test Task',
@@ -70,7 +70,7 @@ it('removes section assignment when task moved to inbox', function () {
 it('removes section assignment and reopens completed task when moved to inbox', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $task = $project->tasks()->create([
         'title' => 'Test Task',

@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     #[Computed]
@@ -30,7 +31,7 @@ new class extends Component {
     <flux:navbar.item icon:trailing="chevron-down">{{ $team->name }}</flux:navbar.item>
     <flux:navmenu>
         @foreach ($this->teams as $team)
-            <flux:navmenu.item href="/{{ $team->id }}" wire:navigate>
+            <flux:navmenu.item href="{{ route('teams.show', $team) }}" wire:navigate>
                 {{ $team->name }}
             </flux:navmenu.item>
         @endforeach

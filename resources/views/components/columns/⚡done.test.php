@@ -7,7 +7,7 @@ use Livewire\Livewire;
 it('completes an inbox task when moved to done', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $task = $project->tasks()->create([
         'title' => 'Test Task',

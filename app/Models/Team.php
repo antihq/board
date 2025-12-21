@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Team extends Model
 {
@@ -11,6 +12,24 @@ class Team extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public static function generateUniqueHandle(string $name): string
+    {
+        $baseHandle = Str::slug($name);
+        $counter = 0;
+        $handle = $baseHandle;
+
+        do {
+            $existingHandle = static::where('handle', $handle)->lockForUpdate()->first();
+            if (! $existingHandle) {
+                break;
+            }
+            $counter++;
+            $handle = $baseHandle . '-' . $counter;
+        } while ($counter < 100); // Prevent infinite loops
+
+        return $handle;
+    }
 
     public function owner()
     {
@@ -37,6 +56,11 @@ class Team extends Model
         return $this->belongsToMany(User::class, 'team_members')
             ->withTimestamps()
             ->withPivot('role');
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'handle';
     }
 
     protected function casts(): array

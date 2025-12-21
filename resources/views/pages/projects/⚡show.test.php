@@ -8,7 +8,7 @@ use Livewire\Livewire;
 it('creates a new section successfully', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project])
         ->set('title', 'New Section')
@@ -25,7 +25,7 @@ it('creates a new section successfully', function () {
 it('creates multiple sections with correct order', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $component = Livewire::actingAs($user)->test('pages::projects.show', ['team' => $team, 'project' => $project]);
 
@@ -48,7 +48,7 @@ it('creates multiple sections with correct order', function () {
 it('reorders sections correctly when moving forward', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     // Create three sections with 1-based indexing
     $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
@@ -71,7 +71,7 @@ it('reorders sections correctly when moving forward', function () {
 it('reorders sections correctly when moving backward', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     // Create three sections with 1-based indexing
     $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
@@ -94,7 +94,7 @@ it('reorders sections correctly when moving backward', function () {
 it('does not change order when moving to same position', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $section = $project->sections()->create(['title' => 'Test Section', 'order' => 1]);
     $originalOrder = $section->order;
@@ -109,7 +109,7 @@ it('does not change order when moving to same position', function () {
 it('does not allow moving to position 0 (invalid)', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
     $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);
@@ -126,7 +126,7 @@ it('does not allow moving to position 0 (invalid)', function () {
 it('does not allow moving to position greater than total sections', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project']);
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     $section1 = $project->sections()->create(['title' => 'Section 1', 'order' => 1]);
     $section2 = $project->sections()->create(['title' => 'Section 2', 'order' => 2]);

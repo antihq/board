@@ -23,8 +23,10 @@ Route::post('logout', Logout::class);
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
 
-    Route::livewire('{team}', 'pages::teams.show')->name('teams.show');
-    Route::livewire('{team}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
-    Route::livewire('{team}/tasks', 'pages::tasks')->name('tasks');
-    Route::livewire('{team}/{project}', 'pages::projects.show')->name('projects.show');
+    Route::livewire('{team:handle}', 'pages::teams.show')->name('teams.show');
+    Route::livewire('{team:handle}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
+    Route::livewire('{team:handle}/settings/general', 'pages::teams.settings.general')->name('teams.settings.general');
+    Route::livewire('{team:handle}/tasks', 'pages::tasks')->name('tasks');
+    Route::livewire('{team:handle}/{project:handle}', 'pages::projects.show')->name('projects.show');
+    Route::livewire('{team:handle}/{project:handle}/edit', 'pages::projects.edit')->name('projects.edit');
 });

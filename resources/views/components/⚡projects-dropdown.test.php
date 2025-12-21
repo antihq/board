@@ -14,5 +14,7 @@ it('creates a new project successfully', function () {
         ->assertHasNoErrors();
 
     expect($team->projects()->count())->toBe(1);
-    expect($team->projects()->first()->name)->toEqual('Test Project');
+    $project = $team->projects()->first();
+    expect($project->name)->toEqual('Test Project');
+    expect($project->handle)->not->toBeNull();
 });

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -18,8 +19,11 @@ class TeamFactory extends Factory
      */
     public function definition(): array
     {
+        $name = $this->faker->company;
+
         return [
-            'name' => $this->faker->company,
+            'name' => $name,
+            'handle' => Team::generateUniqueHandle($name),
             'user_id' => User::factory(),
             'invitation_code' => Str::random(8),
         ];

@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public function mount()
@@ -135,6 +136,10 @@ new class extends Component {
         <flux:heading level="1" size="xl">{{ $team->name }}</flux:heading>
 
         <div class="flex gap-1">
+            <flux:button href="{{ route('teams.settings.general', $team) }}" size="sm" wire:navigate>
+                Edit Team
+            </flux:button>
+
             <flux:modal class="w-full max-w-[95vw] md:w-[600px]">
                 <x-slot name="trigger">
                     <flux:button size="sm">Settings</flux:button>

@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\Project;
 use App\Models\Team;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public string $name = '';
@@ -14,11 +16,14 @@ new class extends Component {
             'name' => 'required',
         ]);
 
+        $name = $this->pull('name');
+
         $project = $this->team->projects()->create([
-            'name' => $this->pull('name'),
+            'name' => $name,
+            'handle' => Project::generateUniqueHandle($name),
         ]);
 
-        $this->redirect("/{$this->team->id}/{$project->id}", navigate: true);
+        $this->redirect(route('projects.show', [$this->team, $project]), navigate: true);
     }
 };
 ?>
@@ -28,9 +33,11 @@ new class extends Component {
     <flux:navmenu>
         @unless ($team->projects->isEmpty())
             @foreach ($team->projects as $project)
-                <flux:navmenu.item href="/{{ $team->id }}/{{ $project->id }}" wire:navigate>
-                    {{ $project->name }}
-                </flux:navmenu.item>
+                @if ($project->handle)
+                    <flux:navmenu.item href="{{ route('projects.show', [$team, $project]) }}" wire:navigate>
+                        {{ $project->name }}
+                    </flux:navmenu.item>
+                @endif
             @endforeach
 
             <flux:menu.separator />
