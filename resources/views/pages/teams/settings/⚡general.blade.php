@@ -6,7 +6,8 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     #[Validate('required|string|max:255')]
@@ -56,8 +57,11 @@ new class extends Component {
     <div class="space-y-8">
         <div class="border-b border-zinc-200 dark:border-zinc-700">
             <flux:navbar class="-mb-px">
-                <flux:navbar.item :href="route('teams.settings.general', $team)" :accent="false">
+                <flux:navbar.item :href="route('teams.settings.general', $team)" :accent="true" wire:navigate>
                     General
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('teams.settings.auto-close', $team)" :accent="false" wire:navigate>
+                    Auto-close
                 </flux:navbar.item>
             </flux:navbar>
         </div>

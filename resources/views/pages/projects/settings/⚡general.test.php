@@ -10,7 +10,7 @@ it('allows team owner to edit project name and handle', function () {
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     Livewire::actingAs($user)
-        ->test('pages::projects.edit', ['team' => $team, 'project' => $project])
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project])
         ->set('name', 'Updated Project')
         ->set('handle', 'updated-project')
         ->call('save')
@@ -27,7 +27,7 @@ it('does not change handle when only name changes', function () {
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
     Livewire::actingAs($user)
-        ->test('pages::projects.edit', ['team' => $team, 'project' => $project])
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project])
         ->set('name', 'New Awesome Project')
         ->assertSet('handle', 'test-project'); // Handle should stay unchanged
 });
@@ -53,7 +53,7 @@ it('validates handle uniqueness during project edit', function () {
     $team->projects()->create(['name' => 'Project Two', 'handle' => 'project-two']);
 
     Livewire::actingAs($user)
-        ->test('pages::projects.edit', ['team' => $team, 'project' => $project1])
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project1])
         ->set('handle', 'project-two')
         ->call('save')
         ->assertHasErrors(['handle' => 'unique']);

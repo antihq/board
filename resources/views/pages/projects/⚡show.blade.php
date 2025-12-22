@@ -82,7 +82,7 @@ new class extends Component
     <div class="flex items-center justify-between">
         <flux:heading level="1" size="lg">{{ $project->name }}</flux:heading>
 
-        <a href="{{ route('projects.edit', [$team, $project]) }}" class="inline-flex">
+        <a href="{{ route('projects.settings.general', [$team, $project]) }}" class="inline-flex">
             <flux:button variant="ghost" size="sm">Edit Project</flux:button>
         </a>
     </div>

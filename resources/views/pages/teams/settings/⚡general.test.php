@@ -29,7 +29,7 @@ it('denies non-team owner from editing team name and handle', function () {
 
 it('validates handle uniqueness during team edit', function () {
     $user = User::factory()->create();
-    $team1 = Team::factory()->create(['user_id' => $user->id, 'handle' => 'team-one']);
+    $existingTeam = Team::factory()->create(['user_id' => $user->id, 'handle' => 'team-one']);
     $team2 = Team::factory()->create(['user_id' => $user->id, 'handle' => 'team-two']);
 
     Livewire::actingAs($user)->test('pages::teams.settings.general', ['team' => $team2])

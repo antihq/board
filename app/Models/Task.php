@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +22,7 @@ class Task extends Model
         'reopened_at' => 'datetime',
         'section_moved_at' => 'datetime',
         'prioritized_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
 
     public function project()
@@ -62,6 +65,11 @@ class Task extends Model
         return $this->belongsTo(User::class, 'prioritized_by');
     }
 
+    public function closer()
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class)->oldest();
@@ -77,24 +85,100 @@ class Task extends Model
         return $this->belongsToMany(Tag::class);
     }
 
-    public function scopeInbox($query)
+    /**
+     * Get the effective auto-close days for this task.
+     */
+    public function autoCloseDays(): ?int
     {
-        return $query->whereNull('completed_at')->whereNull('section_id');
+        return $this->project->auto_close_days ?? $this->team->auto_close_days;
     }
 
-    public function scopeDone($query)
+    /**
+     * Check if this task should be auto-closed based on its last update.
+     */
+    public function needsAutoClose(): bool
     {
-        return $query->whereNotNull('completed_at');
+        if ($this->completed_at || $this->closed_at) {
+            return false;
+        }
+
+        $autoCloseDays = $this->autoCloseDays();
+
+        if (! $autoCloseDays) {
+            return false;
+        }
+
+        return $this->updated_at->lt(now()->subDays($autoCloseDays));
     }
 
-    public function scopeSectioned($query)
+    /**
+     * Check if this task was auto-closed.
+     */
+    public function wasAutoClosed(): bool
     {
-        return $query->whereNotNull('section_id');
+        return ! is_null($this->closed_at);
     }
 
-    public function scopePriority($query)
+    /**
+     * Auto-close this task.
+     */
+    public function autoClose(): void
     {
-        return $query->whereNotNull('prioritized_at');
+        if (! $this->needsAutoClose()) {
+            return;
+        }
+
+        $this->update([
+            'completed_at' => now(),
+            'closed_at' => now(),
+            'closed_by' => null,
+        ]);
+    }
+
+    #[Scope]
+    protected function inbox(Builder $query): void
+    {
+        $query->whereNull('completed_at')->whereNull('section_id');
+    }
+
+    #[Scope]
+    protected function done(Builder $query): void
+    {
+        $query->whereNotNull('completed_at');
+    }
+
+    #[Scope]
+    protected function sectioned(Builder $query): void
+    {
+        $query->whereNotNull('section_id');
+    }
+
+    #[Scope]
+    protected function priority(Builder $query): void
+    {
+        $query->whereNotNull('prioritized_at');
+    }
+
+    #[Scope]
+    protected function autoClosed(Builder $query): void
+    {
+        $query->whereNotNull('closed_at');
+    }
+
+    #[Scope]
+    protected function notAutoClosed(Builder $query): void
+    {
+        $query->whereNull('closed_at');
+    }
+
+    /**
+     * Scope to get tasks that need to be auto-closed.
+     */
+    #[Scope]
+    protected function shouldAutoClose(Builder $query): void
+    {
+        $query->whereNull('completed_at')
+            ->whereNull('closed_at');
     }
 
     /**

@@ -56,7 +56,7 @@ new class extends Component
         Flux::toast('Changes saved', variant: 'success');
 
         if ($originalHandle !== $this->handle) {
-            return $this->redirectRoute('projects.edit', [$this->team, $this->project], navigate: true);
+            return $this->redirectRoute('projects.settings.general', [$this->team, $this->project], navigate: true);
         }
     }
 };
@@ -68,8 +68,19 @@ new class extends Component
     <div class="space-y-8">
         <div class="border-b border-zinc-200 dark:border-zinc-700">
             <flux:navbar class="-mb-px">
-                <flux:navbar.item :href="route('projects.edit', [$team, $project])" :accent="false">
+                <flux:navbar.item
+                    :href="route('projects.settings.general', [$team, $project])"
+                    :accent="true"
+                    wire:navigate
+                >
                     General
+                </flux:navbar.item>
+                <flux:navbar.item
+                    :href="route('projects.settings.auto-close', [$team, $project])"
+                    :accent="false"
+                    wire:navigate
+                >
+                    Auto-close
                 </flux:navbar.item>
             </flux:navbar>
         </div>

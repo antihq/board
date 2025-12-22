@@ -26,7 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('{team:handle}', 'pages::teams.show')->name('teams.show');
     Route::livewire('{team:handle}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
     Route::livewire('{team:handle}/settings/general', 'pages::teams.settings.general')->name('teams.settings.general');
+    Route::livewire('{team:handle}/settings/auto-close', 'pages::teams.settings.auto-close')->name('teams.settings.auto-close');
     Route::livewire('{team:handle}/tasks', 'pages::tasks')->name('tasks');
     Route::livewire('{team:handle}/{project:handle}', 'pages::projects.show')->name('projects.show');
-    Route::livewire('{team:handle}/{project:handle}/edit', 'pages::projects.edit')->name('projects.edit');
+    Route::livewire('{team:handle}/{project:handle}/settings/general', 'pages::projects.settings.general')->name('projects.settings.general');
+    Route::livewire('{team:handle}/{project:handle}/settings/auto-close', 'pages::projects.settings.auto-close')->name('projects.settings.auto-close');
 });
