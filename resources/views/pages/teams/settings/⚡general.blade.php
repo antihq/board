@@ -33,6 +33,8 @@ new class extends Component
             'handle' => ['required', 'string', 'max:255', Rule::unique('teams', 'handle')->ignore($this->team->id)],
         ]);
 
+        $originalHandle = $this->team->handle;
+
         $this->team->update([
             'name' => $this->name,
             'handle' => $this->handle,
@@ -41,6 +43,10 @@ new class extends Component
         $this->reset('editHandle');
 
         Flux::toast('Changes saved', variant: 'success');
+
+        if ($originalHandle !== $this->handle) {
+            return $this->redirectRoute('teams.settings.general', $this->team, navigate: true);
+        }
     }
 };
 ?>

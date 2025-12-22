@@ -215,7 +215,9 @@
             {{ $slot }}
         </flux:main>
 
-        <flux:toast position="bottom center" />
+        @persist('toast')
+            <flux:toast position="bottom center" />
+        @endpersist
 
         <flux:footer class="border-zinc-200 lg:border-t dark:border-zinc-700" container>
             <flux:text class="text-xs/6 lg:text-sm/6">
