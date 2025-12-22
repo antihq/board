@@ -6,7 +6,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component {
+new class extends Component
+{
     use WithPagination;
 
     public Team $team;
@@ -22,6 +23,9 @@ new class extends Component {
 
     #[Url(as: 'closed_by')]
     public array $selectedClosedBy = [];
+
+    #[Url(as: 'assigned_to')]
+    public array $selectedAssignedTo = [];
 
     #[Url(as: 'sort')]
     public string $sortBy = 'recently_updated';
@@ -49,6 +53,11 @@ new class extends Component {
             })
             ->when(! empty($this->selectedClosedBy), function ($query) {
                 $query->whereIn('completed_by', $this->selectedClosedBy);
+            })
+            ->when(! empty($this->selectedAssignedTo), function ($query) {
+                $query->whereHas('assignees', function ($q) {
+                    $q->whereIn('users.id', $this->selectedAssignedTo);
+                });
             })
             ->when($this->search, function ($query) {
                 $query->where('title', 'like', '%' . $this->search . '%');
@@ -110,6 +119,7 @@ new class extends Component {
         $this->selectedTags = [];
         $this->selectedAddedBy = [];
         $this->selectedClosedBy = [];
+        $this->selectedAssignedTo = [];
         $this->sortBy = 'recently_updated';
         $this->search = null;
         $this->resetPage();
@@ -135,6 +145,11 @@ new class extends Component {
         $this->resetPage();
     }
 
+    public function updatedSelectedAssignedTo()
+    {
+        $this->resetPage();
+    }
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -147,6 +162,7 @@ new class extends Component {
             count($this->selectedTags) +
             count($this->selectedAddedBy) +
             count($this->selectedClosedBy) +
+            count($this->selectedAssignedTo) +
             ($this->sortBy !== 'recently_updated' ? 1 : 0) +
             ($this->search ? 1 : 0);
     }
@@ -228,6 +244,16 @@ new class extends Component {
 
                         <flux:menu.submenu heading="Closed by">
                             <flux:menu.checkbox.group wire:model.live="selectedClosedBy">
+                                @foreach ($this->teamMembers as $member)
+                                    <flux:menu.checkbox :value="$member->id" keep-open>
+                                        {{ $member->name }}
+                                    </flux:menu.checkbox>
+                                @endforeach
+                            </flux:menu.checkbox.group>
+                        </flux:menu.submenu>
+
+                        <flux:menu.submenu heading="Assigned to">
+                            <flux:menu.checkbox.group wire:model.live="selectedAssignedTo">
                                 @foreach ($this->teamMembers as $member)
                                     <flux:menu.checkbox :value="$member->id" keep-open>
                                         {{ $member->name }}

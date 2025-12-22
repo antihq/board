@@ -21,7 +21,12 @@
                     <flux:dropdown>
                         <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
                         <flux:navmenu>
-                            <flux:navmenu.item disabled>Assigned to me</flux:navmenu.item>
+                            <flux:navmenu.item
+                                href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
+                                wire:navigate
+                            >
+                                Assigned to me
+                            </flux:navmenu.item>
                             <flux:navmenu.item
                                 href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
                                 wire:navigate
@@ -159,7 +164,12 @@
                     <flux:sidebar.item href="{{ route('teams.show', $team) }}" current>Home</flux:sidebar.item>
                     <livewire:projects-dropdown :team="$team" />
                     <flux:sidebar.group expandable heading="Tasks" class="grid">
-                        <flux:sidebar.item disabled>Assigned to me</flux:sidebar.item>
+                        <flux:sidebar.item
+                            href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
+                            wire:navigate
+                        >
+                            Assigned to me
+                        </flux:sidebar.item>
                         <flux:sidebar.item
                             href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
                             wire:navigate
