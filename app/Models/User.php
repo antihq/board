@@ -47,6 +47,11 @@ class User extends Authenticatable
             ->withPivot('role');
     }
 
+    public function assignedTasks()
+    {
+        return $this->belongsToMany(Task::class, 'task_assignments');
+    }
+
     /**
      * Get the user's initials
      */

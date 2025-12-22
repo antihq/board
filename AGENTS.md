@@ -75,3 +75,9 @@
 - Use `#[Computed(persist: true)]` to cache between requests (default 3600 seconds)
 - Use `#[Computed(cache: true)]` to cache across all component instances
 - Import required: `use Livewire\Attributes\Computed;`
+
+### Laravel Policies
+
+- Policies are auto-discovered by Laravel's framework in `app/Policies` directory
+- No manual registration needed - just create Policy class following naming convention: `ModelPolicy`
+- Follow existing authorization patterns from TeamPolicy and ProjectPolicy

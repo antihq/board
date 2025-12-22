@@ -307,3 +307,158 @@ it('toggles task priority from prioritized to unprioritized', function () {
     expect($task->prioritized_at)->toBeNull();
     expect($task->prioritized_by)->toBeNull();
 });
+
+it('assigns team members to task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+
+    // Create additional team members
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $team->users()->attach([$member1->id, $member2->id]);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->assignees)->toHaveCount(0);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$member1->id, $member2->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(2);
+    expect($task->assignees->pluck('id')->toArray())->toEqual([$member1->id, $member2->id]);
+});
+
+it('updates task assignees successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+
+    // Create additional team members
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $member3 = User::factory()->create();
+    $team->users()->attach([$member1->id, $member2->id, $member3->id]);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Initially assign member1
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$member1->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(1);
+    expect($task->assignees->first()->id)->toEqual($member1->id);
+
+    // Update to include member2 and remove member1
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$member2->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(1);
+    expect($task->assignees->first()->id)->toEqual($member2->id);
+
+    // Update to include multiple members
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$member1->id, $member2->id, $member3->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(3);
+    expect($task->assignees->pluck('id')->toArray())->toEqual([$member1->id, $member2->id, $member3->id]);
+});
+
+it('can assign current user to task', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+
+    // Add the current user to the team members
+    $team->users()->attach($user->id);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->assignees)->toHaveCount(0);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$user->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(1);
+    expect($task->assignees->first()->id)->toEqual($user->id);
+});
+
+it('can assign team owner to task', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+
+    // Add the team owner to the team members
+    $team->users()->attach($team->user_id);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->assignees)->toHaveCount(0);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$team->user_id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(1);
+    expect($task->assignees->first()->id)->toEqual($team->user_id);
+});
+
+it('can remove all assignees from task', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+
+    // Create additional team members
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $team->users()->attach([$member1->id, $member2->id]);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Initially assign members
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [$member1->id, $member2->id])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(2);
+
+    // Remove all assignments
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedAssignees', [])
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->assignees)->toHaveCount(0);
+});

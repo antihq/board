@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -36,6 +37,10 @@ new class extends Component {
 
     public ?int $selectedSection = null;
 
+    public bool $isManagingAssignees = false;
+
+    public array $selectedAssignees = [];
+
     public function mount()
     {
         $this->completedChecklistItems = $this->task
@@ -50,6 +55,11 @@ new class extends Component {
             ->toArray();
 
         $this->selectedSection = $this->task->section_id;
+
+        $this->selectedAssignees = $this->task
+            ->assignees()
+            ->pluck('users.id')
+            ->toArray();
     }
 
     public function openModal()
@@ -211,6 +221,33 @@ new class extends Component {
         $this->isManagingSection = false;
     }
 
+    public function startManagingAssignees()
+    {
+        $this->isManagingAssignees = true;
+    }
+
+    public function cancelManagingAssignees()
+    {
+        $this->isManagingAssignees = false;
+    }
+
+    public function updatedSelectedAssignees()
+    {
+        // Authorize that user can manage task assignees
+        $this->authorize('manageAssignees', $this->task);
+
+        // Get team members and team owner
+        $teamUsers = $this->task->team->users()->get();
+        $allPossibleAssignees = $teamUsers->push($this->task->team->owner);
+
+        // Filter to only include valid assignees
+        $validAssignees = $allPossibleAssignees->whereIn('id', $this->selectedAssignees);
+
+        $this->task->assignees()->sync($validAssignees->pluck('id'));
+
+        $this->task->touch();
+    }
+
     public function updatedSelectedSection()
     {
         $section = $this->selectedSection ? $this->task->project->sections()->findOrFail($this->selectedSection) : null;
@@ -300,6 +337,23 @@ new class extends Component {
             ->sections()
             ->orderBy('order')
             ->get();
+    }
+
+    #[Computed]
+    public function teamMembers()
+    {
+        $teamUsers = $this->task->team
+            ->users()
+            ->orderBy('name')
+            ->get();
+
+        // Include team owner if not already in the list
+        $owner = $this->task->team->owner;
+        if (! $teamUsers->contains('id', $owner->id)) {
+            $teamUsers = $teamUsers->push($owner);
+        }
+
+        return $teamUsers->sortBy('name')->values();
     }
 };
 ?>
@@ -457,8 +511,60 @@ new class extends Component {
 
     <flux:separator variant="subtle" />
 
-    <!-- Tags and Section Grid -->
+    <!-- Section, Tags, and Assignees Grid -->
     <div class="grid grid-cols-2 gap-4">
+        <!-- Assignees Section -->
+        <div>
+            @if ($this->isManagingAssignees)
+                <div class="space-y-2">
+                    <flux:pillbox
+                        wire:model.live="selectedAssignees"
+                        label="Assignees"
+                        placeholder="Select assignees..."
+                        size="sm"
+                        multiple
+                    >
+                        @foreach ($this->teamMembers as $member)
+                            <flux:pillbox.option :value="$member->id" wire:key="member-{{ $member->id }}">
+                                {{ $member->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+                    </flux:pillbox>
+
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:button wire:click="cancelManagingAssignees" size="sm" variant="primary" color="green">
+                            Done
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2">
+                        <flux:heading>Assignees</flux:heading>
+                        <flux:button size="xs" wire:click="startManagingAssignees">Manage</flux:button>
+                    </div>
+                    @unless ($task->assignees->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->assignees as $assignee)
+                                <flux:avatar
+                                    circle
+                                    size="sm"
+                                    name="{{ $assignee->name }}"
+                                    color="auto"
+                                    color:seed="{{ $assignee->id }}"
+                                    tooltip="{{ $assignee->name }}"
+                                    src="https://unavatar.io/gravatar/{{ $assignee->email }}"
+                                />
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No one assigned</flux:text>
+                    @endunless
+                </div>
+            @endif
+        </div>
+
         <!-- Section Section -->
         <div>
             @if ($this->isManagingSection)

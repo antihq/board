@@ -85,6 +85,11 @@ class Task extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function assignees()
+    {
+        return $this->belongsToMany(User::class, 'task_assignments');
+    }
+
     /**
      * Get the effective auto-close days for this task.
      */
