@@ -16,6 +16,8 @@ new class extends Component
     #[Validate('required|string|max:255')]
     public $handle;
 
+    public $editHandle = false;
+
     public function mount(Team $team)
     {
         $this->authorize('update', $team);
@@ -36,44 +38,68 @@ new class extends Component
             'handle' => $this->handle,
         ]);
 
+        $this->reset('editHandle');
+
         Flux::toast('Changes saved', variant: 'success');
     }
 };
 ?>
 
-<div>
-    <flux:heading level="1" size="xl">General settings</flux:heading>
-    <flux:text class="mt-2">Update your team's name and information.</flux:text>
+<div class="space-y-6">
+    <flux:heading level="1" size="lg">Team settings</flux:heading>
 
-    <div class="mt-8 max-w-lg">
-        <form wire:submit="save" class="space-y-6">
-            <flux:input
-                wire:model="name"
-                type="text"
-                label="Team name"
-                placeholder="Enter team name"
-                description:trailing="This name will be visible to all team members."
-                required
-                maxlength="255"
-            />
+    <div class="space-y-8">
+        <div class="border-b border-zinc-200 dark:border-zinc-700">
+            <flux:navbar class="-mb-px">
+                <flux:navbar.item :href="route('teams.settings.general', $team)" :accent="false">
+                    General
+                </flux:navbar.item>
+            </flux:navbar>
+        </div>
 
-            <flux:input
-                wire:model="handle"
-                type="text"
-                label="Team handle"
-                placeholder="Enter team handle"
-                description:trailing="Unique identifier for your team used in urls."
-                required
-                maxlength="255"
-            />
+        <div class="max-w-lg">
+            <form wire:submit="save" class="space-y-6">
+                <flux:input
+                    wire:model="name"
+                    type="text"
+                    label="Team name"
+                    placeholder="Enter team name"
+                    description:trailing="This name will be visible to all team members."
+                    required
+                    maxlength="255"
+                />
 
-            <div class="flex gap-3">
-                <flux:button type="submit" variant="primary" color="green">Save changes</flux:button>
+                <flux:input
+                    wire:model="handle"
+                    type="text"
+                    label="Team handle"
+                    placeholder="Enter team handle"
+                    description:trailing="Unique identifier for your team used in urls."
+                    :disabled="!$editHandle"
+                    required
+                    maxlength="255"
+                >
+                    <x-slot name="iconTrailing" wire:ignore>
+                        @if ($editHandle)
+                            <flux:button size="sm" variant="subtle" class="-mr-1" wire:click="$toggle('editHandle')">
+                                Cancel
+                            </flux:button>
+                        @else
+                            <flux:button size="sm" variant="subtle" class="-mr-1" wire:click="$toggle('editHandle')">
+                                Edit
+                            </flux:button>
+                        @endif
+                    </x-slot>
+                </flux:input>
 
-                <flux:button href="{{ route('teams.show', $team) }}" variant="subtle" wire:navigate>
-                    Cancel
-                </flux:button>
-            </div>
-        </form>
+                <div class="flex gap-3">
+                    <flux:button type="submit" variant="primary" color="green">Save changes</flux:button>
+
+                    <flux:button href="{{ route('teams.show', $team) }}" variant="subtle" wire:navigate>
+                        Cancel
+                    </flux:button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
