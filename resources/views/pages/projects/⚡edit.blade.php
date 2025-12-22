@@ -2,6 +2,8 @@
 
 use App\Models\Project;
 use App\Models\Team;
+use Flux\Flux;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -14,8 +16,10 @@ new class extends Component
     #[Validate('required|string|max:255')]
     public $name;
 
-    #[Validate('required|string|max:255|unique:projects,handle')]
+    #[Validate('required|string|max:255')]
     public $handle;
+
+    public $editHandle = false;
 
     public function mount(Team $team, Project $project)
     {
@@ -32,54 +36,83 @@ new class extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'handle' => 'required|string|max:255|unique:projects,handle,' . $this->project->id,
+            'handle' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('projects', 'handle')->ignore($this->project->id),
+            ],
         ]);
+
+        $originalHandle = $this->project->handle;
 
         $this->project->update([
             'name' => $this->name,
             'handle' => $this->handle,
         ]);
 
-        return redirect()->route('projects.show', [$this->team, $this->project]);
-    }
+        $this->reset('editHandle');
 
-    public function cancel()
-    {
-        return redirect()->route('projects.show', [$this->team, $this->project]);
+        Flux::toast('Changes saved', variant: 'success');
+
+        if ($originalHandle !== $this->handle) {
+            return $this->redirectRoute('projects.edit', [$this->team, $this->project], navigate: true);
+        }
     }
 };
 ?>
 
-<div class="h-full overflow-auto">
-    <flux:heading level="1" size="lg">Edit Project</flux:heading>
+<div class="space-y-6">
+    <flux:heading level="1" size="lg">Project settings</flux:heading>
 
-    <flux:spacer class="my-6" />
+    <div class="space-y-8">
+        <div class="border-b border-zinc-200 dark:border-zinc-700">
+            <flux:navbar class="-mb-px">
+                <flux:navbar.item :href="route('projects.edit', [$team, $project])" :accent="false">
+                    General
+                </flux:navbar.item>
+            </flux:navbar>
+        </div>
 
-    <flux:container>
-        <form wire:submit.prevent="save" class="space-y-6">
-            <flux:field>
-                <flux:label>Project Name</flux:label>
-                <flux:input wire:model="name" placeholder="Enter project name..." value="{{ $name }}" required />
-                <flux:error name="name" />
-            </flux:field>
+        <div class="max-w-lg">
+            <form wire:submit="save" class="space-y-6">
+                <flux:input
+                    wire:model="name"
+                    type="text"
+                    label="Project name"
+                    placeholder="Enter project name"
+                    description:trailing="This name will be visible to all team members."
+                    required
+                    maxlength="255"
+                />
 
-            <flux:field>
-                <flux:label>Project Handle</flux:label>
                 <flux:input
                     wire:model="handle"
+                    type="text"
+                    label="Project handle"
                     placeholder="project-handle"
-                    value="{{ $handle }}"
-                    description:trailing="This will be used in URLs and must be unique across all projects."
+                    description:trailing="Unique identifier for your project used in urls."
+                    :disabled="!$editHandle"
                     required
-                />
-                <flux:error name="handle" />
-            </flux:field>
+                    maxlength="255"
+                >
+                    <x-slot name="iconTrailing" wire:ignore>
+                        @if ($editHandle)
+                            <flux:button size="sm" variant="subtle" class="-mr-1" wire:click="$toggle('editHandle')">
+                                Cancel
+                            </flux:button>
+                        @else
+                            <flux:button size="sm" variant="subtle" class="-mr-1" wire:click="$toggle('editHandle')">
+                                Edit
+                            </flux:button>
+                        @endif
+                    </x-slot>
+                </flux:input>
 
-            <flux:separator />
-
-            <flux:button type="submit" variant="primary" color="green">Save Changes</flux:button>
-
-            <flux:button wire:click="cancel" variant="ghost">Cancel</flux:button>
-        </form>
-    </flux:container>
+                <div class="flex gap-3">
+                    <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
