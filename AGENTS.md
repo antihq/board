@@ -6,29 +6,29 @@
 
 ```json
 {
-	"recipient_name": "multi_tool_use.parallel",
-	"parameters": {
-		"tool_uses": [
-			{
-				"recipient_name": "functions.read",
-				"parameters": {
-					"filePath": "path/to/File.php"
-				}
-			},
-			{
-				"recipient_name": "functions.read",
-				"parameters": {
-					"filePath": "path/to/file.blade.php"
-				}
-			},
-			{
-				"recipient_name": "functions.read",
-				"parameters": {
-					"filePath": "path/to/file.md"
-				}
-			}
-		]
-	}
+    "recipient_name": "multi_tool_use.parallel",
+    "parameters": {
+        "tool_uses": [
+            {
+                "recipient_name": "functions.read",
+                "parameters": {
+                    "filePath": "path/to/File.php"
+                }
+            },
+            {
+                "recipient_name": "functions.read",
+                "parameters": {
+                    "filePath": "path/to/file.blade.php"
+                }
+            },
+            {
+                "recipient_name": "functions.read",
+                "parameters": {
+                    "filePath": "path/to/file.md"
+                }
+            }
+        ]
+    }
 }
 ```
 
@@ -49,13 +49,22 @@
 - This ensures correct stubs and following Laravel conventions
 - Examples: `artisan make:model`, `artisan make:migration`, `artisan make:controller`, etc.
 
-### Livewire Page Components
+### Livewire Components
 
+- This project uses view-based single-file components only (⚡ emoji in filename)
 - Use `pages::` namespace for components that serve as full pages: `php artisan make:livewire pages::post.create`
 - Page components are created in `resources/views/pages/` directory
+- Regular components are created in `resources/views/livewire/` directory
 - Route page components using `Route::livewire('/posts/create', 'pages::post.create')`
 - Page components support route parameters and model binding automatically
-- Use single-file components by default (⚡ emoji in filename)
+
+### Livewire Component Testing
+
+- Generate components with test files using `--test` flag: `php artisan make:livewire post.create --test`
+- For view-based components: creates `resources/views/livewire/post/create.test.php`
+- For page components with tests: `php artisan make:livewire pages::post.create --test`
+- Generated test includes basic assertion: `Livewire::test('component-name')->assertStatus(200);`
+- All tests are created alongside component files in the same directory
 
 ### Livewire Computed Properties
 
