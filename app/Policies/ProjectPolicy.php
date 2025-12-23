@@ -15,8 +15,18 @@ class ProjectPolicy
     {
         $team = $project->team;
 
-        return $user->id === $team->user_id ||
-               $team->users()->where('users.id', $user->id)->exists();
+        $isTeamMember = $user->id === $team->user_id ||
+                        $team->users()->where('users.id', $user->id)->exists();
+
+        if (! $isTeamMember) {
+            return false;
+        }
+
+        if (! $project->access_restricted) {
+            return true;
+        }
+
+        return $project->members->contains($user->id);
     }
 
     /**

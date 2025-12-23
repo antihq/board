@@ -82,6 +82,13 @@ new class extends Component
                 >
                     Auto-close
                 </flux:navbar.item>
+                <flux:navbar.item
+                    :href="route('projects.settings.access', [$team, $project])"
+                    :accent="false"
+                    wire:navigate
+                >
+                    Access
+                </flux:navbar.item>
             </flux:navbar>
         </div>
 

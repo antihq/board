@@ -45,8 +45,20 @@ class Project extends Model
         return $this->hasMany(Section::class)->ordered();
     }
 
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'project_members')->withTimestamps();
+    }
+
     public function getRouteKeyName()
     {
         return 'handle';
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'access_restricted' => 'boolean',
+        ];
     }
 }

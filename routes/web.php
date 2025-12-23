@@ -32,4 +32,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('{team:handle}/{project:handle}', 'pages::projects.show')->name('projects.show');
     Route::livewire('{team:handle}/{project:handle}/settings/general', 'pages::projects.settings.general')->name('projects.settings.general');
     Route::livewire('{team:handle}/{project:handle}/settings/auto-close', 'pages::projects.settings.auto-close')->name('projects.settings.auto-close');
+    Route::livewire('{team:handle}/{project:handle}/settings/access', 'pages::projects.settings.access')->name('projects.settings.access');
 });

@@ -48,6 +48,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Task::class, 'saved_tasks')->withPivot('team_id');
     }
 
+    public function accessibleProjects()
+    {
+        return $this->belongsToMany(Project::class, 'project_members')->withTimestamps();
+    }
+
     /**
      * Get the user's initials
      */
