@@ -1,21 +1,41 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 
 Route::redirect('/', '/login');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
-    Route::livewire('settings/profile', 'pages::settings.profile');
-    Route::livewire('settings/appearance', 'pages::settings.appearance');
+    Route::livewire('settings/profile', 'pages::settings.profile')->name('settings.profile');
+    Route::livewire('settings/appearance', 'pages::settings.appearance')->name('settings.appearance');
+    Route::livewire('settings/devices', 'pages::settings.devices')->name('settings.devices');
 });
 
 Route::middleware('guest')->group(function () {
     Route::livewire('login', 'pages::auth.login')->name('login');
 
     Route::livewire('register', 'pages::auth.register');
+
+    Route::get('device-login/{user}', function ($userId) {
+        if (! URL::hasValidSignature(request())) {
+            abort(403, 'Invalid or expired login link');
+        }
+
+        $user = User::find($userId);
+
+        if (! $user) {
+            return redirect()->route('login')->with('error', 'The user account associated with this login link no longer exists.');
+        }
+
+        Auth::loginUsingId($userId);
+
+        return redirect()->route('dashboard');
+    })->name('auth.device-login');
 });
 
 Route::post('logout', Logout::class);

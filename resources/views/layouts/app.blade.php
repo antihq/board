@@ -84,7 +84,9 @@
                             </flux:modal>
                         </flux:navmenu>
                     </flux:dropdown>
-                    <flux:navbar.item disabled>Settings</flux:navbar.item>
+                    <flux:navbar.item :href="route('teams.settings.general', $team)" wire:navigate>
+                        Settings
+                    </flux:navbar.item>
                 @endif
             </flux:navbar>
 
@@ -134,6 +136,14 @@
                             wire:navigate
                         >
                             Appearance
+                        </flux:menu.item>
+                        <flux:menu.item
+                            href="/settings/devices"
+                            icon="device-phone-mobile"
+                            icon:variant="micro"
+                            wire:navigate
+                        >
+                            Devices
                         </flux:menu.item>
                     </flux:menu.group>
 
@@ -231,7 +241,9 @@
                             </div>
                         </flux:modal>
                     </flux:sidebar.group>
-                    <flux:sidebar.item disabled>Settings</flux:sidebar.item>
+                    <flux:sidebar.item :href="route('teams.settings.general', $team)" wire:navigate>
+                        Settings
+                    </flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>
         </flux:sidebar>

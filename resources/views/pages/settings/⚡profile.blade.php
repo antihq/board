@@ -83,49 +83,57 @@ new #[Title('Profile settings')] class extends Component
     }
 }; ?>
 
-<div class="mx-auto max-w-[512px]">
-    <flux:link href="/dashboard" class="inline-flex items-center gap-2 text-sm" variant="subtle" inline wire:navigate>
-        <flux:icon.chevron-left variant="micro" />
-        Back to home
-    </flux:link>
+<div class="space-y-6">
+    <flux:heading level="1" size="lg">Settings</flux:heading>
 
-    <flux:spacer class="mt-4 lg:mt-8" />
-
-    <form wire:submit="updateProfileInformation">
-        <header class="flex items-center gap-3">
-            <flux:heading class="text-xl">Profile Settings</flux:heading>
-        </header>
-        <flux:text class="mt-2">Update your personal information.</flux:text>
-
-        <flux:spacer class="mt-10" />
-
-        <flux:file-upload wire:model="photo" label="Profile photo">
-            <flux:file-upload.dropzone heading="Drop file here or click to browse" text="JPG, PNG, GIF up to 10MB" />
-        </flux:file-upload>
-
-        @if (Auth::user()->profile_photo_path)
-            <div class="mt-3 flex flex-col gap-2">
-                <flux:file-item
-                    heading="Current profile photo"
-                    :image="Storage::disk('public')->url(Auth::user()->profile_photo_path)"
-                >
-                    <x-slot name="actions">
-                        <flux:file-item.remove wire:click="removePhoto" aria-label="Remove profile photo" />
-                    </x-slot>
-                </flux:file-item>
-            </div>
-        @endif
-
-        <flux:spacer class="mt-8" />
-
-        <div class="space-y-6">
-            <flux:input wire:model="name" label="Name" type="text" required autofocus autocomplete="name" />
-
-            <flux:input wire:model="email" label="Email" type="email" required autocomplete="email" />
+    <div class="space-y-8">
+        <div class="border-b border-zinc-200 dark:border-zinc-700">
+            <flux:navbar class="-mb-px">
+                <flux:navbar.item :href="route('settings.profile')" :accent="true" wire:navigate>
+                    Profile
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('settings.appearance')" :accent="false" wire:navigate>
+                    Appearance
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('settings.devices')" :accent="false" wire:navigate>
+                    Devices
+                </flux:navbar.item>
+            </flux:navbar>
         </div>
 
-        <flux:spacer class="mt-8" />
+        <div class="max-w-lg">
+            <form wire:submit="updateProfileInformation" class="space-y-6">
+                <flux:heading size="lg">Profile</flux:heading>
+                <flux:text>Update your personal information.</flux:text>
 
-        <flux:button type="submit" variant="primary" color="zinc" class="w-full">Save changes</flux:button>
-    </form>
+                <flux:file-upload wire:model="photo" label="Profile photo">
+                    <flux:file-upload.dropzone
+                        heading="Drop file here or click to browse"
+                        text="JPG, PNG, GIF up to 10MB"
+                    />
+                </flux:file-upload>
+
+                @if (Auth::user()->profile_photo_path)
+                    <div class="flex flex-col gap-2">
+                        <flux:file-item
+                            heading="Current profile photo"
+                            :image="Storage::disk('public')->url(Auth::user()->profile_photo_path)"
+                        >
+                            <x-slot name="actions">
+                                <flux:file-item.remove wire:click="removePhoto" aria-label="Remove profile photo" />
+                            </x-slot>
+                        </flux:file-item>
+                    </div>
+                @endif
+
+                <div class="space-y-6">
+                    <flux:input wire:model="name" label="Name" type="text" required autofocus autocomplete="name" />
+
+                    <flux:input wire:model="email" label="Email" type="email" required autocomplete="email" />
+                </div>
+
+                <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+            </form>
+        </div>
+    </div>
 </div>

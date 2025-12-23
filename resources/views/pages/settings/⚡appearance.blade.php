@@ -3,32 +3,40 @@
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Title('Appearance')] class extends Component {
+new #[Title('Appearance')] class extends Component
+{
     //
 }; ?>
 
-<div class="mx-auto max-w-[512px]">
-    <flux:link href="/dashboard" class="inline-flex items-center gap-2 text-sm" variant="subtle" inline wire:navigate>
-        <flux:icon.chevron-left variant="micro" />
-        Back to home
-    </flux:link>
+<div class="space-y-6">
+    <flux:heading level="1" size="lg">Settings</flux:heading>
 
-    <flux:spacer class="mt-4 lg:mt-8" />
-
-    <section>
-        <header class="flex items-center gap-3">
-            <flux:heading class="text-xl">Appearance</flux:heading>
-        </header>
-        <flux:text class="mt-2">Choose your preferred theme.</flux:text>
-
-        <flux:spacer class="mt-10" />
-
-        <div class="space-y-6">
-            <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
-                <flux:radio value="light" icon="sun">Light</flux:radio>
-                <flux:radio value="dark" icon="moon">Dark</flux:radio>
-                <flux:radio value="system" icon="computer-desktop">System</flux:radio>
-            </flux:radio.group>
+    <div class="space-y-8">
+        <div class="border-b border-zinc-200 dark:border-zinc-700">
+            <flux:navbar class="-mb-px">
+                <flux:navbar.item :href="route('settings.profile')" :accent="false" wire:navigate>
+                    Profile
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('settings.appearance')" :accent="true" wire:navigate>
+                    Appearance
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('settings.devices')" :accent="false" wire:navigate>
+                    Devices
+                </flux:navbar.item>
+            </flux:navbar>
         </div>
-    </section>
+
+        <div class="max-w-lg">
+            <div class="space-y-6">
+                <flux:heading size="lg">Appearance</flux:heading>
+                <flux:text>Choose your preferred theme.</flux:text>
+
+                <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
+                    <flux:radio value="light" icon="sun">Light</flux:radio>
+                    <flux:radio value="dark" icon="moon">Dark</flux:radio>
+                    <flux:radio value="system" icon="computer-desktop">System</flux:radio>
+                </flux:radio.group>
+            </div>
+        </div>
+    </div>
 </div>
