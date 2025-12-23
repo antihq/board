@@ -110,7 +110,6 @@
                     <flux:navbar.item icon="bookmark" disabled label="Bookmarks" />
                 @endif
                 <flux:navbar.item icon="magnifying-glass" disabled label="Search" />
-                <flux:navbar.item icon="inbox" disabled label="inbox" />
             </flux:navbar>
 
             <flux:dropdown position="top" align="end">
