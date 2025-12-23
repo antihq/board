@@ -315,6 +315,24 @@ new class extends Component
         $this->dispatch('task-deleted', taskId: $this->task->id);
     }
 
+    public function toggleSubscribe()
+    {
+        $this->authorize('update', $this->task);
+
+        $userId = Auth::id();
+
+        if (
+            $this->task
+                ->subscribers()
+                ->where('user_id', $userId)
+                ->exists()
+        ) {
+            $this->task->subscribers()->detach($userId);
+        } else {
+            $this->task->subscribers()->attach($userId);
+        }
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -366,6 +384,12 @@ new class extends Component
         }
 
         return $teamUsers->sortBy('name')->values();
+    }
+
+    #[Computed]
+    public function subscribers()
+    {
+        return $this->task->subscribers;
     }
 };
 ?>
@@ -523,7 +547,7 @@ new class extends Component
 
     <flux:separator variant="subtle" />
 
-    <!-- Section, Tags, and Assignees Grid -->
+    <!-- Section, Tags, Assignees, and Subscribers Grid -->
     <div class="grid grid-cols-2 gap-4">
         <!-- Assignees Section -->
         <div>
@@ -691,6 +715,35 @@ new class extends Component
                     @endunless
                 </div>
             @endif
+        </div>
+
+        <!-- Subscribers Section -->
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <flux:heading>Subscribers</flux:heading>
+                @if ($this->subscribers->contains('id', auth()->id()))
+                    <flux:button size="xs" wire:click="toggleSubscribe">Unsubscribe</flux:button>
+                @else
+                    <flux:button size="xs" wire:click="toggleSubscribe">Subscribe</flux:button>
+                @endif
+            </div>
+            @unless ($this->subscribers->isEmpty())
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($this->subscribers as $subscriber)
+                        <flux:avatar
+                            circle
+                            size="sm"
+                            name="{{ $subscriber->name }}"
+                            color="auto"
+                            color:seed="{{ $subscriber->id }}"
+                            tooltip="{{ $subscriber->name }}"
+                            src="https://unavatar.io/gravatar/{{ $subscriber->email }}"
+                        />
+                    @endforeach
+                </div>
+            @else
+                <flux:text class="text-xs">No subscribers</flux:text>
+            @endunless
         </div>
     </div>
 

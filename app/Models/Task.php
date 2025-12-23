@@ -90,6 +90,11 @@ class Task extends Model
         return $this->belongsToMany(User::class, 'task_assignments');
     }
 
+    public function subscribers()
+    {
+        return $this->belongsToMany(User::class, 'task_subscriptions');
+    }
+
     /**
      * Get the effective auto-close days for this task.
      */

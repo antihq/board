@@ -525,3 +525,67 @@ it('prevents non-authorized users from deleting tasks', function () {
     // Verify task still exists
     expect(Task::find($task->id))->not->toBeNull();
 });
+
+it('subscribes to task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->subscribers)->toHaveCount(0);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('toggleSubscribe')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->subscribers)->toHaveCount(1);
+    expect($task->subscribers->first()->id)->toEqual($user->id);
+});
+
+it('unsubscribes from task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Subscribe first
+    $task->subscribers()->attach($user->id);
+
+    expect($task->subscribers)->toHaveCount(1);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('toggleSubscribe')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->subscribers)->toHaveCount(0);
+});
+
+it('prevents non-authorized users from subscribing to tasks', function () {
+    $user1 = User::factory()->has(Team::factory())->create();
+    $team1 = $user1->teams()->first();
+    $project = $team1->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user1->id,
+        'team_id' => $team1->id,
+    ]);
+
+    $user2 = User::factory()->create();
+
+    Livewire::actingAs($user2)->test('task', ['task' => $task])
+        ->call('toggleSubscribe')
+        ->assertForbidden();
+
+    // Verify no subscription was added
+    expect($task->subscribers)->toHaveCount(0);
+});
