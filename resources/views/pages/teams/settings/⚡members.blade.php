@@ -213,5 +213,26 @@ new class extends Component
                 </div>
             @endforeach
         </div>
+
+        <flux:modal name="invite-member" class="w-full max-w-[95vw] md:w-[600px]">
+            <x-slot name="trigger">
+                <flux:button>Invite people</flux:button>
+            </x-slot>
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
+                    <flux:text class="mt-2">
+                        Share this link with people you want to invite to join your team.
+                    </flux:text>
+                </div>
+
+                <flux:input
+                    readonly
+                    copyable
+                    :value="route('teams.join', [$team, $team->invitation_code])"
+                    label="Team invite link"
+                />
+            </div>
+        </flux:modal>
     </div>
 </div>
