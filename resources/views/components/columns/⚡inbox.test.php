@@ -19,6 +19,7 @@ it('creates a new task successfully', function () {
     expect($task->title)->toEqual('Test Task');
     expect($task->user_id)->toEqual($user->id);
     expect($task->team_id)->toEqual($team->id);
+    expect($task->number)->toEqual(1);
 });
 
 it('reopens a completed task when moved to inbox', function () {
@@ -30,6 +31,7 @@ it('reopens a completed task when moved to inbox', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'completed_at' => now()->subDay(),
         'completed_by' => $user->id,
     ]);
@@ -53,6 +55,7 @@ it('removes section assignment when task moved to inbox', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'section_id' => 1,
         'section_moved_at' => now()->subDay(),
         'section_moved_by' => $user->id,
@@ -76,6 +79,7 @@ it('removes section assignment and reopens completed task when moved to inbox', 
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'completed_at' => now()->subDay(),
         'completed_by' => $user->id,
         'section_id' => 1,

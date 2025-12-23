@@ -24,6 +24,7 @@ class TaskFactory extends Factory
             'project_id' => Project::factory(),
             'team_id' => Team::factory(),
             'user_id' => User::factory(),
+            'number' => 1,
         ];
     }
 }

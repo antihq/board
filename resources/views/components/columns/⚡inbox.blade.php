@@ -2,10 +2,12 @@
 
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -16,11 +18,20 @@ new class extends Component {
             'title' => 'required',
         ]);
 
-        $this->project->tasks()->create([
-            'team_id' => $this->project->team_id,
-            'user_id' => Auth::id(),
-            'title' => $this->pull('title'),
-        ]);
+        DB::transaction(function () {
+            $maxNumber =
+                $this->project
+                    ->tasks()
+                    ->lockForUpdate()
+                    ->max('number') ?? 0;
+
+            $this->project->tasks()->create([
+                'team_id' => $this->project->team_id,
+                'user_id' => Auth::id(),
+                'title' => $this->pull('title'),
+                'number' => $maxNumber + 1,
+            ]);
+        });
     }
 
     #[Computed]

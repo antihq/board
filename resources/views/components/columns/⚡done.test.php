@@ -13,6 +13,7 @@ it('completes an inbox task when moved to done', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     Livewire::actingAs($user)->test('columns.done', ['project' => $project])

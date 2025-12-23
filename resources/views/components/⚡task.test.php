@@ -16,6 +16,7 @@ it('saves task description successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     $description = 'This is a test description for the task.';
@@ -38,6 +39,7 @@ it('adds a comment successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     $commentContent = 'This is a test comment.';
@@ -61,6 +63,7 @@ it('adds checklist items to task', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
@@ -83,6 +86,7 @@ it('toggles checklist item completion', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     $checklistItem = $task->checklistItems()->create([
@@ -106,6 +110,7 @@ it('creates a new tag successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     $tagName = 'Bug Fix';
@@ -129,6 +134,7 @@ it('updates selected tags successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Create some existing tags for team
@@ -161,6 +167,7 @@ it('updates selected section successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Create some existing sections for project
@@ -207,6 +214,7 @@ it('closes a task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'section_id' => $section->id,
         'section_moved_at' => now()->subHour(),
         'section_moved_by' => $user->id,
@@ -239,6 +247,7 @@ it('reopens a task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'section_id' => $section->id,
         'section_moved_at' => now()->subHour(),
         'section_moved_by' => $user->id,
@@ -273,6 +282,7 @@ it('toggles task priority from unprioritized to prioritized', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->prioritized_at)->toBeNull();
@@ -296,6 +306,7 @@ it('toggles task priority from prioritized to unprioritized', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
         'prioritized_at' => now()->subHour(),
         'prioritized_by' => $user->id,
     ]);
@@ -326,6 +337,7 @@ it('assigns team members to task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->assignees)->toHaveCount(0);
@@ -354,6 +366,7 @@ it('updates task assignees successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Initially assign member1
@@ -396,6 +409,7 @@ it('can assign current user to task', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->assignees)->toHaveCount(0);
@@ -421,6 +435,7 @@ it('can assign team owner to task', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->assignees)->toHaveCount(0);
@@ -448,6 +463,7 @@ it('can remove all assignees from task', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Initially assign members
@@ -475,6 +491,7 @@ it('deletes task and all related resources successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Create related resources
@@ -515,6 +532,7 @@ it('prevents non-authorized users from deleting tasks', function () {
         'title' => 'Test Task',
         'user_id' => $user1->id,
         'team_id' => $team1->id,
+        'number' => 1,
     ]);
 
     $user2 = User::factory()->create();
@@ -535,6 +553,7 @@ it('subscribes to task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->subscribers)->toHaveCount(0);
@@ -556,6 +575,7 @@ it('unsubscribes from task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Subscribe first
@@ -579,6 +599,7 @@ it('prevents non-authorized users from subscribing to tasks', function () {
         'title' => 'Test Task',
         'user_id' => $user1->id,
         'team_id' => $team1->id,
+        'number' => 1,
     ]);
 
     $user2 = User::factory()->create();
@@ -599,6 +620,7 @@ it('saves task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     expect($task->savers)->toHaveCount(0);
@@ -620,6 +642,7 @@ it('unsaves task successfully', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     // Save first
@@ -643,6 +666,7 @@ it('stores team_id when saving task', function () {
         'title' => 'Test Task',
         'user_id' => $user->id,
         'team_id' => $team->id,
+        'number' => 1,
     ]);
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
