@@ -41,15 +41,18 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends C
             return $this->redirect(route('login'), navigate: true);
         }
 
-        if ($this->team->invitation_code_uses_count >= $this->team->invitation_code_max_uses) {
+        $updated = $this->team
+            ->where('id', $this->team->id)
+            ->where('invitation_code_uses_count', '<', $this->team->invitation_code_max_uses)
+            ->increment('invitation_code_uses_count');
+
+        if (! $updated) {
             abort(403, 'Invitation link has reached its maximum number of uses');
         }
 
         Auth::user()
             ->joinedTeams()
             ->attach($this->team->id, ['role' => 'member']);
-
-        $this->team->increment('invitation_code_uses_count');
 
         return $this->redirect(route('teams.show', ['team' => $this->team]), navigate: true);
     }

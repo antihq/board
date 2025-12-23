@@ -23,6 +23,8 @@ new class extends Component
 
     public function saveMaxUses()
     {
+        $this->authorize('update', $this->team);
+
         $this->validate();
 
         $this->team->update([
@@ -34,6 +36,8 @@ new class extends Component
 
     public function regenerateInvitationCode()
     {
+        $this->authorize('update', $this->team);
+
         $this->team->regenerateInvitationCode();
         $this->team->refresh();
 
