@@ -33,6 +33,9 @@
                             >
                                 Added by me
                             </flux:navmenu.item>
+                            <flux:navmenu.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
+                                Saved tasks
+                            </flux:navmenu.item>
                             <flux:menu.separator />
                             <flux:navmenu.item href="{{ route('tasks', $team) }}" wire:navigate>
                                 All tasks
@@ -94,7 +97,16 @@
             <flux:spacer />
 
             <flux:navbar class="me-4">
-                <flux:navbar.item icon="bookmark" disabled label="Bookmarks" />
+                @if ($team)
+                    <flux:navbar.item
+                        icon="bookmark"
+                        href="{{ route('teams.saved-tasks', $team) }}"
+                        label="Bookmarks"
+                        wire:navigate
+                    />
+                @else
+                    <flux:navbar.item icon="bookmark" disabled label="Bookmarks" />
+                @endif
                 <flux:navbar.item icon="magnifying-glass" disabled label="Search" />
                 <flux:navbar.item icon="inbox" disabled label="inbox" />
             </flux:navbar>
@@ -175,6 +187,9 @@
                             wire:navigate
                         >
                             Added by me
+                        </flux:sidebar.item>
+                        <flux:sidebar.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
+                            Saved tasks
                         </flux:sidebar.item>
                         <flux:sidebar.item href="{{ route('tasks', $team) }}" wire:navigate>
                             All tasks
