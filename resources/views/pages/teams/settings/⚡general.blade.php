@@ -63,6 +63,9 @@ new class extends Component
                 <flux:navbar.item :href="route('teams.settings.auto-close', $team)" :accent="false" wire:navigate>
                     Auto-close
                 </flux:navbar.item>
+                <flux:navbar.item :href="route('teams.settings.members', $team)" :accent="false" wire:navigate>
+                    Members
+                </flux:navbar.item>
             </flux:navbar>
         </div>
 

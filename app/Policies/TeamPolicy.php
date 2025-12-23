@@ -37,7 +37,11 @@ class TeamPolicy
      */
     public function update(User $user, Team $team): bool
     {
-        return $user->id === $team->user_id;
+        if ($user->id === $team->user_id) {
+            return true;
+        }
+
+        return $team->users()->where('users.id', $user->id)->where('team_members.role', 'admin')->exists();
     }
 
     /**
