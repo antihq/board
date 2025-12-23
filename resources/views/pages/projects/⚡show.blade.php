@@ -5,7 +5,8 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public Project $project;
@@ -77,7 +78,7 @@ new class extends Component {
 };
 ?>
 
-<div class="h-full overflow-hidden">
+<div class="h-full">
     <div class="flex items-center justify-between">
         <flux:heading level="1" size="lg">{{ $project->name }}</flux:heading>
 
@@ -88,7 +89,7 @@ new class extends Component {
 
     <flux:spacer class="my-4" />
 
-    <div class="relative h-full">
+    <div class="relative h-full overflow-hidden">
         <div
             class="pointer-events-none absolute inset-y-0 right-0 h-full w-48 bg-gradient-to-l from-white to-transparent dark:from-zinc-900 dark:to-transparent"
         ></div>
