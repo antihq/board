@@ -3,15 +3,21 @@
 use App\Models\User;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
-new #[Title('Profile settings')] class extends Component {
+new #[Title('Profile settings')] class extends Component
+{
+    use WithFileUploads;
+
     public string $name = '';
 
     public string $email = '';
+
+    public $photo;
 
     /**
      * Mount the component.
@@ -29,7 +35,7 @@ new #[Title('Profile settings')] class extends Component {
     {
         $user = Auth::user();
 
-        $validated = $this->validate([
+        $this->validate([
             'name' => ['required', 'string', 'max:255'],
 
             'email' => [
@@ -40,17 +46,40 @@ new #[Title('Profile settings')] class extends Component {
                 'max:255',
                 Rule::unique(User::class)->ignore($user->id),
             ],
+
+            'photo' => ['nullable', 'image', 'max:10240'],
         ]);
 
-        $user->fill($validated);
+        $user->fill([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
+        if ($this->photo) {
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+            $path = $this->photo->store('profile-photos', 'public');
+            $user->profile_photo_path = $path;
+        }
+
         $user->save();
 
         Flux::toast(heading: 'Saved', text: 'Profile updated successfully.', variant: 'success');
+    }
+
+    public function removePhoto(): void
+    {
+        $user = Auth::user();
+        if ($user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+            $user->profile_photo_path = null;
+            $user->save();
+        }
     }
 }; ?>
 
@@ -69,6 +98,25 @@ new #[Title('Profile settings')] class extends Component {
         <flux:text class="mt-2">Update your personal information.</flux:text>
 
         <flux:spacer class="mt-10" />
+
+        <flux:file-upload wire:model="photo" label="Profile photo">
+            <flux:file-upload.dropzone heading="Drop file here or click to browse" text="JPG, PNG, GIF up to 10MB" />
+        </flux:file-upload>
+
+        @if (Auth::user()->profile_photo_path)
+            <div class="mt-3 flex flex-col gap-2">
+                <flux:file-item
+                    heading="Current profile photo"
+                    :image="Storage::disk('public')->url(Auth::user()->profile_photo_path)"
+                >
+                    <x-slot name="actions">
+                        <flux:file-item.remove wire:click="removePhoto" aria-label="Remove profile photo" />
+                    </x-slot>
+                </flux:file-item>
+            </div>
+        @endif
+
+        <flux:spacer class="mt-8" />
 
         <div class="space-y-6">
             <flux:input wire:model="name" label="Name" type="text" required autofocus autocomplete="name" />

@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 use function Pest\Laravel\actingAs;
@@ -39,4 +41,64 @@ it('keeps email verification status unchanged when email address is unchanged', 
     $component->assertHasNoErrors();
 
     expect($user->refresh()->email_verified_at)->not->toBeNull();
+});
+
+it('uploads a profile photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->withPersonalTeam()->create();
+
+    $photo = UploadedFile::fake()->image('profile.jpg', 200, 200);
+
+    $component = Livewire::actingAs($user)->test('pages::settings.profile')
+        ->set('photo', $photo)
+        ->call('updateProfileInformation');
+
+    $component->assertHasNoErrors();
+
+    $user->refresh();
+
+    expect($user->profile_photo_path)->not->toBeNull();
+
+    Storage::disk('public')->assertExists($user->profile_photo_path);
+});
+
+it('removes a profile photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->withPersonalTeam()->create([
+        'profile_photo_path' => 'profile-photos/test.jpg',
+    ]);
+
+    Storage::disk('public')->put($user->profile_photo_path, 'test content');
+
+    Livewire::actingAs($user)->test('pages::settings.profile')
+        ->call('removePhoto');
+
+    $user->refresh();
+
+    expect($user->profile_photo_path)->toBeNull();
+
+    Storage::disk('public')->assertMissing('profile-photos/test.jpg');
+});
+
+it('replaces an existing profile photo', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->withPersonalTeam()->create([
+        'profile_photo_path' => 'profile-photos/old.jpg',
+    ]);
+
+    Storage::disk('public')->put($user->profile_photo_path, 'old content');
+
+    $newPhoto = UploadedFile::fake()->image('new-profile.jpg', 200, 200);
+
+    Livewire::actingAs($user)->test('pages::settings.profile')
+        ->set('photo', $newPhoto)
+        ->call('updateProfileInformation');
+
+    $user->refresh();
+
+    Storage::disk('public')->assertMissing('profile-photos/old.jpg');
+    Storage::disk('public')->assertExists($user->profile_photo_path);
 });
