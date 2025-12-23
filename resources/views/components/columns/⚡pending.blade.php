@@ -25,12 +25,14 @@ new class extends Component
                     ->lockForUpdate()
                     ->max('number') ?? 0;
 
-            $this->project->tasks()->create([
+            $task = $this->project->tasks()->create([
                 'team_id' => $this->project->team_id,
                 'user_id' => Auth::id(),
                 'title' => $this->pull('title'),
                 'number' => $maxNumber + 1,
             ]);
+
+            $task->subscribers()->attach(Auth::id());
         });
     }
 

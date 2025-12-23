@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Task;
+use App\Notifications\TaskClosed;
+use App\Notifications\TaskCommented;
+use App\Notifications\TaskReopened;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -168,12 +171,22 @@ new class extends Component
             'newComment' => 'required|string|max:5000',
         ]);
 
-        $this->task->comments()->create([
+        $comment = $this->task->comments()->create([
             'user_id' => Auth::id(),
             'content' => $this->pull('newComment'),
         ]);
 
         $this->task->touch();
+
+        $this->task->subscribers()->syncWithoutDetaching(Auth::id());
+
+        $this->task->subscribers
+            ->where('id', '!=', Auth::id())
+            ->each(
+                fn ($subscriber) => $subscriber->notify(
+                    new TaskCommented($comment->load('user', 'task.project', 'task.team')),
+                ),
+            );
     }
 
     public function closeTask()
@@ -186,6 +199,10 @@ new class extends Component
         ]);
 
         $this->task->touch();
+
+        $this->task->subscribers
+            ->where('id', '!=', Auth::id())
+            ->each(fn ($subscriber) => $subscriber->notify(new TaskClosed($this->task->load('project', 'team'))));
     }
 
     public function reopenTask()
@@ -198,6 +215,10 @@ new class extends Component
         ]);
 
         $this->task->touch();
+
+        $this->task->subscribers
+            ->where('id', '!=', Auth::id())
+            ->each(fn ($subscriber) => $subscriber->notify(new TaskReopened($this->task->load('project', 'team'))));
     }
 
     public function startManagingTags()
@@ -244,6 +265,8 @@ new class extends Component
         $validAssignees = $allPossibleAssignees->whereIn('id', $this->selectedAssignees);
 
         $this->task->assignees()->sync($validAssignees->pluck('id'));
+
+        $this->task->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
 
         $this->task->touch();
     }

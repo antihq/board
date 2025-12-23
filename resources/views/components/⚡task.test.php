@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 it('saves task description successfully', function () {
@@ -32,6 +33,8 @@ it('saves task description successfully', function () {
 });
 
 it('adds a comment successfully', function () {
+    Notification::fake();
+
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -53,6 +56,8 @@ it('adds a comment successfully', function () {
     expect($task->comments)->toHaveCount(1);
     expect($task->comments->first()->content)->toContain($commentContent);
     expect($task->comments->first()->user_id)->toEqual($user->id);
+    expect($task->subscribers)->toHaveCount(1);
+    expect($task->subscribers->first()->id)->toEqual($user->id);
 });
 
 it('adds checklist items to task', function () {
@@ -206,6 +211,8 @@ it('updates selected section successfully', function () {
 });
 
 it('closes a task successfully', function () {
+    Notification::fake();
+
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -239,6 +246,8 @@ it('closes a task successfully', function () {
 });
 
 it('reopens a task successfully', function () {
+    Notification::fake();
+
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -349,6 +358,8 @@ it('assigns team members to task successfully', function () {
     $task->refresh();
     expect($task->assignees)->toHaveCount(2);
     expect($task->assignees->pluck('id')->toArray())->toEqual([$member1->id, $member2->id]);
+    expect($task->subscribers)->toHaveCount(2);
+    expect($task->subscribers->pluck('id')->toArray())->toEqual([$member1->id, $member2->id]);
 });
 
 it('updates task assignees successfully', function () {
@@ -377,6 +388,7 @@ it('updates task assignees successfully', function () {
     $task->refresh();
     expect($task->assignees)->toHaveCount(1);
     expect($task->assignees->first()->id)->toEqual($member1->id);
+    expect($task->subscribers)->toHaveCount(1);
 
     // Update to include member2 and remove member1
     Livewire::actingAs($user)->test('task', ['task' => $task])
@@ -395,13 +407,14 @@ it('updates task assignees successfully', function () {
     $task->refresh();
     expect($task->assignees)->toHaveCount(3);
     expect($task->assignees->pluck('id')->toArray())->toEqual([$member1->id, $member2->id, $member3->id]);
+    expect($task->subscribers)->toHaveCount(3);
 });
 
 it('can assign current user to task', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
 
-    // Add the current user to the team members
+    // Add to team members
     $team->users()->attach($user->id);
 
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -421,13 +434,15 @@ it('can assign current user to task', function () {
     $task->refresh();
     expect($task->assignees)->toHaveCount(1);
     expect($task->assignees->first()->id)->toEqual($user->id);
+    expect($task->subscribers)->toHaveCount(1);
+    expect($task->subscribers->first()->id)->toEqual($user->id);
 });
 
 it('can assign team owner to task', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
 
-    // Add the team owner to the team members
+    // Add to team members
     $team->users()->attach($team->user_id);
 
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -447,6 +462,8 @@ it('can assign team owner to task', function () {
     $task->refresh();
     expect($task->assignees)->toHaveCount(1);
     expect($task->assignees->first()->id)->toEqual($team->user_id);
+    expect($task->subscribers)->toHaveCount(1);
+    expect($task->subscribers->first()->id)->toEqual($team->user_id);
 });
 
 it('can remove all assignees from task', function () {
@@ -681,4 +698,91 @@ it('stores team_id when saving task', function () {
 
     expect($savedTask)->not->toBeNull();
     expect($savedTask->team_id)->toEqual($team->id);
+});
+
+it('notifies subscribers when task is closed', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $subscriber1 = User::factory()->create();
+    $subscriber2 = User::factory()->create();
+    $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
+
+    Notification::fake();
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('closeTask')
+        ->assertHasNoErrors();
+
+    Notification::assertSentTo(
+        [$subscriber1, $subscriber2],
+        \App\Notifications\TaskClosed::class
+    );
+    Notification::assertNotSentTo($user, \App\Notifications\TaskClosed::class);
+});
+
+it('notifies subscribers when task is reopened', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+        'completed_at' => now()->subDay(),
+        'completed_by' => $user->id,
+    ]);
+
+    $subscriber1 = User::factory()->create();
+    $subscriber2 = User::factory()->create();
+    $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
+
+    Notification::fake();
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('reopenTask')
+        ->assertHasNoErrors();
+
+    Notification::assertSentTo(
+        [$subscriber1, $subscriber2],
+        \App\Notifications\TaskReopened::class
+    );
+    Notification::assertNotSentTo($user, \App\Notifications\TaskReopened::class);
+});
+
+it('notifies subscribers when comment is added', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $subscriber1 = User::factory()->create();
+    $subscriber2 = User::factory()->create();
+    $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
+
+    Notification::fake();
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('newComment', 'Test comment')
+        ->call('addComment')
+        ->assertHasNoErrors();
+
+    Notification::assertSentTo(
+        [$subscriber1, $subscriber2],
+        \App\Notifications\TaskCommented::class
+    );
+    Notification::assertNotSentTo($user, \App\Notifications\TaskCommented::class);
 });

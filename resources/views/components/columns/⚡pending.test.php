@@ -20,6 +20,8 @@ it('creates a new task successfully', function () {
     expect($task->user_id)->toEqual($user->id);
     expect($task->team_id)->toEqual($team->id);
     expect($task->number)->toEqual(1);
+    expect($task->subscribers)->toHaveCount(1);
+    expect($task->subscribers->first()->id)->toEqual($user->id);
 });
 
 it('reopens a completed task when moved to pending', function () {
