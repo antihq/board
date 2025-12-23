@@ -1,13 +1,13 @@
 <?php
 
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
-    public $team;
+new class extends Component {
+    public Team $team;
 
     public function mount()
     {
@@ -158,7 +158,7 @@ new class extends Component
             </flux:text>
         </div>
 
-        <div class="space-y-3">
+        <div class="max-w-lg space-y-3">
             @foreach ($this->teamMembers as $member)
                 <div class="flex items-center gap-3">
                     <flux:avatar
