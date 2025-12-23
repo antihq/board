@@ -6,7 +6,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public function mount()
@@ -141,11 +142,11 @@ new class extends Component {
                 <flux:navbar.item :href="route('teams.settings.general', $team)" :accent="false" wire:navigate>
                     General
                 </flux:navbar.item>
-                <flux:navbar.item :href="route('teams.settings.auto-close', $team)" :accent="false" wire:navigate>
-                    Auto-close
-                </flux:navbar.item>
                 <flux:navbar.item :href="route('teams.settings.members', $team)" :accent="true" wire:navigate>
                     Members
+                </flux:navbar.item>
+                <flux:navbar.item :href="route('teams.settings.auto-close', $team)" :accent="false" wire:navigate>
+                    Auto-close
                 </flux:navbar.item>
             </flux:navbar>
         </div>
