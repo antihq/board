@@ -2,17 +2,42 @@
 
 use App\Models\Team;
 use App\Models\User;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 new class extends Component
 {
     public Team $team;
 
+    #[Validate('required|integer|min:1')]
+    public $invitation_code_max_uses;
+
     public function mount()
     {
         $this->authorize('view', $this->team);
+        $this->invitation_code_max_uses = $this->team->invitation_code_max_uses;
+    }
+
+    public function saveMaxUses()
+    {
+        $this->validate();
+
+        $this->team->update([
+            'invitation_code_max_uses' => $this->invitation_code_max_uses,
+        ]);
+
+        Flux::toast('Max uses updated', variant: 'success');
+    }
+
+    public function regenerateInvitationCode()
+    {
+        $this->team->regenerateInvitationCode();
+        $this->team->refresh();
+
+        Flux::toast('Invitation link regenerated', variant: 'success');
     }
 
     #[Computed]
@@ -226,12 +251,60 @@ new class extends Component
                     </flux:text>
                 </div>
 
-                <flux:input
-                    readonly
-                    copyable
-                    :value="route('teams.join', [$team, $team->invitation_code])"
-                    label="Team invite link"
-                />
+                <div class="space-y-3">
+                    <flux:input
+                        readonly
+                        copyable
+                        :value="route('teams.join', [$team, $team->invitation_code])"
+                        label="Team invite link"
+                    />
+
+                    <div class="flex gap-2">
+                        <flux:modal.trigger name="invite-qr">
+                            <flux:button variant="outline" size="sm">Show QR code</flux:button>
+                        </flux:modal.trigger>
+
+                        <flux:button
+                            wire:click="regenerateInvitationCode"
+                            wire:confirm="Are you sure you want to generate a new link? The previous code will stop working."
+                            size="sm"
+                        >
+                            Regenerate
+                        </flux:button>
+                    </div>
+                </div>
+
+                <form wire:submit="saveMaxUses" class="space-y-3">
+                    <flux:field>
+                        <flux:label>Max uses</flux:label>
+                        <flux:description>How many people can use this link</flux:description>
+                        <flux:input wire:model="invitation_code_max_uses" />
+                        <flux:description>
+                            Used {{ $team->invitation_code_uses_count }}/{{ $invitation_code_max_uses }}
+                            {{ Str::plural('time', $team->invitation_code_uses_count) }}
+                        </flux:description>
+                        <flux:error name="invitation_code_max_uses" />
+                    </flux:field>
+
+                    <flux:button type="submit" size="sm">Save</flux:button>
+                </form>
+            </div>
+        </flux:modal>
+
+        <flux:modal name="invite-qr" class="w-full max-w-[95vw] md:w-[500px]">
+            <div class="space-y-6">
+                <div>
+                    <flux:heading size="lg">Invite QR Code</flux:heading>
+                    <flux:text class="mt-2">Scan this QR code to join {{ $team->name }}</flux:text>
+                </div>
+
+                <div class="flex justify-center rounded-lg bg-zinc-50 p-6 dark:bg-zinc-800">
+                    <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode(route('teams.join', [$team, $team->invitation_code])) }}"
+                        alt="Team invite QR code"
+                        class="rounded-md"
+                    />
+                </div>
             </div>
         </flux:modal>
     </div>

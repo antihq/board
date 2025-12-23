@@ -26,6 +26,8 @@ class TeamFactory extends Factory
             'handle' => Team::generateUniqueHandle($name),
             'user_id' => User::factory(),
             'invitation_code' => Str::random(8),
+            'invitation_code_max_uses' => 10,
+            'invitation_code_uses_count' => 0,
         ];
     }
 }

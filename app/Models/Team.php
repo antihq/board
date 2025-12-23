@@ -63,10 +63,20 @@ class Team extends Model
         return 'handle';
     }
 
+    public function regenerateInvitationCode(): void
+    {
+        $this->update([
+            'invitation_code' => Str::random(8),
+            'invitation_code_uses_count' => 0,
+        ]);
+    }
+
     protected function casts(): array
     {
         return [
             'personal' => 'boolean',
+            'invitation_code_max_uses' => 'integer',
+            'invitation_code_uses_count' => 'integer',
         ];
     }
 }

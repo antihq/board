@@ -106,3 +106,58 @@ it('renders successfully', function () {
     Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
         ->assertOk();
 });
+
+it('persists max uses changes to database', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id, 'invitation_code_max_uses' => 10]);
+
+    Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
+        ->set('invitation_code_max_uses', 20)
+        ->call('saveMaxUses');
+
+    $team->refresh();
+    expect($team->invitation_code_max_uses)->toBe(20);
+});
+
+it('validates max uses is at least 1', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id, 'invitation_code_max_uses' => 10]);
+
+    Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
+        ->set('invitation_code_max_uses', 0)
+        ->call('saveMaxUses')
+        ->assertHasErrors(['invitation_code_max_uses' => 'min']);
+});
+
+it('requires max uses field', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id, 'invitation_code_max_uses' => 10]);
+
+    Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
+        ->set('invitation_code_max_uses', '')
+        ->call('saveMaxUses')
+        ->assertHasErrors(['invitation_code_max_uses' => 'required']);
+});
+
+it('regenerates invitation code', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $oldCode = $team->invitation_code;
+
+    Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('regenerateInvitationCode');
+
+    $team->refresh();
+    expect($team->invitation_code)->not->toBe($oldCode);
+});
+
+it('resets usage count when regenerating invitation code', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id, 'invitation_code_uses_count' => 5]);
+
+    Livewire::actingAs($user)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('regenerateInvitationCode');
+
+    $team->refresh();
+    expect($team->invitation_code_uses_count)->toBe(0);
+});

@@ -6,7 +6,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends Component {
+new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends Component
+{
     public Team $team;
     public string $invitationCode;
 
@@ -17,6 +18,10 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends C
 
         if ($team->invitation_code !== $invitation_code) {
             abort(403, 'Invalid invitation code');
+        }
+
+        if ($team->invitation_code_uses_count >= $team->invitation_code_max_uses) {
+            abort(403, 'Invitation link has reached its maximum number of uses');
         }
 
         if (
@@ -36,9 +41,15 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends C
             return $this->redirect(route('login'), navigate: true);
         }
 
+        if ($this->team->invitation_code_uses_count >= $this->team->invitation_code_max_uses) {
+            abort(403, 'Invitation link has reached its maximum number of uses');
+        }
+
         Auth::user()
             ->joinedTeams()
             ->attach($this->team->id, ['role' => 'member']);
+
+        $this->team->increment('invitation_code_uses_count');
 
         return $this->redirect(route('teams.show', ['team' => $this->team]), navigate: true);
     }

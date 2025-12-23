@@ -47,3 +47,24 @@ it('prevents access with invalid invitation code', function () {
     Livewire::test('pages::teams.join', ['team' => $team, 'invitation_code' => 'invalid'])
         ->assertStatus(403);
 });
+
+it('prevents joining when invitation code has reached max uses', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['invitation_code_max_uses' => 1, 'invitation_code_uses_count' => 1]);
+
+    Livewire::actingAs($user)
+        ->test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+        ->assertStatus(403);
+});
+
+it('increments invitation_code_uses_count when user joins', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['invitation_code_max_uses' => 10, 'invitation_code_uses_count' => 0]);
+
+    Livewire::actingAs($user)
+        ->test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+        ->call('join');
+
+    $team->refresh();
+    expect($team->invitation_code_uses_count)->toBe(1);
+});
