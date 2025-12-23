@@ -9,7 +9,7 @@ it('creates a new task successfully', function () {
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
 
-    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+    Livewire::actingAs($user)->test('columns.pending', ['project' => $project])
         ->set('title', 'Test Task')
         ->call('createTask')
         ->assertHasNoErrors();
@@ -22,7 +22,7 @@ it('creates a new task successfully', function () {
     expect($task->number)->toEqual(1);
 });
 
-it('reopens a completed task when moved to inbox', function () {
+it('reopens a completed task when moved to pending', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -36,7 +36,7 @@ it('reopens a completed task when moved to inbox', function () {
         'completed_by' => $user->id,
     ]);
 
-    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+    Livewire::actingAs($user)->test('columns.pending', ['project' => $project])
         ->call('sortItem', $task->id, 0);
 
     $task->refresh();
@@ -46,7 +46,7 @@ it('reopens a completed task when moved to inbox', function () {
     expect($task->reopened_by)->toEqual($user->id);
 });
 
-it('removes section assignment when task moved to inbox', function () {
+it('removes section assignment when task moved to pending', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -61,7 +61,7 @@ it('removes section assignment when task moved to inbox', function () {
         'section_moved_by' => $user->id,
     ]);
 
-    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+    Livewire::actingAs($user)->test('columns.pending', ['project' => $project])
         ->call('sortItem', $task->id, 0);
 
     $task->refresh();
@@ -70,7 +70,7 @@ it('removes section assignment when task moved to inbox', function () {
     expect($task->section_moved_by)->toBeNull();
 });
 
-it('removes section assignment and reopens completed task when moved to inbox', function () {
+it('removes section assignment and reopens completed task when moved to pending', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -87,7 +87,7 @@ it('removes section assignment and reopens completed task when moved to inbox', 
         'section_moved_by' => $user->id,
     ]);
 
-    Livewire::actingAs($user)->test('columns.inbox', ['project' => $project])
+    Livewire::actingAs($user)->test('columns.pending', ['project' => $project])
         ->call('sortItem', $task->id, 0);
 
     $task->refresh();

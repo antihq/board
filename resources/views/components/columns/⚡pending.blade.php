@@ -39,7 +39,7 @@ new class extends Component
     {
         return $this->project
             ->tasks()
-            ->inbox()
+            ->pending()
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -76,7 +76,7 @@ new class extends Component
 ?>
 
 <flux:kanban.column {{ $attributes }}>
-    <flux:kanban.column.header heading="Inbox" count="{{ $this->tasks->count() }}" />
+    <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
         @foreach ($this->tasks as $task)
             <flux:modal class="w-full max-w-[95vw] lg:max-w-150">

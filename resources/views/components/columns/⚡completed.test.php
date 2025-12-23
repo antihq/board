@@ -4,7 +4,7 @@ use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
 
-it('completes an inbox task when moved to done', function () {
+it('completes a pending task when moved to completed', function () {
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -16,7 +16,7 @@ it('completes an inbox task when moved to done', function () {
         'number' => 1,
     ]);
 
-    Livewire::actingAs($user)->test('columns.done', ['project' => $project])
+    Livewire::actingAs($user)->test('columns.completed', ['project' => $project])
         ->call('sortItem', $task->id, 0);
 
     $task->refresh();

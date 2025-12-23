@@ -151,13 +151,13 @@ class Task extends Model
     }
 
     #[Scope]
-    protected function inbox(Builder $query): void
+    protected function pending(Builder $query): void
     {
         $query->whereNull('completed_at')->whereNull('section_id');
     }
 
     #[Scope]
-    protected function done(Builder $query): void
+    protected function completed(Builder $query): void
     {
         $query->whereNotNull('completed_at');
     }
