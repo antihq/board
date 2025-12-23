@@ -4,17 +4,32 @@ use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
 
-it('allows authenticated user to join team', function () {
+it('allows guest to register and join team', function () {
+    $team = Team::factory()->create();
+
+    Livewire::test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+        ->set('name', 'John Doe')
+        ->set('email', 'john@example.com')
+        ->call('join')
+        ->assertSee('Check your email');
+
+    $user = User::firstWhere('email', 'john@example.com');
+    expect($user)->not->toBeNull()
+        ->and($user->name)->toBe('John Doe')
+        ->and($user->joinedTeams()->where('teams.id', $team->id)->exists())->toBeFalse();
+});
+
+it('allows existing user to login and join team', function () {
     $user = User::factory()->create();
     $team = Team::factory()->create();
 
-    Livewire::actingAs($user)
-        ->test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+    Livewire::test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+        ->set('name', $user->name)
+        ->set('email', $user->email)
         ->call('join')
-        ->assertRedirect(route('teams.show', ['team' => $team]));
+        ->assertSee('Check your email');
 
-    expect($user->joinedTeams()->where('teams.id', $team->id)->exists())
-        ->toBeTrue();
+    expect($user->joinedTeams()->where('teams.id', $team->id)->exists())->toBeFalse();
 });
 
 it('prevents users from joining team twice', function () {
@@ -49,11 +64,9 @@ it('prevents access with invalid invitation code', function () {
 });
 
 it('prevents joining when invitation code has reached max uses', function () {
-    $user = User::factory()->create();
     $team = Team::factory()->create(['invitation_code_max_uses' => 1, 'invitation_code_uses_count' => 1]);
 
-    Livewire::actingAs($user)
-        ->test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+    Livewire::test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
         ->assertStatus(403);
 });
 
@@ -67,4 +80,17 @@ it('increments invitation_code_uses_count when user joins', function () {
 
     $team->refresh();
     expect($team->invitation_code_uses_count)->toBe(1);
+});
+
+it('creates personal team for new user', function () {
+    $team = Team::factory()->create();
+
+    Livewire::test('pages::teams.join', ['team' => $team, 'invitation_code' => $team->invitation_code])
+        ->set('name', 'Jane Doe')
+        ->set('email', 'jane@example.com')
+        ->call('join');
+
+    $user = User::firstWhere('email', 'jane@example.com');
+    expect($user->teams()->count())->toBe(1)
+        ->and($user->teams()->first()->personal)->toBeTrue();
 });

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\URL;
 
 Route::redirect('/', '/login');
 
+Route::livewire('{team:handle}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
@@ -44,7 +46,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
 
     Route::livewire('{team:handle}', 'pages::teams.show')->name('teams.show');
-    Route::livewire('{team:handle}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
     Route::livewire('{team:handle}/settings/general', 'pages::teams.settings.general')->name('teams.settings.general');
     Route::livewire('{team:handle}/settings/auto-close', 'pages::teams.settings.auto-close')->name('teams.settings.auto-close');
     Route::livewire('{team:handle}/settings/members', 'pages::teams.settings.members')->name('teams.settings.members');
