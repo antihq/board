@@ -60,6 +60,13 @@ new class extends Component
             ];
         }
 
+        if ($task->closed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+        }
+
         if ($task->section_id !== null) {
             $updateData = array_merge($updateData, [
                 'section_id' => null,

@@ -14,7 +14,7 @@ new class extends Component
     {
         return $this->project
             ->tasks()
-            ->completed()
+            ->closed()
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -26,20 +26,19 @@ new class extends Component
 
         $updateData = [];
 
-        if ($task->completed_at === null) {
+        if ($task->closed_at === null) {
             $updateData = [
-                'completed_at' => now(),
-                'completed_by' => Auth::id(),
-                'reopened_at' => null,
-                'reopened_by' => null,
+                'closed_at' => now(),
+                'closed_by' => Auth::id(),
             ];
-        }
 
-        if ($task->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
+            if ($task->completed_at === null) {
+                $updateData['completed_at'] = now();
+                $updateData['completed_by'] = Auth::id();
+            }
+
+            $updateData['reopened_at'] = null;
+            $updateData['reopened_by'] = null;
         }
 
         if (! empty($updateData)) {
@@ -50,7 +49,7 @@ new class extends Component
 ?>
 
 <flux:kanban.column {{ $attributes }}>
-    <flux:kanban.column.header heading="Completed" count="{{ $this->tasks->count() }}" />
+    <flux:kanban.column.header heading="Closed" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
         @foreach ($this->tasks as $task)
             <flux:modal class="w-full max-w-[95vw] lg:max-w-150" wire:key="task-{{ $task->id }}">

@@ -64,6 +64,13 @@ new class extends Component
             ]);
         }
 
+        if ($task->closed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+        }
+
         $task->update($updateData);
     }
 };

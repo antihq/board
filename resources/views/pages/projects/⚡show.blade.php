@@ -105,6 +105,7 @@ new class extends Component
                 @endforeach
 
                 <livewire:columns.completed :project="$project" />
+                <livewire:columns.closed :project="$project" />
                 <flux:kanban.column wire:sort:ignore>
                     <flux:kanban.column.footer class="pt-2">
                         <form wire:submit.prevent="createSection">

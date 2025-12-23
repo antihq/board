@@ -111,7 +111,7 @@ class Task extends Model
     /**
      * Check if this task should be auto-closed based on its last update.
      */
-    public function needsAutoClose(): bool
+    public function needsClose(): bool
     {
         if ($this->completed_at || $this->closed_at) {
             return false;
@@ -129,7 +129,7 @@ class Task extends Model
     /**
      * Check if this task was auto-closed.
      */
-    public function wasAutoClosed(): bool
+    public function wasClosed(): bool
     {
         return ! is_null($this->closed_at);
     }
@@ -137,9 +137,9 @@ class Task extends Model
     /**
      * Auto-close this task.
      */
-    public function autoClose(): void
+    public function close(): void
     {
-        if (! $this->needsAutoClose()) {
+        if (! $this->needsClose()) {
             return;
         }
 
@@ -175,13 +175,13 @@ class Task extends Model
     }
 
     #[Scope]
-    protected function autoClosed(Builder $query): void
+    protected function closed(Builder $query): void
     {
         $query->whereNotNull('closed_at');
     }
 
     #[Scope]
-    protected function notAutoClosed(Builder $query): void
+    protected function notClosed(Builder $query): void
     {
         $query->whereNull('closed_at');
     }

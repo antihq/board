@@ -40,7 +40,7 @@ class AutoCloseTasks extends Command
             ->shouldAutoClose()
             ->cursor()
             ->each(function ($task) use ($dryRun, &$count) {
-                if (! $task->needsAutoClose()) {
+                if (! $task->needsClose()) {
                     return;
                 }
 
@@ -55,7 +55,7 @@ class AutoCloseTasks extends Command
                 $this->line('');
 
                 if (! $dryRun) {
-                    $task->autoClose();
+                    $task->close();
                     $this->info('  ✓ Task auto-closed');
                 }
             });

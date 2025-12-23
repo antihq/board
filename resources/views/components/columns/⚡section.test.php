@@ -83,6 +83,32 @@ it('moves uncompleted task to section', function () {
     expect($task->reopened_by)->toBeNull();
 });
 
+it('moves closed task to section', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $task = Task::factory()->create([
+        'project_id' => $project->id,
+        'completed_at' => now()->subDay(),
+        'completed_by' => $user->id,
+        'closed_at' => now()->subDay(),
+        'closed_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->call('sortItem', $task->id, 0);
+
+    $task->refresh();
+
+    expect($task->section_id)->toBe($section->id);
+    expect($task->section_moved_by)->toBe($user->id);
+    expect($task->section_moved_at)->not->toBeNull();
+    expect($task->closed_at)->toBeNull();
+    expect($task->closed_by)->toBeNull();
+});
+
 it('updates section title', function () {
     $user = User::factory()->create();
     $team = Team::factory()->create(['user_id' => $user->id]);
