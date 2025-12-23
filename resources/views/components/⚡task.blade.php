@@ -333,6 +333,25 @@ new class extends Component
         }
     }
 
+    public function toggleSaved()
+    {
+        $this->authorize('update', $this->task);
+
+        $userId = Auth::id();
+        $teamId = $this->task->team_id;
+
+        if (
+            $this->task
+                ->savers()
+                ->where('user_id', $userId)
+                ->exists()
+        ) {
+            $this->task->savers()->detach($userId);
+        } else {
+            $this->task->savers()->attach($userId, ['team_id' => $teamId]);
+        }
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -390,6 +409,15 @@ new class extends Component
     public function subscribers()
     {
         return $this->task->subscribers;
+    }
+
+    #[Computed]
+    public function isSaved()
+    {
+        return $this->task
+            ->savers()
+            ->where('user_id', Auth::id())
+            ->exists();
     }
 };
 ?>
@@ -744,6 +772,24 @@ new class extends Component
             @else
                 <flux:text class="text-xs">No subscribers</flux:text>
             @endunless
+        </div>
+
+        <!-- Saved Section -->
+        <div class="space-y-2">
+            <div class="flex items-center gap-2">
+                <flux:heading>Saved</flux:heading>
+                @if ($this->isSaved)
+                    <flux:button size="xs" wire:click="toggleSaved">Unsave</flux:button>
+                @else
+                    <flux:button size="xs" wire:click="toggleSaved">Save</flux:button>
+                @endif
+            </div>
+
+            @if ($this->isSaved)
+                <flux:badge size="sm">Saved</flux:badge>
+            @else
+                <flux:text class="text-xs">Not saved</flux:text>
+            @endif
         </div>
     </div>
 

@@ -5,6 +5,7 @@ use App\Models\Comment;
 use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 it('saves task description successfully', function () {
@@ -588,4 +589,72 @@ it('prevents non-authorized users from subscribing to tasks', function () {
 
     // Verify no subscription was added
     expect($task->subscribers)->toHaveCount(0);
+});
+
+it('saves task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    expect($task->savers)->toHaveCount(0);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('toggleSaved')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->savers)->toHaveCount(1);
+    expect($task->savers->first()->id)->toEqual($user->id);
+});
+
+it('unsaves task successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    // Save first
+    $task->savers()->attach($user->id, ['team_id' => $team->id]);
+
+    expect($task->savers)->toHaveCount(1);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('toggleSaved')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->savers)->toHaveCount(0);
+});
+
+it('stores team_id when saving task', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+    ]);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('toggleSaved')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    $savedTask = DB::table('saved_tasks')
+        ->where('user_id', $user->id)
+        ->where('task_id', $task->id)
+        ->first();
+
+    expect($savedTask)->not->toBeNull();
+    expect($savedTask->team_id)->toEqual($team->id);
 });

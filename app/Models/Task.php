@@ -95,6 +95,11 @@ class Task extends Model
         return $this->belongsToMany(User::class, 'task_subscriptions');
     }
 
+    public function savers()
+    {
+        return $this->belongsToMany(User::class, 'saved_tasks')->withPivot('team_id');
+    }
+
     /**
      * Get the effective auto-close days for this task.
      */
