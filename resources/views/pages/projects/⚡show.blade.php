@@ -5,8 +5,7 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -82,9 +81,9 @@ new class extends Component
     <div class="flex items-center justify-between">
         <flux:heading level="1" size="lg">{{ $project->name }}</flux:heading>
 
-        <a href="{{ route('projects.settings.general', [$team, $project]) }}" class="inline-flex">
-            <flux:button variant="ghost" size="sm">Edit Project</flux:button>
-        </a>
+        <flux:button size="sm" href="{{ route('projects.settings.general', [$team, $project]) }}" wire:navigate>
+            Settings
+        </flux:button>
     </div>
 
     <flux:spacer class="my-4" />
