@@ -3,11 +3,17 @@
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
+
+    #[On('task.moved')]
+    public function refreshTasks()
+    {
+        unset($this->tasks);
+    }
 
     #[Computed]
     public function tasks()
@@ -44,6 +50,7 @@ new class extends Component
 
         if (! empty($updateData)) {
             $task->update($updateData);
+            $this->dispatch('task.moved');
         }
     }
 };

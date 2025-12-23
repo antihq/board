@@ -4,14 +4,20 @@ use App\Models\Section;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Section $section;
 
     public $title = '';
     public $color = '';
+
+    #[On('task.moved')]
+    public function refreshTasks()
+    {
+        unset($this->tasks);
+    }
 
     public function mount()
     {
@@ -72,6 +78,7 @@ new class extends Component
         }
 
         $task->update($updateData);
+        $this->dispatch('task.moved');
     }
 };
 ?>
