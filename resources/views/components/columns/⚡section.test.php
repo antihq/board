@@ -82,3 +82,69 @@ it('moves uncompleted task to section', function () {
     expect($task->reopened_at)->toBeNull();
     expect($task->reopened_by)->toBeNull();
 });
+
+it('updates section title', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id, 'title' => 'Old Title']);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->set('title', 'New Title')
+        ->call('saveSection');
+
+    $section->refresh();
+
+    expect($section->title)->toBe('New Title');
+});
+
+it('updates section color', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->set('color', '#ff0000')
+        ->call('saveSection');
+
+    $section->refresh();
+
+    expect($section->color)->toBe('#ff0000');
+});
+
+it('clears section color when empty', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id, 'color' => '#ff0000']);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->set('color', '')
+        ->call('saveSection');
+
+    $section->refresh();
+
+    expect($section->color)->toBeNull();
+});
+
+it('prevents non-owner from updating section', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $member = User::factory()->create();
+
+    Livewire::actingAs($member)
+        ->test('columns.section', ['section' => $section])
+        ->set('title', 'New Title')
+        ->call('saveSection')
+        ->assertForbidden();
+
+    $section->refresh();
+
+    expect($section->title)->not->toBe('New Title');
+});
