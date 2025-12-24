@@ -786,3 +786,158 @@ it('notifies subscribers when comment is added', function () {
     );
     Notification::assertNotSentTo($user, \App\Notifications\TaskCommented::class);
 });
+
+it('allows comment creator to delete their own comment', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $user->id,
+        'content' => 'Test comment',
+    ]);
+
+    expect($task->comments)->toHaveCount(1);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('deleteComment', $comment->id)
+        ->assertDispatched('task.updated')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(0);
+});
+
+it('allows team owner to delete any comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $member = User::factory()->create();
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Test comment',
+    ]);
+
+    expect($task->comments)->toHaveCount(1);
+
+    Livewire::actingAs($owner)->test('task', ['task' => $task])
+        ->call('deleteComment', $comment->id)
+        ->assertDispatched('task.updated')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(0);
+});
+
+it('allows team admin to delete any comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $team->users()->attach($owner->id);
+
+    $admin = User::factory()->create();
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Test comment',
+    ]);
+
+    expect($task->comments)->toHaveCount(1);
+
+    Livewire::actingAs($admin)->test('task', ['task' => $task])
+        ->call('deleteComment', $comment->id)
+        ->assertDispatched('task.updated')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(0);
+});
+
+it('does not allow regular member to delete another members comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+
+    $member1 = User::factory()->create();
+    $team->users()->attach($member1->id, ['role' => 'member']);
+
+    $member2 = User::factory()->create();
+    $team->users()->attach($member2->id, ['role' => 'member']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member1->id,
+        'content' => 'Test comment',
+    ]);
+
+    expect($task->comments)->toHaveCount(1);
+
+    Livewire::actingAs($member2)->test('task', ['task' => $task])
+        ->call('deleteComment', $comment->id)
+        ->assertForbidden();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(1);
+});
+
+it('does not allow non-member to delete comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $nonMember = User::factory()->create();
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Test comment',
+    ]);
+
+    expect($task->comments)->toHaveCount(1);
+
+    Livewire::actingAs($nonMember)->test('task', ['task' => $task])
+        ->call('deleteComment', $comment->id)
+        ->assertForbidden();
+
+    $task->refresh();
+    expect($task->comments)->toHaveCount(1);
+});
