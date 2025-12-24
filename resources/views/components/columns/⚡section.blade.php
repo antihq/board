@@ -46,7 +46,7 @@ new class extends Component {
     {
         return $this->section
             ->tasks()
-            ->with(['creator', 'project', 'tags', 'checklistItems', 'assignees'])
+            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -137,47 +137,54 @@ new class extends Component {
                                             @endif
                                         </div>
                                     @endunless
-
-                                    @unless ($task->checklistItems->isEmpty())
-                                        <flux:text class="text-xs">
-                                            {{ $task->checklistItems->where('completed', true)->count() }}/{{ $task->checklistItems->count() }}
-                                        </flux:text>
-                                    @endunless
                                 </div>
                             </x-slot>
                             <x-slot name="footer">
-                                <div class="flex items-center gap-3">
-                                    @if ($task->creator)
-                                        <flux:text
-                                            class="text-xs"
-                                            tooltip="{{ $task->creator->name }} · {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}"
-                                        >
-                                            {{ $task->creator->initials() }} ·
-                                            {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}
-                                        </flux:text>
-                                    @endif
-
-                                    <flux:text class="text-xs">
-                                        {{ $task->updated_at->isToday() ? 'Today' : $task->updated_at->diffForHumans() }}
-                                    </flux:text>
-                                    <flux:avatar.group>
-                                        @foreach ($task->assignees->take(3) as $assignee)
+                                <div class="flex w-full items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2">
+                                        @if ($task->creator)
                                             <flux:avatar
                                                 circle
                                                 size="xs"
-                                                name="{{ $assignee->name }}"
+                                                name="{{ $task->creator->name }}"
                                                 color="auto"
-                                                color:seed="{{ $assignee->id }}"
-                                                tooltip="{{ $assignee->name }}"
+                                                color:seed="{{ $task->creator->id }}"
+                                                tooltip="{{ $task->creator->name }}"
                                             />
-                                        @endforeach
-
-                                        @if ($task->assignees->count() > 3)
-                                            <flux:avatar circle size="xs">
-                                                {{ $task->assignees->count() }}+
-                                            </flux:avatar>
+                                            <flux:text class="text-xs">
+                                                opened
+                                                {{ $task->created_at->diffForHumans() }}
+                                            </flux:text>
                                         @endif
-                                    </flux:avatar.group>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        @unless ($task->comments->isEmpty())
+                                            <flux:text class="inline-flex gap-1 text-xs">
+                                                <flux:icon.chat-bubble-bottom-center-text variant="micro" />
+                                                {{ $task->comments->count() }}
+                                            </flux:text>
+                                        @endunless
+
+                                        <flux:avatar.group>
+                                            @foreach ($task->assignees->take(3) as $assignee)
+                                                <flux:avatar
+                                                    circle
+                                                    size="xs"
+                                                    name="{{ $assignee->name }}"
+                                                    color="auto"
+                                                    color:seed="{{ $assignee->id }}"
+                                                    tooltip="{{ $assignee->name }}"
+                                                />
+                                            @endforeach
+
+                                            @if ($task->assignees->count() > 3)
+                                                <flux:avatar circle size="xs">
+                                                    {{ $task->assignees->count() }}+
+                                                </flux:avatar>
+                                            @endif
+                                        </flux:avatar.group>
+                                    </div>
                                 </div>
                             </x-slot>
                         </flux:kanban.card>

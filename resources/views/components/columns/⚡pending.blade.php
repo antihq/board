@@ -3,12 +3,12 @@
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
@@ -49,7 +49,7 @@ new class extends Component
         return $this->project
             ->tasks()
             ->pending()
-            ->with(['creator', 'project', 'tags', 'checklistItems', 'assignees'])
+            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
             ->get();
@@ -119,17 +119,11 @@ new class extends Component
                                         @endif
                                     </div>
                                 @endunless
-
-                                @unless ($task->checklistItems->isEmpty())
-                                    <flux:text class="text-xs">
-                                        {{ $task->checklistItems->where('completed', true)->count() }}/{{ $task->checklistItems->count() }}
-                                    </flux:text>
-                                @endunless
                             </div>
                         </x-slot>
                         <x-slot name="footer">
-                            <div class="flex items-center gap-3 justify-between">
-                                <div class="flex gap-3 items-center">
+                            <div class="flex w-full items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
                                     <flux:avatar
                                         circle
                                         size="xs"
@@ -138,32 +132,39 @@ new class extends Component
                                         color:seed="{{ $task->creator->id }}"
                                         tooltip="{{ $task->creator->name }}"
                                     />
-                                    <flux:tooltip content="{{ $task->creator->name }} · {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}">
-                                        <flux:text
-                                            class="text-xs"
-                                        >
-                                            {{ $task->creator->initials() }} opened
-                                            {{ $task->created_at->diffForHumans() }}
-                                        </flux:text>
-                                    </flux:tooltip>
+                                    <flux:text class="text-xs">
+                                        opened
+                                        {{ $task->created_at->diffForHumans() }}
+                                    </flux:text>
                                 </div>
 
-                                <flux:avatar.group>
-                                    @foreach ($task->assignees->take(3) as $assignee)
-                                        <flux:avatar
-                                            circle
-                                            size="xs"
-                                            name="{{ $assignee->name }}"
-                                            color="auto"
-                                            color:seed="{{ $assignee->id }}"
-                                            tooltip="{{ $assignee->name }}"
-                                        />
-                                    @endforeach
+                                <div class="flex items-center gap-3">
+                                    @unless ($task->comments->isEmpty())
+                                        <flux:text class="inline-flex gap-1 text-xs">
+                                            <flux:icon.chat-bubble-bottom-center-text variant="micro" />
+                                            {{ $task->comments->count() }}
+                                        </flux:text>
+                                    @endunless
 
-                                    @if ($task->assignees->count() > 3)
-                                        <flux:avatar circle size="xs">{{ $task->assignees->count() }}+</flux:avatar>
-                                    @endif
-                                </flux:avatar.group>
+                                    <flux:avatar.group>
+                                        @foreach ($task->assignees->take(3) as $assignee)
+                                            <flux:avatar
+                                                circle
+                                                size="xs"
+                                                name="{{ $assignee->name }}"
+                                                color="auto"
+                                                color:seed="{{ $assignee->id }}"
+                                                tooltip="{{ $assignee->name }}"
+                                            />
+                                        @endforeach
+
+                                        @if ($task->assignees->count() > 3)
+                                            <flux:avatar circle size="xs">
+                                                {{ $task->assignees->count() }}+
+                                            </flux:avatar>
+                                        @endif
+                                    </flux:avatar.group>
+                                </div>
                             </div>
                         </x-slot>
                     </flux:kanban.card>
