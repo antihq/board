@@ -723,7 +723,7 @@ new class extends Component
     <flux:separator variant="subtle" />
 
     <!-- Section, Tags, Assignees, and Subscribers Grid -->
-    <div class="grid grid-cols-1 gap-4">
+    <div class="space-y-3">
         <!-- Assignees Section -->
         <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
@@ -749,11 +749,8 @@ new class extends Component
                         @endforeach
                     </flux:pillbox>
 
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingAssignees" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
+                    <div>
+                        <flux:button wire:click="cancelManagingAssignees" size="sm">Done</flux:button>
                     </div>
                 </div>
             @else
@@ -778,6 +775,8 @@ new class extends Component
                 </div>
             @endif
         </div>
+
+        <flux:separator variant="subtle" />
 
         <!-- Section Section -->
         <div class="space-y-2">
@@ -806,11 +805,8 @@ new class extends Component
                         @endforeach
                     </flux:select>
 
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingSection" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
+                    <div>
+                        <flux:button wire:click="cancelManagingSection" size="sm">Done</flux:button>
                     </div>
                 </div>
             @else
@@ -824,23 +820,23 @@ new class extends Component
             @endif
         </div>
 
+        <flux:separator variant="subtle" />
+
         <!-- Priority Section -->
         <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
                 <flux:heading class="text-xs">Priority</flux:heading>
-                @if ($task->prioritized_at)
-                    <flux:button size="xs" wire:click="togglePriority">Not urgent</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="togglePriority">Top priority</flux:button>
-                @endif
             </div>
-
             @if ($task->prioritized_at)
-                <flux:badge size="sm" color="amber">Top priority</flux:badge>
+                <flux:button size="xs" wire:click="togglePriority" icon="x-mark">Not urgent</flux:button>
+                <flux:text class="text-xs">This task is marked as top priority.</flux:text>
             @else
-                <flux:badge size="sm">Not urgent</flux:badge>
+                <flux:button size="xs" wire:click="togglePriority" icon="star">Top priority</flux:button>
+                <flux:text class="text-xs">Mark this task as top priority.</flux:text>
             @endif
         </div>
+
+        <flux:separator variant="subtle" />
 
         <!-- Tags Section -->
         <div class="space-y-2">
@@ -878,11 +874,8 @@ new class extends Component
                         </flux:pillbox.option.create>
                     </flux:pillbox>
 
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
+                    <div>
+                        <flux:button wire:click="cancelManagingTags" size="sm">Done</flux:button>
                     </div>
                 </div>
             @else
@@ -900,50 +893,37 @@ new class extends Component
             @endif
         </div>
 
+        <flux:separator variant="subtle" />
+
         <!-- Subscribers Section -->
         <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
-                <flux:heading class="text-xs">Subscribers</flux:heading>
-                @if ($this->subscribers->contains('id', auth()->id()))
-                    <flux:button size="xs" wire:click="toggleSubscribe">Unsubscribe</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="toggleSubscribe">Subscribe</flux:button>
-                @endif
+                <flux:heading class="text-xs">Notifications</flux:heading>
             </div>
-            @unless ($this->subscribers->isEmpty())
-                <div class="flex flex-wrap gap-2">
-                    @foreach ($this->subscribers as $subscriber)
-                        <flux:avatar
-                            circle
-                            size="sm"
-                            name="{{ $subscriber->name }}"
-                            color="auto"
-                            color:seed="{{ $subscriber->id }}"
-                            tooltip="{{ $subscriber->name }}"
-                            src="https://unavatar.io/gravatar/{{ $subscriber->email }}"
-                        />
-                    @endforeach
-                </div>
+            @if ($this->subscribers->contains('id', auth()->id()))
+                <flux:button size="xs" wire:click="toggleSubscribe" icon="bell-slash">Unsubscribe</flux:button>
+                <flux:text class="text-xs">
+                    You're receiving notifications because you're subscribed to this task.
+                </flux:text>
             @else
-                <flux:text class="text-xs">No subscribers</flux:text>
-            @endunless
+                <flux:button size="xs" wire:click="toggleSubscribe" icon="bell">Subscribe</flux:button>
+                <flux:text class="text-xs">You're not receiving notifications from this task.</flux:text>
+            @endif
         </div>
+
+        <flux:separator variant="subtle" />
 
         <!-- Saved Section -->
         <div class="space-y-2">
             <div class="flex items-center justify-between gap-2">
                 <flux:heading class="text-xs">Saved</flux:heading>
-                @if ($this->isSaved)
-                    <flux:button size="xs" wire:click="toggleSaved">Unsave</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="toggleSaved">Save</flux:button>
-                @endif
             </div>
-
             @if ($this->isSaved)
-                <flux:badge size="sm">Saved</flux:badge>
+                <flux:button size="xs" wire:click="toggleSaved" icon="x-mark">Unsave</flux:button>
+                <flux:text class="text-xs">You've saved this task for later reference.</flux:text>
             @else
-                <flux:text class="text-xs">Not saved</flux:text>
+                <flux:button size="xs" wire:click="toggleSaved" icon="bookmark">Save</flux:button>
+                <flux:text class="text-xs">Save this task for later reference.</flux:text>
             @endif
         </div>
     </div>
