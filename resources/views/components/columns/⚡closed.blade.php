@@ -6,7 +6,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     #[On('task.moved')]
@@ -92,18 +93,23 @@ new class extends Component {
                         </x-slot>
                         <x-slot name="footer">
                             <div class="flex items-center gap-3">
-                                @if ($task->creator)
-                                    <flux:text
-                                        class="text-xs"
-                                        tooltip="{{ $task->creator->name }} · {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}"
-                                    >
-                                        {{ $task->creator->initials() }} ·
-                                        {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}
-                                    </flux:text>
-                                @endif
-
+                                <flux:text
+                                    class="text-xs"
+                                    tooltip="{{ $task->creator->name }} · {{ $task->created_at->isToday() ? 'Today' : $task->created_at->diffForHumans() }}"
+                                >
+                                    {{ $task->creator->initials() }} ·
+                                    @if ($task->created_at->isToday())
+                                        Today
+                                    @else
+                                        {{ $task->created_at->diffForHumans() }}
+                                    @endif
+                                </flux:text>
                                 <flux:text class="text-xs">
-                                    {{ $task->updated_at->isToday() ? 'Today' : $task->updated_at->diffForHumans() }}
+                                    @if ($task->updated_at->isToday())
+                                        Today
+                                    @else
+                                        {{ $task->updated_at->diffForHumans() }}
+                                    @endif
                                 </flux:text>
                                 <flux:avatar.group>
                                     @foreach ($task->assignees->take(3) as $assignee)
