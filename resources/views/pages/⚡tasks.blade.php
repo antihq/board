@@ -329,6 +329,7 @@ new class extends Component {
                                                         <flux:avatar
                                                             circle
                                                             size="xs"
+                                                            :src="$task->creator->profilePhotoUrl()"
                                                             name="{{ $task->creator->name }}"
                                                             color="auto"
                                                             color:seed="{{ $task->creator->id }}"
@@ -347,6 +348,7 @@ new class extends Component {
                                                         <flux:avatar
                                                             circle
                                                             size="xs"
+                                                            :src="$task->completer->profilePhotoUrl()"
                                                             name="{{ $task->completer->name }}"
                                                             color="auto"
                                                             color:seed="{{ $task->completer->id }}"
@@ -365,6 +367,7 @@ new class extends Component {
                                                         <flux:avatar
                                                             circle
                                                             size="xs"
+                                                            :src="$task->closer->profilePhotoUrl()"
                                                             name="{{ $task->closer->name }}"
                                                             color="auto"
                                                             color:seed="{{ $task->closer->id }}"
@@ -392,6 +395,7 @@ new class extends Component {
                                                     <flux:avatar
                                                         circle
                                                         size="xs"
+                                                        :src="$assignee->profilePhotoUrl()"
                                                         name="{{ $assignee->name }}"
                                                         color="auto"
                                                         color:seed="{{ $assignee->id }}"

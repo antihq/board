@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -672,11 +671,11 @@ new class extends Component
                         <flux:avatar
                             circle
                             size="sm"
+                            :src="$comment->user->profilePhotoUrl()"
                             name="{{ $comment->user->name }}"
                             color="auto"
                             color:seed="{{ $comment->user->id }}"
                             tooltip="{{ $comment->user->name }}"
-                            src="https://unavatar.io/gravatar/{{ auth()->user()->email }}"
                         />
                         <div class="flex-1 space-y-1">
                             <div class="flex items-center gap-2">
@@ -761,11 +760,11 @@ new class extends Component
                                 <flux:avatar
                                     circle
                                     size="sm"
+                                    :src="$assignee->profilePhotoUrl()"
                                     name="{{ $assignee->name }}"
                                     color="auto"
                                     color:seed="{{ $assignee->id }}"
                                     tooltip="{{ $assignee->name }}"
-                                    src="https://unavatar.io/gravatar/{{ $assignee->email }}"
                                 />
                             @endforeach
                         </div>

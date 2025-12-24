@@ -8,8 +8,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     #[Validate('required|integer|min:1')]
@@ -192,7 +191,7 @@ new class extends Component
             @foreach ($this->teamMembers as $member)
                 <div class="flex items-center gap-3">
                     <flux:avatar
-                        :src="$member->avatar_url ?? null"
+                        :src="$member->profilePhotoUrl()"
                         :name="$member->name"
                         :color:seed="'u'.$member->id"
                         color="auto"

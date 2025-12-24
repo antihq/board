@@ -148,6 +148,7 @@ new class extends Component
                                             <flux:avatar
                                                 circle
                                                 size="xs"
+                                                :src="$task->creator->profilePhotoUrl()"
                                                 name="{{ $task->creator->name }}"
                                                 color="auto"
                                                 color:seed="{{ $task->creator->id }}"
@@ -173,6 +174,7 @@ new class extends Component
                                                 <flux:avatar
                                                     circle
                                                     size="xs"
+                                                    :src="$assignee->profilePhotoUrl()"
                                                     name="{{ $assignee->name }}"
                                                     color="auto"
                                                     color:seed="{{ $assignee->id }}"

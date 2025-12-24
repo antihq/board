@@ -110,7 +110,7 @@
                 <flux:button size="sm" variant="ghost" square>
                     <flux:avatar
                         size="xs"
-                        src="https://unavatar.io/gravatar/{{ auth()->user()->email }}"
+                        :src="auth()->user()->profilePhotoUrl()"
                         :name="Auth::user()->name"
                         color="auto"
                         initials:single
