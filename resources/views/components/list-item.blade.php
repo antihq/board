@@ -8,9 +8,7 @@
 ])
 
 @php
-    $classes = (string) Flux::classes()
-        ->add('py-3')
-        ->add('bg-white dark:bg-zinc-700');
+    $classes = (string) Flux::classes()->add('py-3');
 
     $asButtonClasses = (string) Flux::classes()
         ->add('cursor-default select-none')
