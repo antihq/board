@@ -10,13 +10,16 @@ use function Pest\Laravel\actingAs;
 it('displays the profile page', function () {
     $user = User::factory()->withPersonalTeam()->create();
 
-    actingAs($user)->get('/settings/profile')->assertOk();
+    $team = $user->teams()->where('personal', true)->first();
+    actingAs($user)->get(route('teams.account.profile', $team))->assertOk();
 });
 
 it('updates the profile information', function () {
     $user = User::factory()->withPersonalTeam()->create();
 
-    $component = Livewire::actingAs($user)->test('pages::settings.profile')
+    $team = $user->teams()->where('personal', true)->first();
+
+    $component = Livewire::actingAs($user)->test('pages::account.profile', ['team' => $team])
         ->set('name', 'Test User')
         ->set('email', 'test@example.com')
         ->call('updateProfileInformation');
@@ -33,7 +36,9 @@ it('updates the profile information', function () {
 it('keeps email verification status unchanged when email address is unchanged', function () {
     $user = User::factory()->withPersonalTeam()->create();
 
-    $component = Livewire::actingAs($user)->test('pages::settings.profile')
+    $team = $user->teams()->where('personal', true)->first();
+
+    $component = Livewire::actingAs($user)->test('pages::account.profile', ['team' => $team])
         ->set('name', 'Test User')
         ->set('email', $user->email)
         ->call('updateProfileInformation');
@@ -48,9 +53,11 @@ it('uploads a profile photo', function () {
 
     $user = User::factory()->withPersonalTeam()->create();
 
+    $team = $user->teams()->where('personal', true)->first();
+
     $photo = UploadedFile::fake()->image('profile.jpg', 200, 200);
 
-    $component = Livewire::actingAs($user)->test('pages::settings.profile')
+    $component = Livewire::actingAs($user)->test('pages::account.profile', ['team' => $team])
         ->set('photo', $photo)
         ->call('updateProfileInformation');
 
@@ -70,9 +77,11 @@ it('removes a profile photo', function () {
         'profile_photo_path' => 'profile-photos/test.jpg',
     ]);
 
+    $team = $user->teams()->where('personal', true)->first();
+
     Storage::disk('public')->put($user->profile_photo_path, 'test content');
 
-    Livewire::actingAs($user)->test('pages::settings.profile')
+    Livewire::actingAs($user)->test('pages::account.profile', ['team' => $team])
         ->call('removePhoto');
 
     $user->refresh();
@@ -89,11 +98,13 @@ it('replaces an existing profile photo', function () {
         'profile_photo_path' => 'profile-photos/old.jpg',
     ]);
 
+    $team = $user->teams()->where('personal', true)->first();
+
     Storage::disk('public')->put($user->profile_photo_path, 'old content');
 
     $newPhoto = UploadedFile::fake()->image('new-profile.jpg', 200, 200);
 
-    Livewire::actingAs($user)->test('pages::settings.profile')
+    Livewire::actingAs($user)->test('pages::account.profile', ['team' => $team])
         ->set('photo', $newPhoto)
         ->call('updateProfileInformation');
 

@@ -11,11 +11,9 @@ Route::redirect('/', '/login');
 Route::livewire('{team:handle}/join/{invitation_code}', 'pages::teams.join')->name('teams.join');
 
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
-
-    Route::livewire('settings/profile', 'pages::settings.profile')->name('settings.profile');
-    Route::livewire('settings/appearance', 'pages::settings.appearance')->name('settings.appearance');
-    Route::livewire('settings/devices', 'pages::settings.devices')->name('settings.devices');
+    Route::livewire('{team:handle}/account/profile', 'pages::account.profile')->name('teams.account.profile');
+    Route::livewire('{team:handle}/account/appearance', 'pages::account.appearance')->name('teams.account.appearance');
+    Route::livewire('{team:handle}/account/devices', 'pages::account.devices')->name('teams.account.devices');
 });
 
 Route::middleware('guest')->group(function () {

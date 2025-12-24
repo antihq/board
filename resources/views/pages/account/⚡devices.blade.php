@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Team;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\URL;
 use Livewire\Attributes\Computed;
@@ -8,6 +9,8 @@ use Livewire\Component;
 
 new #[Title('Device settings')] class extends Component
 {
+    public Team $team;
+
     #[Computed]
     public function deviceLoginUrl()
     {
@@ -28,13 +31,13 @@ new #[Title('Device settings')] class extends Component
         <div class="space-y-8">
             <div class="border-b border-zinc-200 dark:border-zinc-700">
                 <flux:navbar class="-mb-px">
-                    <flux:navbar.item :href="route('settings.profile')" :accent="false" wire:navigate>
+                    <flux:navbar.item :href="route('teams.account.profile', $team)" :accent="false" wire:navigate>
                         Profile
                     </flux:navbar.item>
-                    <flux:navbar.item :href="route('settings.appearance')" :accent="false" wire:navigate>
+                    <flux:navbar.item :href="route('teams.account.appearance', $team)" :accent="false" wire:navigate>
                         Appearance
                     </flux:navbar.item>
-                    <flux:navbar.item :href="route('settings.devices')" :accent="true" wire:navigate>
+                    <flux:navbar.item :href="route('teams.account.devices', $team)" :accent="true" wire:navigate>
                         Devices
                     </flux:navbar.item>
                 </flux:navbar>

@@ -13,81 +13,79 @@
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
-                @if ($team)
-                    <livewire:teams-dropdown :team="$team" />
-                    <flux:separator vertical variant="subtle" class="mx-1 my-1" />
-                    <flux:navbar.item href="{{ route('teams.show', $team) }}">Home</flux:navbar.item>
-                    <livewire:projects-dropdown :team="$team" />
-                    <flux:dropdown>
-                        <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
-                        <flux:navmenu>
+                <livewire:teams-dropdown :team="$team" />
+                <flux:separator vertical variant="subtle" class="mx-1 my-1" />
+                <flux:navbar.item href="{{ route('teams.show', $team) }}">Home</flux:navbar.item>
+                <livewire:projects-dropdown :team="$team" />
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:navmenu.item
+                            href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
+                            wire:navigate
+                        >
+                            Assigned to me
+                        </flux:navmenu.item>
+                        <flux:navmenu.item
+                            href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
+                            wire:navigate
+                        >
+                            Added by me
+                        </flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
+                            Saved tasks
+                        </flux:navmenu.item>
+                        <flux:menu.separator />
+                        <flux:navmenu.item href="{{ route('tasks', $team) }}" wire:navigate>
+                            All tasks
+                        </flux:navmenu.item>
+                    </flux:navmenu>
+                </flux:dropdown>
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
+                    <flux:navmenu>
+                        @foreach ($team->tags()->orderBy('name')->get() as $tag)
                             <flux:navmenu.item
-                                href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
+                                href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}"
                                 wire:navigate
                             >
-                                Assigned to me
+                                {{ $tag->name }}
                             </flux:navmenu.item>
-                            <flux:navmenu.item
-                                href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
-                                wire:navigate
-                            >
-                                Added by me
-                            </flux:navmenu.item>
-                            <flux:navmenu.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
-                                Saved tasks
-                            </flux:navmenu.item>
-                            <flux:menu.separator />
-                            <flux:navmenu.item href="{{ route('tasks', $team) }}" wire:navigate>
-                                All tasks
-                            </flux:navmenu.item>
-                        </flux:navmenu>
-                    </flux:dropdown>
-                    <flux:dropdown>
-                        <flux:navbar.item icon:trailing="chevron-down">Tags</flux:navbar.item>
-                        <flux:navmenu>
-                            @foreach ($team->tags()->orderBy('name')->get() as $tag)
-                                <flux:navmenu.item
-                                    href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}"
-                                    wire:navigate
-                                >
-                                    {{ $tag->name }}
-                                </flux:navmenu.item>
-                            @endforeach
+                        @endforeach
 
-                            @if ($team->tags()->count() === 0)
-                                <flux:navmenu.item disabled>No tags created</flux:navmenu.item>
-                            @endif
-                        </flux:navmenu>
-                    </flux:dropdown>
-                    <flux:dropdown>
-                        <flux:navbar.item icon:trailing="chevron-down">Members</flux:navbar.item>
-                        <flux:navmenu>
-                            <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
-                                <x-slot name="trigger">
-                                    <flux:navmenu.item>Invite people</flux:navmenu.item>
-                                </x-slot>
-                                <div class="space-y-6">
-                                    <div>
-                                        <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
-                                        <flux:text class="mt-2">
-                                            Share this link with people you want to invite to join your team.
-                                        </flux:text>
-                                    </div>
-
-                                    <flux:input
-                                        readonly
-                                        copyable
-                                        :value="route('teams.join', [$team, $team->invitation_code])"
-                                        label="Team invite link"
-                                    />
+                        @if ($team->tags()->count() === 0)
+                            <flux:navmenu.item disabled>No tags created</flux:navmenu.item>
+                        @endif
+                    </flux:navmenu>
+                </flux:dropdown>
+                <flux:dropdown>
+                    <flux:navbar.item icon:trailing="chevron-down">Members</flux:navbar.item>
+                    <flux:navmenu>
+                        <flux:modal name="invite-people" class="w-full max-w-[95vw] md:w-[600px]">
+                            <x-slot name="trigger">
+                                <flux:navmenu.item>Invite people</flux:navmenu.item>
+                            </x-slot>
+                            <div class="space-y-6">
+                                <div>
+                                    <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
+                                    <flux:text class="mt-2">
+                                        Share this link with people you want to invite to join your team.
+                                    </flux:text>
                                 </div>
-                            </flux:modal>
-                        </flux:navmenu>
-                    </flux:dropdown>
-                    <flux:navbar.item :href="route('teams.settings.general', $team)" wire:navigate>
-                        Settings
-                    </flux:navbar.item>
-                @endif
+
+                                <flux:input
+                                    readonly
+                                    copyable
+                                    :value="route('teams.join', [$team, $team->invitation_code])"
+                                    label="Team invite link"
+                                />
+                            </div>
+                        </flux:modal>
+                    </flux:navmenu>
+                </flux:dropdown>
+                <flux:navbar.item :href="route('teams.settings.general', $team)" wire:navigate>
+                    Settings
+                </flux:navbar.item>
             </flux:navbar>
 
             {{-- <flux:separator vertical class="mx-1 my-5" /> --}}
@@ -99,16 +97,12 @@
             <flux:spacer />
 
             <flux:navbar class="me-4">
-                @if ($team)
-                    <flux:navbar.item
-                        icon="bookmark"
-                        href="{{ route('teams.saved-tasks', $team) }}"
-                        label="Bookmarks"
-                        wire:navigate
-                    />
-                @else
-                    <flux:navbar.item icon="bookmark" disabled label="Bookmarks" />
-                @endif
+                <flux:navbar.item
+                    icon="bookmark"
+                    href="{{ route('teams.saved-tasks', $team) }}"
+                    label="Bookmarks"
+                    wire:navigate
+                />
                 <flux:navbar.item icon="magnifying-glass" disabled label="Search" />
             </flux:navbar>
 
@@ -125,11 +119,16 @@
 
                 <flux:menu>
                     <flux:menu.group heading="Settings">
-                        <flux:menu.item href="/settings/profile" icon="user" icon:variant="micro" wire:navigate>
+                        <flux:menu.item
+                            :href="route('teams.account.profile', $team)"
+                            icon="user"
+                            icon:variant="micro"
+                            wire:navigate
+                        >
                             Profile
                         </flux:menu.item>
                         <flux:menu.item
-                            href="/settings/appearance"
+                            :href="route('teams.account.appearance', $team)"
                             icon="adjustments-horizontal"
                             icon:variant="micro"
                             wire:navigate
@@ -137,7 +136,7 @@
                             Appearance
                         </flux:menu.item>
                         <flux:menu.item
-                            href="/settings/devices"
+                            :href="route('teams.account.devices', $team)"
                             icon="device-phone-mobile"
                             icon:variant="micro"
                             wire:navigate
@@ -169,9 +168,7 @@
             class="border-e border-zinc-200 bg-white lg:hidden dark:border-zinc-700 dark:bg-zinc-900"
         >
             <flux:sidebar.header>
-                @if ($team)
-                    <livewire:teams-dropdown :$team />
-                @endif
+                <livewire:teams-dropdown :$team />
 
                 <flux:sidebar.collapse
                     class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2"
@@ -181,69 +178,62 @@
             <flux:separator variant="subtle" />
 
             <flux:sidebar.nav>
-                @if ($team)
-                    <flux:sidebar.item href="{{ route('teams.show', $team) }}" current>Home</flux:sidebar.item>
-                    <livewire:projects-dropdown :team="$team" />
-                    <flux:sidebar.group expandable heading="Tasks" class="grid">
-                        <flux:sidebar.item
-                            href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
-                            wire:navigate
-                        >
-                            Assigned to me
-                        </flux:sidebar.item>
-                        <flux:sidebar.item
-                            href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
-                            wire:navigate
-                        >
-                            Added by me
-                        </flux:sidebar.item>
-                        <flux:sidebar.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
-                            Saved tasks
-                        </flux:sidebar.item>
-                        <flux:sidebar.item href="{{ route('tasks', $team) }}" wire:navigate>
-                            All tasks
-                        </flux:sidebar.item>
-                    </flux:sidebar.group>
-                    <flux:sidebar.group expandable heading="Tags" class="grid">
-                        @foreach ($team->tags()->orderBy('name')->get() as $tag)
-                            <flux:sidebar.item
-                                href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}"
-                                wire:navigate
-                            >
-                                {{ $tag->name }}
-                            </flux:sidebar.item>
-                        @endforeach
-
-                        @if ($team->tags()->count() === 0)
-                            <flux:sidebar.item disabled>No tags created</flux:sidebar.item>
-                        @endif
-                    </flux:sidebar.group>
-                    <flux:sidebar.group expandable heading="Members" class="grid">
-                        <flux:modal name="invite-people-mobile" class="w-full max-w-[95vw] md:w-[600px]">
-                            <x-slot name="trigger">
-                                <flux:sidebar.item>Invite people</flux:sidebar.item>
-                            </x-slot>
-                            <div class="space-y-6">
-                                <div>
-                                    <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
-                                    <flux:text class="mt-2">
-                                        Share this link with people you want to invite to join your team.
-                                    </flux:text>
-                                </div>
-
-                                <flux:input
-                                    readonly
-                                    copyable
-                                    :value="route('teams.join', [$team, $team->invitation_code])"
-                                    label="Team invite link"
-                                />
-                            </div>
-                        </flux:modal>
-                    </flux:sidebar.group>
-                    <flux:sidebar.item :href="route('teams.settings.general', $team)" wire:navigate>
-                        Settings
+                <flux:sidebar.item href="{{ route('teams.show', $team) }}" current>Home</flux:sidebar.item>
+                <livewire:projects-dropdown :team="$team" />
+                <flux:sidebar.group expandable heading="Tasks" class="grid">
+                    <flux:sidebar.item
+                        href="{{ route('tasks', [$team, 'assigned_to' => [auth()->user()->id]]) }}"
+                        wire:navigate
+                    >
+                        Assigned to me
                     </flux:sidebar.item>
-                @endif
+                    <flux:sidebar.item
+                        href="{{ route('tasks', [$team, 'added_by' => [auth()->user()->id]]) }}"
+                        wire:navigate
+                    >
+                        Added by me
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('teams.saved-tasks', $team) }}" wire:navigate>
+                        Saved tasks
+                    </flux:sidebar.item>
+                    <flux:sidebar.item href="{{ route('tasks', $team) }}" wire:navigate>All tasks</flux:sidebar.item>
+                </flux:sidebar.group>
+                <flux:sidebar.group expandable heading="Tags" class="grid">
+                    @foreach ($team->tags()->orderBy('name')->get() as $tag)
+                        <flux:sidebar.item href="{{ route('tasks', [$team, 'tags' => [$tag->id]]) }}" wire:navigate>
+                            {{ $tag->name }}
+                        </flux:sidebar.item>
+                    @endforeach
+
+                    @if ($team->tags()->count() === 0)
+                        <flux:sidebar.item disabled>No tags created</flux:sidebar.item>
+                    @endif
+                </flux:sidebar.group>
+                <flux:sidebar.group expandable heading="Members" class="grid">
+                    <flux:modal name="invite-people-mobile" class="w-full max-w-[95vw] md:w-[600px]">
+                        <x-slot name="trigger">
+                            <flux:sidebar.item>Invite people</flux:sidebar.item>
+                        </x-slot>
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">Invite people to {{ $team->name }}</flux:heading>
+                                <flux:text class="mt-2">
+                                    Share this link with people you want to invite to join your team.
+                                </flux:text>
+                            </div>
+
+                            <flux:input
+                                readonly
+                                copyable
+                                :value="route('teams.join', [$team, $team->invitation_code])"
+                                label="Team invite link"
+                            />
+                        </div>
+                    </flux:modal>
+                </flux:sidebar.group>
+                <flux:sidebar.item :href="route('teams.settings.general', $team)" wire:navigate>
+                    Settings
+                </flux:sidebar.item>
             </flux:sidebar.nav>
         </flux:sidebar>
 

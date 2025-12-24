@@ -1,11 +1,12 @@
 <?php
 
+use App\Models\Team;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Appearance')] class extends Component
 {
-    //
+    public Team $team;
 }; ?>
 
 <div class="space-y-6">
@@ -14,13 +15,13 @@ new #[Title('Appearance')] class extends Component
     <div class="space-y-8">
         <div class="border-b border-zinc-200 dark:border-zinc-700">
             <flux:navbar class="-mb-px">
-                <flux:navbar.item :href="route('settings.profile')" :accent="false" wire:navigate>
+                <flux:navbar.item :href="route('teams.account.profile', $team)" :accent="false" wire:navigate>
                     Profile
                 </flux:navbar.item>
-                <flux:navbar.item :href="route('settings.appearance')" :accent="true" wire:navigate>
+                <flux:navbar.item :href="route('teams.account.appearance', $team)" :accent="true" wire:navigate>
                     Appearance
                 </flux:navbar.item>
-                <flux:navbar.item :href="route('settings.devices')" :accent="false" wire:navigate>
+                <flux:navbar.item :href="route('teams.account.devices', $team)" :accent="false" wire:navigate>
                     Devices
                 </flux:navbar.item>
             </flux:navbar>
