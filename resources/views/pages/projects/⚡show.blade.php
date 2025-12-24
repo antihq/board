@@ -5,8 +5,7 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -95,17 +94,18 @@ new class extends Component
         ></div>
         <div class="h-full w-full overflow-x-auto">
             <flux:kanban wire:sort="sortItem">
-                <livewire:columns.pending :project="$project" />
+                <livewire:columns.pending :project="$project" wire:poll />
                 @foreach ($this->sections as $section)
                     <livewire:columns.section
                         :section="$section"
                         wire:key="{{ $section->id }}"
                         wire:sort:item="{{ $section->id }}"
+                        wire:poll
                     />
                 @endforeach
 
-                <livewire:columns.completed :project="$project" />
-                <livewire:columns.closed :project="$project" />
+                <livewire:columns.completed :project="$project" wire:poll />
+                <livewire:columns.closed :project="$project" wire:poll />
                 <flux:kanban.column wire:sort:ignore>
                     <flux:kanban.column.footer class="pt-2">
                         <form wire:submit.prevent="createSection">

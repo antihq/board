@@ -3,17 +3,18 @@
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
 
     #[On('task.moved')]
+    #[On('task.updated')]
     public function refreshTasks()
     {
         unset($this->tasks);

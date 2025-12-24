@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -94,6 +93,8 @@ new class extends Component
             'title' => $this->title,
         ]);
 
+        $this->dispatch('task.updated');
+
         $this->isEditingTitle = false;
     }
 
@@ -112,6 +113,8 @@ new class extends Component
         $this->task->update([
             'description' => $this->description,
         ]);
+
+        $this->dispatch('task.updated');
 
         $this->isEditingDescription = false;
     }
@@ -163,6 +166,8 @@ new class extends Component
             ->update(['completed' => false]);
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function addComment()
@@ -187,6 +192,8 @@ new class extends Component
                     new TaskCommented($comment->load('user', 'task.project', 'task.team')),
                 ),
             );
+
+        $this->dispatch('task.updated');
     }
 
     public function closeTask()
@@ -203,6 +210,8 @@ new class extends Component
         $this->task->subscribers
             ->where('id', '!=', Auth::id())
             ->each(fn ($subscriber) => $subscriber->notify(new TaskClosed($this->task->load('project', 'team'))));
+
+        $this->dispatch('task.updated');
     }
 
     public function reopenTask()
@@ -219,6 +228,8 @@ new class extends Component
         $this->task->subscribers
             ->where('id', '!=', Auth::id())
             ->each(fn ($subscriber) => $subscriber->notify(new TaskReopened($this->task->load('project', 'team'))));
+
+        $this->dispatch('task.updated');
     }
 
     public function startManagingTags()
@@ -269,6 +280,8 @@ new class extends Component
         $this->task->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function updatedSelectedSection()
@@ -282,6 +295,8 @@ new class extends Component
         ]);
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function createTag()
@@ -299,6 +314,8 @@ new class extends Component
         $this->tagSearch = '';
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function updatedSelectedTags()
@@ -307,6 +324,8 @@ new class extends Component
         $this->task->tags()->sync($tags->pluck('id'));
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function togglePriority()
@@ -324,6 +343,8 @@ new class extends Component
         }
 
         $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     public function deleteTask()

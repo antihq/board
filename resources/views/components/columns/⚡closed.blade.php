@@ -11,6 +11,7 @@ new class extends Component
     public Project $project;
 
     #[On('task.moved')]
+    #[On('task.updated')]
     public function refreshTasks()
     {
         unset($this->tasks);

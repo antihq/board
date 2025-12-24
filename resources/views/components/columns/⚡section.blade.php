@@ -7,13 +7,15 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     public $title = '';
     public $color = '';
 
     #[On('task.moved')]
+    #[On('task.updated')]
     public function refreshTasks()
     {
         unset($this->tasks);
