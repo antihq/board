@@ -6,8 +6,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component
-{
+new class extends Component {
     use WithPagination;
 
     public Team $team;
@@ -40,6 +39,7 @@ new class extends Component
     {
         return $this->team
             ->tasks()
+            ->with(['creator', 'completer', 'closer', 'project', 'tags', 'comments', 'assignees'])
             ->when(! empty($this->selectedProjects), function ($query) {
                 $query->whereIn('project_id', $this->selectedProjects);
             })
@@ -173,7 +173,7 @@ new class extends Component
     <div class="space-y-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-1">
-                <flux:heading level="1" size="lg">Tasks</flux:heading>
+                <flux:heading level="1" size="lg">All tasks</flux:heading>
                 @if ($this->activeFiltersCount > 0)
                     <flux:badge wire:click="clearFilters" as="button" icon:trailing="x-mark" size="sm">
                         {{ $this->activeFiltersCount }} {{ Str::plural('filter', $this->activeFiltersCount) }}
@@ -294,7 +294,121 @@ new class extends Component
                 @foreach ($this->tasks as $task)
                     <div wire:key="task-{{ $task->id }}">
                         <flux:modal.trigger name="task-{{ $task->id }}">
-                            <x-list-item as="button" heading="{{ $task->title }}" />
+                            <x-list-item as="button">
+                                <x-slot name="heading">
+                                    <div class="flex w-full justify-between">
+                                        <div class="space-y-2">
+                                            <div class="font-medium">{{ $task->title }}</div>
+                                            <div class="flex flex-wrap items-center gap-1.5">
+                                                @unless ($task->tags->isEmpty())
+                                                    <div class="flex items-center gap-1">
+                                                        @foreach ($task->tags->take(3) as $tag)
+                                                            <flux:badge size="sm">{{ $tag->name }}</flux:badge>
+                                                        @endforeach
+
+                                                        @if ($task->tags->count() > 3)
+                                                            <flux:badge size="sm">
+                                                                +{{ $task->tags->count() - 3 }}
+                                                            </flux:badge>
+                                                        @endif
+                                                    </div>
+
+                                                    <flux:text class="text-xs">·</flux:text>
+                                                @endunless
+
+                                                @if ($task->project)
+                                                    <flux:text class="font-mono text-xs">
+                                                        {{ $task->project->handle }}-{{ $task->number }}
+                                                    </flux:text>
+
+                                                    <flux:text class="text-xs">·</flux:text>
+                                                @endif
+
+                                                @unless ($task->completed_at || $task->closed_at)
+                                                    <div class="flex items-center gap-2">
+                                                        <flux:avatar
+                                                            circle
+                                                            size="xs"
+                                                            name="{{ $task->creator->name }}"
+                                                            color="auto"
+                                                            color:seed="{{ $task->creator->id }}"
+                                                            tooltip="{{ $task->creator->name }}"
+                                                        />
+                                                        <flux:text class="text-xs">
+                                                            opened
+                                                            {{ $task->created_at->diffForHumans() }}
+                                                        </flux:text>
+                                                    </div>
+                                                @endunless
+
+                                                @if ($task->completed_at && $task->completer)
+                                                    <flux:text class="text-xs">·</flux:text>
+                                                    <div class="flex items-center gap-2">
+                                                        <flux:avatar
+                                                            circle
+                                                            size="xs"
+                                                            name="{{ $task->completer->name }}"
+                                                            color="auto"
+                                                            color:seed="{{ $task->completer->id }}"
+                                                            tooltip="{{ $task->completer->name }}"
+                                                        />
+                                                        <flux:text class="text-xs">
+                                                            completed
+                                                            {{ $task->completed_at->diffForHumans() }}
+                                                        </flux:text>
+                                                    </div>
+                                                @endif
+
+                                                @if ($task->closed_at && $task->closer)
+                                                    <flux:text class="text-xs">·</flux:text>
+                                                    <div class="flex items-center gap-2">
+                                                        <flux:avatar
+                                                            circle
+                                                            size="xs"
+                                                            name="{{ $task->closer->name }}"
+                                                            color="auto"
+                                                            color:seed="{{ $task->closer->id }}"
+                                                            tooltip="{{ $task->closer->name }}"
+                                                        />
+                                                        <flux:text class="text-xs">
+                                                            closed
+                                                            {{ $task->closed_at->diffForHumans() }}
+                                                        </flux:text>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-3">
+                                            @unless ($task->comments->isEmpty())
+                                                <flux:text class="inline-flex gap-1 text-xs">
+                                                    <flux:icon.chat-bubble-bottom-center-text variant="micro" />
+                                                    {{ $task->comments->count() }}
+                                                </flux:text>
+                                            @endunless
+
+                                            <flux:avatar.group>
+                                                @foreach ($task->assignees->take(3) as $assignee)
+                                                    <flux:avatar
+                                                        circle
+                                                        size="xs"
+                                                        name="{{ $assignee->name }}"
+                                                        color="auto"
+                                                        color:seed="{{ $assignee->id }}"
+                                                        tooltip="{{ $assignee->name }}"
+                                                    />
+                                                @endforeach
+
+                                                @if ($task->assignees->count() > 3)
+                                                    <flux:avatar circle size="xs">
+                                                        {{ $task->assignees->count() }}+
+                                                    </flux:avatar>
+                                                @endif
+                                            </flux:avatar.group>
+                                        </div>
+                                    </div>
+                                </x-slot>
+                            </x-list-item>
                         </flux:modal.trigger>
 
                         <flux:modal name="task-{{ $task->id }}" class="w-full max-w-[95vw] lg:max-w-150">
