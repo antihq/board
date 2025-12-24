@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -779,7 +780,13 @@ new class extends Component {
         </div>
 
         <!-- Section Section -->
-        <div>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Section</flux:heading>
+                @unless ($this->isManagingSection)
+                    <flux:button size="xs" wire:click="startManagingSection">Edit</flux:button>
+                @endunless
+            </div>
             @if ($this->isManagingSection)
                 <div class="space-y-2">
                     <flux:select
@@ -789,6 +796,7 @@ new class extends Component {
                         label="Section"
                         placeholder="Select a section..."
                         size="sm"
+                        label:sr-only
                     >
                         <flux:select.option value="">No section</flux:select.option>
                         @foreach ($this->projectSections as $section)
@@ -807,11 +815,6 @@ new class extends Component {
                 </div>
             @else
                 <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <flux:heading class="text-xs">Section</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingSection">Edit</flux:button>
-                    </div>
-
                     @if ($task->section)
                         <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
                     @else
@@ -840,7 +843,13 @@ new class extends Component {
         </div>
 
         <!-- Tags Section -->
-        <div>
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Tags</flux:heading>
+                @unless ($this->isManagingTags)
+                    <flux:button size="xs" wire:click="startManagingTags">Edit</flux:button>
+                @endunless
+            </div>
             @if ($this->isManagingTags)
                 <div class="space-y-2">
                     <flux:pillbox
@@ -850,6 +859,7 @@ new class extends Component {
                         placeholder="Select tags..."
                         size="sm"
                         multiple
+                        label:sr-only
                     >
                         <x-slot name="input">
                             <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
@@ -877,10 +887,6 @@ new class extends Component {
                 </div>
             @else
                 <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <flux:heading class="text-xs">Tags</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingTags">Edit</flux:button>
-                    </div>
                     @unless ($task->tags->isEmpty())
                         <div class="flex flex-wrap gap-2">
                             @foreach ($task->tags as $tag)
