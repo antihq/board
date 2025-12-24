@@ -617,228 +617,6 @@ new class extends Component {
         </div>
     @endif
 
-    <flux:separator variant="subtle" />
-
-    <!-- Section, Tags, Assignees, and Subscribers Grid -->
-    <div class="grid grid-cols-2 gap-4">
-        <!-- Assignees Section -->
-        <div>
-            @if ($this->isManagingAssignees)
-                <div class="space-y-2">
-                    <flux:pillbox
-                        wire:model.live="selectedAssignees"
-                        label="Assignees"
-                        placeholder="Select assignees..."
-                        size="sm"
-                        multiple
-                    >
-                        @foreach ($this->teamMembers as $member)
-                            <flux:pillbox.option :value="$member->id" wire:key="member-{{ $member->id }}">
-                                {{ $member->name }}
-                            </flux:pillbox.option>
-                        @endforeach
-                    </flux:pillbox>
-
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingAssignees" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <flux:heading>Assignees</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingAssignees">Manage</flux:button>
-                    </div>
-                    @unless ($task->assignees->isEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($task->assignees as $assignee)
-                                <flux:avatar
-                                    circle
-                                    size="sm"
-                                    name="{{ $assignee->name }}"
-                                    color="auto"
-                                    color:seed="{{ $assignee->id }}"
-                                    tooltip="{{ $assignee->name }}"
-                                    src="https://unavatar.io/gravatar/{{ $assignee->email }}"
-                                />
-                            @endforeach
-                        </div>
-                    @else
-                        <flux:text class="text-xs">No one assigned</flux:text>
-                    @endunless
-                </div>
-            @endif
-        </div>
-
-        <!-- Section Section -->
-        <div>
-            @if ($this->isManagingSection)
-                <div class="space-y-2">
-                    <flux:select
-                        variant="listbox"
-                        searchable
-                        wire:model.live="selectedSection"
-                        label="Section"
-                        placeholder="Select a section..."
-                        size="sm"
-                    >
-                        <flux:select.option value="">No section</flux:select.option>
-                        @foreach ($this->projectSections as $section)
-                            <flux:select.option :value="$section->id" wire:key="section-{{ $section->id }}">
-                                {{ $section->title }}
-                            </flux:select.option>
-                        @endforeach
-                    </flux:select>
-
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingSection" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <flux:heading>Section</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingSection">Manage</flux:button>
-                    </div>
-
-                    @if ($task->section)
-                        <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
-                    @else
-                        <flux:text class="text-xs">No section assigned</flux:text>
-                    @endif
-                </div>
-            @endif
-        </div>
-
-        <!-- Priority Section -->
-        <div class="space-y-2">
-            <div class="flex items-center gap-2">
-                <flux:heading>Priority</flux:heading>
-                @if ($task->prioritized_at)
-                    <flux:button size="xs" wire:click="togglePriority">Not urgent</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="togglePriority">Top priority</flux:button>
-                @endif
-            </div>
-
-            @if ($task->prioritized_at)
-                <flux:badge size="sm" color="amber">Top priority</flux:badge>
-            @else
-                <flux:badge size="sm">Not urgent</flux:badge>
-            @endif
-        </div>
-
-        <!-- Tags Section -->
-        <div>
-            @if ($this->isManagingTags)
-                <div class="space-y-2">
-                    <flux:pillbox
-                        wire:model.live="selectedTags"
-                        variant="combobox"
-                        label="Tags"
-                        placeholder="Select tags..."
-                        size="sm"
-                        multiple
-                    >
-                        <x-slot name="input">
-                            <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
-                        </x-slot>
-
-                        @foreach ($this->teamTags as $tag)
-                            <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
-                                {{ $tag->name }}
-                            </flux:pillbox.option>
-                        @endforeach
-
-                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
-                            Create "
-                            <span wire:text="tagSearch"></span>
-                            "
-                        </flux:pillbox.option.create>
-                    </flux:pillbox>
-
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
-                            Done
-                        </flux:button>
-                    </div>
-                </div>
-            @else
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <flux:heading>Tags</flux:heading>
-                        <flux:button size="xs" wire:click="startManagingTags">Manage</flux:button>
-                    </div>
-                    @unless ($task->tags->isEmpty())
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($task->tags as $tag)
-                                <flux:badge size="sm">{{ $tag->name }}</flux:badge>
-                            @endforeach
-                        </div>
-                    @else
-                        <flux:text class="text-xs">No tags assigned</flux:text>
-                    @endunless
-                </div>
-            @endif
-        </div>
-
-        <!-- Subscribers Section -->
-        <div class="space-y-2">
-            <div class="flex items-center gap-2">
-                <flux:heading>Subscribers</flux:heading>
-                @if ($this->subscribers->contains('id', auth()->id()))
-                    <flux:button size="xs" wire:click="toggleSubscribe">Unsubscribe</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="toggleSubscribe">Subscribe</flux:button>
-                @endif
-            </div>
-            @unless ($this->subscribers->isEmpty())
-                <div class="flex flex-wrap gap-2">
-                    @foreach ($this->subscribers as $subscriber)
-                        <flux:avatar
-                            circle
-                            size="sm"
-                            name="{{ $subscriber->name }}"
-                            color="auto"
-                            color:seed="{{ $subscriber->id }}"
-                            tooltip="{{ $subscriber->name }}"
-                            src="https://unavatar.io/gravatar/{{ $subscriber->email }}"
-                        />
-                    @endforeach
-                </div>
-            @else
-                <flux:text class="text-xs">No subscribers</flux:text>
-            @endunless
-        </div>
-
-        <!-- Saved Section -->
-        <div class="space-y-2">
-            <div class="flex items-center gap-2">
-                <flux:heading>Saved</flux:heading>
-                @if ($this->isSaved)
-                    <flux:button size="xs" wire:click="toggleSaved">Unsave</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="toggleSaved">Save</flux:button>
-                @endif
-            </div>
-
-            @if ($this->isSaved)
-                <flux:badge size="sm">Saved</flux:badge>
-            @else
-                <flux:text class="text-xs">Not saved</flux:text>
-            @endif
-        </div>
-    </div>
-
-    <flux:separator variant="subtle" />
-
     <div>
         <div class="space-y-2">
             @unless ($this->checklistItems->isEmpty())
@@ -939,6 +717,229 @@ new class extends Component {
                 </x-slot>
             </flux:composer>
         </form>
+    </div>
+
+    <flux:separator variant="subtle" />
+
+    <!-- Section, Tags, Assignees, and Subscribers Grid -->
+    <div class="grid grid-cols-1 gap-4">
+        <!-- Assignees Section -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Assignees</flux:heading>
+                @unless ($this->isManagingAssignees)
+                    <flux:button size="xs" wire:click="startManagingAssignees">Edit</flux:button>
+                @endunless
+            </div>
+            @if ($this->isManagingAssignees)
+                <div class="space-y-2">
+                    <flux:pillbox
+                        wire:model.live="selectedAssignees"
+                        label="Assignees"
+                        placeholder="Select assignees..."
+                        size="sm"
+                        multiple
+                        label:sr-only
+                    >
+                        @foreach ($this->teamMembers as $member)
+                            <flux:pillbox.option :value="$member->id" wire:key="member-{{ $member->id }}">
+                                {{ $member->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+                    </flux:pillbox>
+
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:button wire:click="cancelManagingAssignees" size="sm" variant="primary" color="green">
+                            Done
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    @unless ($task->assignees->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->assignees as $assignee)
+                                <flux:avatar
+                                    circle
+                                    size="sm"
+                                    name="{{ $assignee->name }}"
+                                    color="auto"
+                                    color:seed="{{ $assignee->id }}"
+                                    tooltip="{{ $assignee->name }}"
+                                    src="https://unavatar.io/gravatar/{{ $assignee->email }}"
+                                />
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No one assigned</flux:text>
+                    @endunless
+                </div>
+            @endif
+        </div>
+
+        <!-- Section Section -->
+        <div>
+            @if ($this->isManagingSection)
+                <div class="space-y-2">
+                    <flux:select
+                        variant="listbox"
+                        searchable
+                        wire:model.live="selectedSection"
+                        label="Section"
+                        placeholder="Select a section..."
+                        size="sm"
+                    >
+                        <flux:select.option value="">No section</flux:select.option>
+                        @foreach ($this->projectSections as $section)
+                            <flux:select.option :value="$section->id" wire:key="section-{{ $section->id }}">
+                                {{ $section->title }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:button wire:click="cancelManagingSection" size="sm" variant="primary" color="green">
+                            Done
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <flux:heading class="text-xs">Section</flux:heading>
+                        <flux:button size="xs" wire:click="startManagingSection">Edit</flux:button>
+                    </div>
+
+                    @if ($task->section)
+                        <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
+                    @else
+                        <flux:text class="text-xs">No section assigned</flux:text>
+                    @endif
+                </div>
+            @endif
+        </div>
+
+        <!-- Priority Section -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Priority</flux:heading>
+                @if ($task->prioritized_at)
+                    <flux:button size="xs" wire:click="togglePriority">Not urgent</flux:button>
+                @else
+                    <flux:button size="xs" wire:click="togglePriority">Top priority</flux:button>
+                @endif
+            </div>
+
+            @if ($task->prioritized_at)
+                <flux:badge size="sm" color="amber">Top priority</flux:badge>
+            @else
+                <flux:badge size="sm">Not urgent</flux:badge>
+            @endif
+        </div>
+
+        <!-- Tags Section -->
+        <div>
+            @if ($this->isManagingTags)
+                <div class="space-y-2">
+                    <flux:pillbox
+                        wire:model.live="selectedTags"
+                        variant="combobox"
+                        label="Tags"
+                        placeholder="Select tags..."
+                        size="sm"
+                        multiple
+                    >
+                        <x-slot name="input">
+                            <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
+                        </x-slot>
+
+                        @foreach ($this->teamTags as $tag)
+                            <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
+                                {{ $tag->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+
+                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
+                            Create "
+                            <span wire:text="tagSearch"></span>
+                            "
+                        </flux:pillbox.option.create>
+                    </flux:pillbox>
+
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:button wire:click="cancelManagingTags" size="sm" variant="primary" color="green">
+                            Done
+                        </flux:button>
+                    </div>
+                </div>
+            @else
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <flux:heading class="text-xs">Tags</flux:heading>
+                        <flux:button size="xs" wire:click="startManagingTags">Edit</flux:button>
+                    </div>
+                    @unless ($task->tags->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->tags as $tag)
+                                <flux:badge size="sm">{{ $tag->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No tags assigned</flux:text>
+                    @endunless
+                </div>
+            @endif
+        </div>
+
+        <!-- Subscribers Section -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Subscribers</flux:heading>
+                @if ($this->subscribers->contains('id', auth()->id()))
+                    <flux:button size="xs" wire:click="toggleSubscribe">Unsubscribe</flux:button>
+                @else
+                    <flux:button size="xs" wire:click="toggleSubscribe">Subscribe</flux:button>
+                @endif
+            </div>
+            @unless ($this->subscribers->isEmpty())
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($this->subscribers as $subscriber)
+                        <flux:avatar
+                            circle
+                            size="sm"
+                            name="{{ $subscriber->name }}"
+                            color="auto"
+                            color:seed="{{ $subscriber->id }}"
+                            tooltip="{{ $subscriber->name }}"
+                            src="https://unavatar.io/gravatar/{{ $subscriber->email }}"
+                        />
+                    @endforeach
+                </div>
+            @else
+                <flux:text class="text-xs">No subscribers</flux:text>
+            @endunless
+        </div>
+
+        <!-- Saved Section -->
+        <div class="space-y-2">
+            <div class="flex items-center justify-between gap-2">
+                <flux:heading class="text-xs">Saved</flux:heading>
+                @if ($this->isSaved)
+                    <flux:button size="xs" wire:click="toggleSaved">Unsave</flux:button>
+                @else
+                    <flux:button size="xs" wire:click="toggleSaved">Save</flux:button>
+                @endif
+            </div>
+
+            @if ($this->isSaved)
+                <flux:badge size="sm">Saved</flux:badge>
+            @else
+                <flux:text class="text-xs">Not saved</flux:text>
+            @endif
+        </div>
     </div>
 
     <flux:separator variant="subtle" />
