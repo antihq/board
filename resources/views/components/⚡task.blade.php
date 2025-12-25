@@ -396,6 +396,19 @@ new class extends Component {
         }
     }
 
+    public function deleteComment($commentId)
+    {
+        $comment = $this->task->comments()->findOrFail($commentId);
+
+        $this->authorize('delete', $comment);
+
+        $comment->delete();
+
+        $this->task->touch();
+
+        $this->dispatch('task.updated');
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -678,17 +691,40 @@ new class extends Component {
                             tooltip="{{ $comment->user->name }}"
                         />
                         <div class="flex-1 space-y-1">
-                            <div class="flex items-center gap-2">
-                                <flux:heading>{{ $comment->user->name }}</flux:heading>
-                                <flux:text class="text-xs">
-                                    {{ $comment->created_at->diffForHumans() }}
-                                </flux:text>
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <flux:heading>{{ $comment->user->name }}</flux:heading>
+                                    <flux:text class="text-xs">
+                                        {{ $comment->created_at->diffForHumans() }}
+                                    </flux:text>
+                                </div>
+                                @if (Auth::user()->can('delete', $comment))
+                                    <flux:modal.trigger :name="'delete-comment-' . $comment->id">
+                                        <flux:button size="xs" variant="subtle" icon="trash" />
+                                    </flux:modal.trigger>
+                                @endif
                             </div>
                             <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
                                 {!! $comment->content !!}
                             </div>
                         </div>
                     </div>
+
+                    <flux:modal :name="'delete-comment-' . $comment->id" class="min-w-[22rem]">
+                        <div class="space-y-6">
+                            <div>
+                                <flux:heading size="lg">Delete comment?</flux:heading>
+                                <flux:text class="mt-2">You're about to delete this comment. This action cannot be reversed.</flux:text>
+                            </div>
+                            <div class="flex gap-2">
+                                <flux:spacer />
+                                <flux:modal.close>
+                                    <flux:button variant="ghost">Cancel</flux:button>
+                                </flux:modal.close>
+                                <flux:button type="submit" variant="danger" wire:click="deleteComment({{ $comment->id }})">Delete comment</flux:button>
+                            </div>
+                        </div>
+                    </flux:modal>
                 @endforeach
             </div>
         @endunless
