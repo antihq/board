@@ -158,6 +158,65 @@ new class extends Component {
             ->where('users.id', $currentUser->id)
             ->exists();
     }
+
+    public function canChangeMemberRole(User $member): bool
+    {
+        if ($member->id === $this->team->owner->id) {
+            return false;
+        }
+
+        $currentUser = Auth::user();
+
+        if (! $currentUser) {
+            return false;
+        }
+
+        $isOwner = $currentUser->id === $this->team->owner->id;
+
+        if ($isOwner) {
+            return true;
+        }
+
+        $currentUserIsAdmin = $this->team
+            ->users()
+            ->where('users.id', $currentUser->id)
+            ->where('team_members.role', 'admin')
+            ->exists();
+
+        return $currentUserIsAdmin;
+    }
+
+    public function toggleMemberRole($userId)
+    {
+        $member = User::find($userId);
+        $currentUser = Auth::user();
+
+        if (! $member || ! $currentUser) {
+            return;
+        }
+
+        if ($member->id === $this->team->owner->id) {
+            return;
+        }
+
+        if (! $this->canChangeMemberRole($member)) {
+            return;
+        }
+
+        $teamMember = $this->team
+            ->users()
+            ->where('users.id', $member->id)
+            ->first();
+
+        if (! $teamMember) {
+            return;
+        }
+
+        $currentRole = $teamMember->pivot->role ?? 'member';
+        $newRole = $currentRole === 'member' ? 'admin' : 'member';
+
+        $this->team->users()->updateExistingPivot($member->id, ['role' => $newRole]);
+    }
 };
 ?>
 
@@ -220,6 +279,23 @@ new class extends Component {
                         <flux:text size="sm">{{ $member->email }}</flux:text>
                     </div>
                     <div class="flex items-center gap-2">
+                        @if ($this->canChangeMemberRole($member))
+                            @php
+                                $memberWithPivot = $this->team
+                                    ->users()
+                                    ->where('users.id', $member->id)
+                                    ->first();
+                                $currentRole = $memberWithPivot && $memberWithPivot->pivot ? $memberWithPivot->pivot->role : 'member';
+                                $newRole = $currentRole === 'member' ? 'admin' : 'member';
+                            @endphp
+                            <flux:button
+                                size="sm"
+                                wire:click="toggleMemberRole({{ $member->getKey() }})"
+                            >
+                                Make {{ ucfirst($newRole) }}
+                            </flux:button>
+                        @endif
+
                         @if ($this->canRemoveMember($member))
                             <flux:button
                                 size="sm"

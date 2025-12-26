@@ -161,3 +161,92 @@ it('resets usage count when regenerating invitation code', function () {
     $team->refresh();
     expect($team->invitation_code_uses_count)->toBe(0);
 });
+
+it('allows owner to promote member to admin', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    Livewire::actingAs($owner)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $member->id);
+
+    $team->refresh();
+    $memberRole = $team->users()->where('users.id', $member->id)->first()->pivot->role;
+    expect($memberRole)->toBe('admin');
+});
+
+it('allows owner to demote admin to member', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+
+    Livewire::actingAs($owner)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $admin->id);
+
+    $team->refresh();
+    $adminRole = $team->users()->where('users.id', $admin->id)->first()->pivot->role;
+    expect($adminRole)->toBe('member');
+});
+
+it('allows admin to promote member to admin', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $member = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    Livewire::actingAs($admin)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $member->id);
+
+    $team->refresh();
+    $memberRole = $team->users()->where('users.id', $member->id)->first()->pivot->role;
+    expect($memberRole)->toBe('admin');
+});
+
+it('allows admin to demote another admin to member', function () {
+    $owner = User::factory()->create();
+    $admin1 = User::factory()->create();
+    $admin2 = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($admin1->id, ['role' => 'admin']);
+    $team->users()->attach($admin2->id, ['role' => 'admin']);
+
+    Livewire::actingAs($admin1)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $admin2->id);
+
+    $team->refresh();
+    $admin2Role = $team->users()->where('users.id', $admin2->id)->first()->pivot->role;
+    expect($admin2Role)->toBe('member');
+});
+
+it('does not allow regular member to change roles', function () {
+    $owner = User::factory()->create();
+    $member1 = User::factory()->create();
+    $member2 = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($member1->id, ['role' => 'member']);
+    $team->users()->attach($member2->id, ['role' => 'member']);
+
+    Livewire::actingAs($member1)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $member2->id);
+
+    $team->refresh();
+    $member2Role = $team->users()->where('users.id', $member2->id)->first()->pivot->role;
+    expect($member2Role)->toBe('member');
+});
+
+it('does not allow changing owner role', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+
+    Livewire::actingAs($admin)->test('pages::teams.settings.members', ['team' => $team])
+        ->call('toggleMemberRole', $owner->id);
+
+    $team->refresh();
+    expect($team->user_id)->toBe($owner->id);
+});
