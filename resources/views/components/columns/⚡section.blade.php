@@ -43,6 +43,21 @@ new class extends Component
         Flux::modal('edit-section-' . $this->section->id)->close();
     }
 
+    public function deleteSection()
+    {
+        $this->authorize('delete', $this->section);
+
+        $this->section->tasks()->update([
+            'section_id' => null,
+            'section_moved_at' => null,
+            'section_moved_by' => null,
+        ]);
+
+        $this->section->delete();
+        $this->dispatch('task.moved');
+        $this->dispatch('section.deleted');
+    }
+
     #[Computed]
     public function tasks()
     {
@@ -111,6 +126,7 @@ new class extends Component
                         <flux:modal.trigger :name="'edit-section-' . $section->id">
                             <flux:menu.item>Edit</flux:menu.item>
                         </flux:modal.trigger>
+                        <flux:menu.item wire:click="deleteSection">Delete</flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
             </x-slot>

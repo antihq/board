@@ -15,6 +15,7 @@ new class extends Component
 
     #[On('task.moved')]
     #[On('task.updated')]
+    #[On('section.deleted')]
     public function refreshTasks()
     {
         unset($this->tasks);

@@ -46,7 +46,15 @@ class SectionPolicy
      */
     public function delete(User $user, Section $section): bool
     {
-        return false;
+        $team = $section->project->team;
+
+        $isOwner = $user->id === $team->user_id;
+        $isAdmin = $team->users()
+            ->where('users.id', $user->id)
+            ->where('team_members.role', 'admin')
+            ->exists();
+
+        return $isOwner || $isAdmin;
     }
 
     /**
