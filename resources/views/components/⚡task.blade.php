@@ -23,6 +23,10 @@ new class extends Component {
 
     public string $newComment = '';
 
+    public ?int $editingCommentId = null;
+
+    public string $editingCommentContent = '';
+
     public bool $isAddingChecklistItem = false;
 
     public string $newChecklistItemContent = '';
@@ -409,6 +413,44 @@ new class extends Component {
         $this->dispatch('task.updated');
     }
 
+    public function startEditingComment($commentId)
+    {
+        $comment = $this->task->comments()->findOrFail($commentId);
+
+        $this->authorize('update', $comment);
+
+        $this->editingCommentId = $commentId;
+        $this->editingCommentContent = $comment->content;
+    }
+
+    public function saveComment()
+    {
+        $this->validate([
+            'editingCommentContent' => 'required|string|max:5000',
+        ]);
+
+        $comment = $this->task->comments()->findOrFail($this->editingCommentId);
+
+        $this->authorize('update', $comment);
+
+        $comment->update([
+            'content' => $this->pull('editingCommentContent'),
+            'edited_by' => Auth::id(),
+            'edited_at' => now(),
+        ]);
+
+        $this->task->touch();
+
+        $this->editingCommentId = null;
+        $this->dispatch('task.updated');
+    }
+
+    public function cancelEditingComment()
+    {
+        $this->editingCommentId = null;
+        $this->editingCommentContent = '';
+    }
+
     #[Computed]
     public function checklistItems()
     {
@@ -423,7 +465,7 @@ new class extends Component {
     {
         return $this->task
             ->comments()
-            ->with('user')
+            ->with('user', 'editor')
             ->get();
     }
 
@@ -697,16 +739,46 @@ new class extends Component {
                                     <flux:text class="text-xs">
                                         {{ $comment->created_at->diffForHumans() }}
                                     </flux:text>
+                                    @if ($comment->edited_at)
+                                        <flux:text class="text-xs text-zinc-500">
+                                            · Edited by {{ $comment->editor->name }} {{ $comment->edited_at->diffForHumans() }}
+                                        </flux:text>
+                                    @endif
                                 </div>
-                                @if (Auth::user()->can('delete', $comment))
-                                    <flux:modal.trigger :name="'delete-comment-' . $comment->id">
-                                        <flux:button size="xs" variant="subtle" icon="trash" />
-                                    </flux:modal.trigger>
-                                @endif
+                                <div class="flex gap-1">
+                                    @if (Auth::user()->can('update', $comment))
+                                        @if ($editingCommentId === $comment->id)
+                                            <flux:button size="xs" variant="subtle" wire:click="cancelEditingComment">Cancel</flux:button>
+                                            <flux:button size="xs" variant="primary" color="green" wire:click="saveComment">Save</flux:button>
+                                        @else
+                                            <flux:button size="xs" variant="subtle" icon="pencil" wire:click="startEditingComment({{ $comment->id }})" />
+                                        @endif
+                                    @endif
+                                    @if (Auth::user()->can('delete', $comment))
+                                        <flux:modal.trigger :name="'delete-comment-' . $comment->id">
+                                            <flux:button size="xs" variant="subtle" icon="trash" />
+                                        </flux:modal.trigger>
+                                    @endif
+                                </div>
                             </div>
-                            <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
-                                {!! $comment->content !!}
-                            </div>
+                            @if ($editingCommentId === $comment->id)
+                                <form wire:submit="saveComment" class="space-y-2">
+                                    <flux:composer
+                                        wire:model="editingCommentContent"
+                                        rows="3"
+                                        max-rows="8"
+                                        placeholder="Edit your comment..."
+                                    >
+                                        <x-slot name="input">
+                                            <flux:editor variant="borderless" toolbar="bold italic | link" placeholder="Edit your comment..." />
+                                        </x-slot>
+                                    </flux:composer>
+                                </form>
+                            @else
+                                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                                    {!! $comment->content !!}
+                                </div>
+                            @endif
                         </div>
                     </div>
 
