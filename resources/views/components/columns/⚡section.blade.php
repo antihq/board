@@ -43,6 +43,23 @@ new class extends Component
         Flux::modal('edit-section-' . $this->section->id)->close();
     }
 
+    public function deleteSection()
+    {
+        $this->authorize('delete', $this->section);
+
+        $this->section->tasks()->update([
+            'section_id' => null,
+            'section_moved_at' => null,
+            'section_moved_by' => null,
+        ]);
+
+        $this->section->delete();
+        $this->dispatch('task.moved');
+        $this->dispatch('section.deleted');
+
+        Flux::modal('delete-section-' . $this->section->id)->close();
+    }
+
     #[Computed]
     public function tasks()
     {
@@ -110,6 +127,9 @@ new class extends Component
                     <flux:menu>
                         <flux:modal.trigger :name="'edit-section-' . $section->id">
                             <flux:menu.item>Edit</flux:menu.item>
+                        </flux:modal.trigger>
+                        <flux:modal.trigger :name="'delete-section-' . $section->id">
+                            <flux:menu.item>Delete</flux:menu.item>
                         </flux:modal.trigger>
                     </flux:menu>
                 </flux:dropdown>
@@ -199,4 +219,20 @@ new class extends Component
             @endforeach
         </flux:kanban.column.cards>
     </flux:kanban.column>
+
+    <flux:modal :name="'delete-section-' . $section->id" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Delete section?</flux:heading>
+                <flux:text class="mt-2">You're about to delete this section. Tasks will be moved to pending. This action cannot be reversed.</flux:text>
+            </div>
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:modal.close>
+                    <flux:button variant="ghost">Cancel</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="danger" wire:click="deleteSection">Delete section</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

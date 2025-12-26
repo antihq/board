@@ -35,6 +35,12 @@ new class extends Component {
         return $this->project->sections()->get();
     }
 
+    #[On('section.deleted')]
+    public function refreshSections()
+    {
+        unset($this->sections);
+    }
+
     public function sortItem($item, $position)
     {
         // Validate position bounds - positions are 1-based

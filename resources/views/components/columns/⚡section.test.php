@@ -174,3 +174,100 @@ it('prevents non-owner from updating section', function () {
 
     expect($section->title)->not->toBe('New Title');
 });
+
+it('allows owner to delete section', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $task = Task::factory()->create([
+        'project_id' => $project->id,
+        'section_id' => $section->id,
+        'section_moved_at' => now(),
+        'section_moved_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteSection')
+        ->assertDispatched('task.moved')
+        ->assertDispatched('section.deleted');
+
+    expect(Section::find($section->id))->toBeNull();
+
+    $task->refresh();
+
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->toBeNull();
+    expect($task->section_moved_by)->toBeNull();
+});
+
+it('allows admin to delete section', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $admin = User::factory()->create();
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $task = Task::factory()->create([
+        'project_id' => $project->id,
+        'section_id' => $section->id,
+        'section_moved_at' => now(),
+        'section_moved_by' => $owner->id,
+    ]);
+
+    Livewire::actingAs($admin)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteSection')
+        ->assertDispatched('task.moved')
+        ->assertDispatched('section.deleted');
+
+    expect(Section::find($section->id))->toBeNull();
+
+    $task->refresh();
+
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->toBeNull();
+    expect($task->section_moved_by)->toBeNull();
+});
+
+it('prevents non-admin from deleting section', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $member = User::factory()->create();
+
+    Livewire::actingAs($member)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteSection')
+        ->assertForbidden();
+
+    expect(Section::find($section->id))->not->toBeNull();
+});
+
+it('moves multiple tasks to pending when section is deleted', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $tasks = Task::factory()->count(3)->create([
+        'project_id' => $project->id,
+        'section_id' => $section->id,
+        'section_moved_at' => now(),
+        'section_moved_by' => $user->id,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteSection');
+
+    expect(Section::find($section->id))->toBeNull();
+
+    foreach ($tasks as $task) {
+        $task->refresh();
+        expect($task->section_id)->toBeNull();
+        expect($task->section_moved_at)->toBeNull();
+        expect($task->section_moved_by)->toBeNull();
+    }
+});
