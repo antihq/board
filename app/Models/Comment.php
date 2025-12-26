@@ -16,6 +16,7 @@ class Comment extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'edited_at' => 'datetime',
     ];
 
     public function task()
@@ -26,6 +27,11 @@ class Comment extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function editor()
+    {
+        return $this->belongsTo(User::class, 'edited_by');
     }
 
     /**

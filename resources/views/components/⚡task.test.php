@@ -941,3 +941,226 @@ it('does not allow non-member to delete comment', function () {
     $task->refresh();
     expect($task->comments)->toHaveCount(1);
 });
+
+it('allows comment creator to edit their own comment', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $user->id,
+        'content' => 'Original comment',
+    ]);
+
+    $updatedContent = 'Updated comment content';
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentContent', $updatedContent)
+        ->call('saveComment')
+        ->assertHasNoErrors();
+
+    $comment->refresh();
+    expect($comment->content)->toContain($updatedContent);
+    expect($comment->edited_by)->toEqual($user->id);
+    expect($comment->edited_at)->not->toBeNull();
+});
+
+it('stores who edited the comment and when', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Original comment',
+    ]);
+
+    $beforeEdit = now();
+    sleep(1);
+
+    Livewire::actingAs($owner)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentContent', 'Updated by owner')
+        ->call('saveComment')
+        ->assertHasNoErrors();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Updated by owner');
+    expect($comment->edited_by)->toEqual($owner->id);
+    expect($comment->edited_at)->not->toBeNull();
+    expect($comment->edited_at->gt($beforeEdit))->toBeTrue();
+});
+
+it('allows team owner to edit any comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Original comment',
+    ]);
+
+    Livewire::actingAs($owner)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentContent', 'Updated by owner')
+        ->call('saveComment')
+        ->assertHasNoErrors();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Updated by owner');
+    expect($comment->edited_by)->toEqual($owner->id);
+});
+
+it('allows team admin to edit any comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $team->users()->attach($owner->id);
+
+    $admin = User::factory()->create();
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Original comment',
+    ]);
+
+    Livewire::actingAs($admin)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentContent', 'Updated by admin')
+        ->call('saveComment')
+        ->assertHasNoErrors();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Updated by admin');
+    expect($comment->edited_by)->toEqual($admin->id);
+});
+
+it('does not allow regular member to edit another members comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+
+    $member1 = User::factory()->create();
+    $team->users()->attach($member1->id, ['role' => 'member']);
+
+    $member2 = User::factory()->create();
+    $team->users()->attach($member2->id, ['role' => 'member']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member1->id,
+        'content' => 'Original comment',
+    ]);
+
+    Livewire::actingAs($member2)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->assertForbidden();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Original comment');
+    expect($comment->edited_by)->toBeNull();
+    expect($comment->edited_at)->toBeNull();
+});
+
+it('does not allow non-member to edit comment', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $nonMember = User::factory()->create();
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $member->id,
+        'content' => 'Original comment',
+    ]);
+
+    Livewire::actingAs($nonMember)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->assertForbidden();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Original comment');
+    expect($comment->edited_by)->toBeNull();
+    expect($comment->edited_at)->toBeNull();
+});
+
+it('allows cancelling comment edit', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $user->id,
+        'content' => 'Original comment',
+    ]);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('startEditingComment', $comment->id)
+        ->set('editingCommentContent', 'Updated content')
+        ->call('cancelEditingComment')
+        ->assertHasNoErrors();
+
+    $comment->refresh();
+    expect($comment->content)->toContain('Original comment');
+    expect($comment->edited_by)->toBeNull();
+    expect($comment->edited_at)->toBeNull();
+});
