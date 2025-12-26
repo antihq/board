@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
@@ -101,9 +100,7 @@ new class extends Component
         @island(lazy: true, name: 'pending-tasks')
             @placeholder
                 @foreach (range(1, min($this->tasks->count(), 5)) as $i)
-                    <div class="mb-3">
-                        <flux:skeleton.line class="h-20 w-full rounded" />
-                    </div>
+                    <flux:skeleton.line class="h-20 w-full rounded" />
                 @endforeach
             @endplaceholder
 
