@@ -24,7 +24,7 @@ new class extends Component
     public function mount(Team $team, Project $project)
     {
         $this->authorize('view', $team);
-        $this->authorize('update', $project);
+        $this->authorize('view', $project);
 
         $this->team = $team;
         $this->project = $project;
@@ -34,6 +34,8 @@ new class extends Component
 
     public function save()
     {
+        $this->authorize('update', $this->project);
+
         $this->validate([
             'name' => 'required|string|max:255',
             'handle' => [
