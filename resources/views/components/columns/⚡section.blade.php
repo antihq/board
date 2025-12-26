@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Section $section;
 
     public $title = '';
@@ -136,7 +135,7 @@ new class extends Component
             </x-slot>
         </flux:kanban.column.header>
         <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
-            @island(lazy: true, name: 'section-tasks-{{ $section->id }}')
+            @island(lazy: true, name: 'section-tasks-{{ $section->id }}', always: true)
                 @placeholder
                     @foreach (range(1, min($this->tasks->count(), 5)) as $i)
                         <flux:skeleton.line class="h-20 w-full rounded" />

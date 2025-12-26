@@ -6,8 +6,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     #[On('task.moved')]
@@ -61,7 +60,7 @@ new class extends Component
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Closed" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
-        @island(lazy: true, name: 'closed-tasks')
+        @island(lazy: true, name: 'closed-tasks', always: true)
             @placeholder
                 @foreach (range(1, min($this->tasks->count(), 5)) as $i)
                     <flux:skeleton.line class="h-20 w-full rounded" />
