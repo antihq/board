@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Task $task;
 
     public bool $showModal = false;
@@ -734,30 +735,41 @@ new class extends Component {
                         />
                         <div class="flex-1 space-y-1">
                             <div class="flex items-center justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <flux:heading>{{ $comment->user->name }}</flux:heading>
-                                    <flux:text class="text-xs">
-                                        {{ $comment->created_at->diffForHumans() }}
-                                    </flux:text>
-                                    @if ($comment->edited_at)
-                                        <flux:text class="text-xs text-zinc-500">
-                                            · Edited by {{ $comment->editor->name }} {{ $comment->edited_at->diffForHumans() }}
+                                <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <flux:heading>{{ $comment->user->name }}</flux:heading>
+                                        <flux:text class="text-xs">
+                                            {{ $comment->created_at->diffForHumans() }}
                                         </flux:text>
+                                    </div>
+                                    @if ($comment->edited_at)
+                                        <div class="flex items-center gap-1">
+                                            <flux:text>·</flux:text>
+                                            <flux:text class="text-xs">
+                                                edited by {{ $comment->editor->name }}
+                                            </flux:text>
+                                        </div>
                                     @endif
                                 </div>
                                 <div class="flex gap-1">
-                                    @if (Auth::user()->can('update', $comment))
-                                        @if ($editingCommentId === $comment->id)
-                                            <flux:button size="xs" variant="subtle" wire:click="cancelEditingComment">Cancel</flux:button>
-                                            <flux:button size="xs" variant="primary" color="green" wire:click="saveComment">Save</flux:button>
-                                        @else
-                                            <flux:button size="xs" variant="subtle" icon="pencil" wire:click="startEditingComment({{ $comment->id }})" />
-                                        @endif
-                                    @endif
-                                    @if (Auth::user()->can('delete', $comment))
-                                        <flux:modal.trigger :name="'delete-comment-' . $comment->id">
-                                            <flux:button size="xs" variant="subtle" icon="trash" />
-                                        </flux:modal.trigger>
+                                    @if (Auth::user()->can('update', $comment) || Auth::user()->can('delete', $comment))
+                                        <flux:dropdown position="bottom" align="end">
+                                            <flux:button size="xs" icon="ellipsis-horizontal" variant="subtle" />
+                                            <flux:menu>
+                                                @if (Auth::user()->can('update', $comment))
+                                                    <flux:menu.item icon="pencil" wire:click="startEditingComment({{ $comment->id }})">
+                                                        Edit
+                                                    </flux:menu.item>
+                                                @endif
+                                                @if (Auth::user()->can('delete', $comment))
+                                                    <flux:modal.trigger :name="'delete-comment-' . $comment->id">
+                                                        <flux:menu.item variant="danger" icon="trash">
+                                                            Delete
+                                                        </flux:menu.item>
+                                                    </flux:modal.trigger>
+                                                @endif
+                                            </flux:menu>
+                                        </flux:dropdown>
                                     @endif
                                 </div>
                             </div>
@@ -772,6 +784,13 @@ new class extends Component {
                                         <x-slot name="input">
                                             <flux:editor variant="borderless" toolbar="bold italic | link" placeholder="Edit your comment..." />
                                         </x-slot>
+                                        <x-slot name="actionsLeading">
+                                            <!-- ... -->
+                                        </x-slot>
+                                        <x-slot name="actionsTrailing">
+                                            <flux:button type="button" size="sm" variant="subtle" wire:click="cancelEditingComment">Cancel</flux:button>
+                                            <flux:button type="submit" size="sm" variant="primary" color="green">Update comment</flux:button>
+                                        </x-slot>
                                     </flux:composer>
                                 </form>
                             @else
@@ -781,22 +800,6 @@ new class extends Component {
                             @endif
                         </div>
                     </div>
-
-                    <flux:modal :name="'delete-comment-' . $comment->id" class="min-w-[22rem]">
-                        <div class="space-y-6">
-                            <div>
-                                <flux:heading size="lg">Delete comment?</flux:heading>
-                                <flux:text class="mt-2">You're about to delete this comment. This action cannot be reversed.</flux:text>
-                            </div>
-                            <div class="flex gap-2">
-                                <flux:spacer />
-                                <flux:modal.close>
-                                    <flux:button variant="ghost">Cancel</flux:button>
-                                </flux:modal.close>
-                                <flux:button type="submit" variant="danger" wire:click="deleteComment({{ $comment->id }})">Delete comment</flux:button>
-                            </div>
-                        </div>
-                    </flux:modal>
                 @endforeach
             </div>
         @endunless
