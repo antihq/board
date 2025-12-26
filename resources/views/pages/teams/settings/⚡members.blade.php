@@ -183,17 +183,7 @@ new class extends Component {
             ->where('team_members.role', 'admin')
             ->exists();
 
-        if (! $currentUserIsAdmin) {
-            return false;
-        }
-
-        $memberIsAdmin = $this->team
-            ->users()
-            ->where('users.id', $member->id)
-            ->where('team_members.role', 'admin')
-            ->exists();
-
-        return ! $memberIsAdmin;
+        return $currentUserIsAdmin;
     }
 
     public function toggleMemberRole($userId)
@@ -205,15 +195,24 @@ new class extends Component {
             return;
         }
 
+        if ($member->id === $this->team->owner->id) {
+            return;
+        }
+
         if (! $this->canChangeMemberRole($member)) {
             return;
         }
 
-        $currentRole = $this->team
+        $teamMember = $this->team
             ->users()
             ->where('users.id', $member->id)
-            ->first()?->pivot->role ?? 'member';
+            ->first();
 
+        if (! $teamMember) {
+            return;
+        }
+
+        $currentRole = $teamMember->pivot->role ?? 'member';
         $newRole = $currentRole === 'member' ? 'admin' : 'member';
 
         $this->team->users()->updateExistingPivot($member->id, ['role' => $newRole]);
