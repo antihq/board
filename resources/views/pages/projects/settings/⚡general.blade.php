@@ -24,7 +24,7 @@ new class extends Component
     public function mount(Team $team, Project $project)
     {
         $this->authorize('view', $team);
-        $this->authorize('update', $project);
+        $this->authorize('view', $project);
 
         $this->team = $team;
         $this->project = $project;
@@ -34,6 +34,8 @@ new class extends Component
 
     public function save()
     {
+        $this->authorize('update', $this->project);
+
         $this->validate([
             'name' => 'required|string|max:255',
             'handle' => [
@@ -58,6 +60,27 @@ new class extends Component
         if ($originalHandle !== $this->handle) {
             return $this->redirectRoute('projects.settings.general', [$this->team, $this->project], navigate: true);
         }
+    }
+
+    public function deleteProject()
+    {
+        $this->authorize('delete', $this->project);
+
+        foreach ($this->project->tasks as $task) {
+            $task->comments()->delete();
+            $task->checklistItems()->delete();
+            $task->tags()->detach();
+            $task->assignees()->detach();
+            $task->subscribers()->detach();
+            $task->savers()->detach();
+            $task->delete();
+        }
+
+        $this->project->sections()->delete();
+        $this->project->members()->detach();
+        $this->project->delete();
+
+        return $this->redirectRoute('teams.show', [$this->team], navigate: true);
     }
 };
 ?>
@@ -131,6 +154,37 @@ new class extends Component
                     <flux:button type="submit" variant="primary" color="green">Save</flux:button>
                 </div>
             </form>
+        </div>
+
+        <flux:separator variant="subtle" />
+
+        <div class="max-w-lg">
+            <div class="space-y-2">
+                <flux:heading level="2" size="md" color="red">Danger zone</flux:heading>
+                <flux:text class="text-sm text-zinc-600 dark:text-zinc-400">
+                    Once you delete a project, there is no going back. Please be certain.
+                </flux:text>
+            </div>
+            <flux:spacer class="my-4" />
+            <flux:modal.trigger :name="'delete-project-' . $project->id">
+                <flux:button variant="danger">Delete project</flux:button>
+            </flux:modal.trigger>
+
+            <flux:modal :name="'delete-project-' . $project->id" class="min-w-[22rem]">
+                <div class="space-y-6">
+                    <div>
+                        <flux:heading size="lg">Delete project?</flux:heading>
+                        <flux:text class="mt-2">You're about to delete this project and all its tasks, sections, and related data. This action cannot be reversed.</flux:text>
+                    </div>
+                    <div class="flex gap-2">
+                        <flux:spacer />
+                        <flux:modal.close>
+                            <flux:button variant="ghost">Cancel</flux:button>
+                        </flux:modal.close>
+                        <flux:button type="submit" variant="danger" wire:click="deleteProject">Delete project</flux:button>
+                    </div>
+                </div>
+            </flux:modal>
         </div>
     </div>
 </div>

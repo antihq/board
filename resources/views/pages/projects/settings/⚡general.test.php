@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Project;
 use App\Models\Team;
 use App\Models\User;
 use Livewire\Livewire;
@@ -57,4 +58,49 @@ it('validates handle uniqueness during project edit', function () {
         ->set('handle', 'project-two')
         ->call('save')
         ->assertHasErrors(['handle' => 'unique']);
+});
+
+it('allows team owner to delete project', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+
+    Livewire::actingAs($owner)
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project])
+        ->call('deleteProject')
+        ->assertRedirect(route('teams.show', $team));
+
+    expect(Project::find($project->id))->toBeNull();
+});
+
+it('allows team admin to delete project', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $admin = User::factory()->create();
+    $team->users()->attach($admin->id, ['role' => 'admin']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+
+    Livewire::actingAs($admin)
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project])
+        ->call('deleteProject')
+        ->assertRedirect(route('teams.show', $team));
+
+    expect(Project::find($project->id))->toBeNull();
+});
+
+it('does not allow team member to delete project', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+
+    Livewire::actingAs($member)
+        ->test('pages::projects.settings.general', ['team' => $team, 'project' => $project])
+        ->call('deleteProject')
+        ->assertForbidden();
+
+    expect(Project::find($project->id))->not->toBeNull();
 });
