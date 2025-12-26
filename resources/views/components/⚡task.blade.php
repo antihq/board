@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Task $task;
 
     public bool $showModal = false;
@@ -757,10 +756,14 @@ new class extends Component
                                             <flux:button size="xs" icon="ellipsis-horizontal" variant="subtle" />
                                             <flux:menu>
                                                 @if (Auth::user()->can('update', $comment))
-                                                    <flux:menu.item icon="pencil" wire:click="startEditingComment({{ $comment->id }})">
+                                                    <flux:menu.item
+                                                        icon="pencil"
+                                                        wire:click="startEditingComment({{ $comment->id }})"
+                                                    >
                                                         Edit
                                                     </flux:menu.item>
                                                 @endif
+
                                                 @if (Auth::user()->can('delete', $comment))
                                                     <flux:modal.trigger :name="'delete-comment-' . $comment->id">
                                                         <flux:menu.item variant="danger" icon="trash">
@@ -782,14 +785,27 @@ new class extends Component
                                         placeholder="Edit your comment..."
                                     >
                                         <x-slot name="input">
-                                            <flux:editor variant="borderless" toolbar="bold italic | link" placeholder="Edit your comment..." />
+                                            <flux:editor
+                                                variant="borderless"
+                                                toolbar="bold italic | link"
+                                                placeholder="Edit your comment..."
+                                            />
                                         </x-slot>
                                         <x-slot name="actionsLeading">
                                             <!-- ... -->
                                         </x-slot>
                                         <x-slot name="actionsTrailing">
-                                            <flux:button type="button" size="sm" variant="subtle" wire:click="cancelEditingComment">Cancel</flux:button>
-                                            <flux:button type="submit" size="sm" variant="primary" color="green">Update comment</flux:button>
+                                            <flux:button
+                                                type="button"
+                                                size="sm"
+                                                variant="subtle"
+                                                wire:click="cancelEditingComment"
+                                            >
+                                                Cancel
+                                            </flux:button>
+                                            <flux:button type="submit" size="sm" variant="primary" color="green">
+                                                Update comment
+                                            </flux:button>
                                         </x-slot>
                                     </flux:composer>
                                 </form>
@@ -805,29 +821,44 @@ new class extends Component
         @endunless
 
         <!-- Add Comment Form -->
-        <form wire:submit="addComment" class="space-y-3">
-            <flux:composer
-                wire:model="newComment"
-                rows="3"
-                max-rows="8"
-                label="Add a comment"
-                label:sr-only
-                placeholder="Write a comment..."
-            >
-                <x-slot name="input">
-                    <flux:editor variant="borderless" toolbar="bold italic | link" placeholder="Write a comment..." />
-                </x-slot>
-                <x-slot name="actionsLeading"></x-slot>
-                <x-slot name="actionsTrailing">
-                    @unless ($task->completed_at)
-                        <flux:button type="button" size="sm" wire:click="closeTask">Close task</flux:button>
-                    @else
-                        <flux:button type="button" size="sm" wire:click="reopenTask">Reopen task</flux:button>
-                    @endunless
-                    <flux:button type="submit" size="sm" variant="primary" color="green">Comment</flux:button>
-                </x-slot>
-            </flux:composer>
-        </form>
+        <div class="flex gap-3">
+            <flux:avatar
+                circle
+                size="sm"
+                :src="auth()->user()->profilePhotoUrl()"
+                name="{{ auth()->user()->name }}"
+                color="auto"
+                color:seed="{{ auth()->user()->id }}"
+                tooltip="{{ auth()->user()->name }}"
+            />
+            <form wire:submit="addComment" class="flex-1 space-y-3">
+                <flux:composer
+                    wire:model="newComment"
+                    rows="3"
+                    max-rows="8"
+                    label="Add a comment"
+                    label:sr-only
+                    placeholder="Write a comment..."
+                >
+                    <x-slot name="input">
+                        <flux:editor
+                            variant="borderless"
+                            toolbar="bold italic | link"
+                            placeholder="Write a comment..."
+                        />
+                    </x-slot>
+                    <x-slot name="actionsLeading"></x-slot>
+                    <x-slot name="actionsTrailing">
+                        @unless ($task->completed_at)
+                            <flux:button type="button" size="sm" wire:click="closeTask">Close task</flux:button>
+                        @else
+                            <flux:button type="button" size="sm" wire:click="reopenTask">Reopen task</flux:button>
+                        @endunless
+                        <flux:button type="submit" size="sm" variant="primary" color="green">Comment</flux:button>
+                    </x-slot>
+                </flux:composer>
+            </form>
+        </div>
     </div>
 
     <flux:separator variant="subtle" />
