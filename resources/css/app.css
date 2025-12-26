@@ -52,6 +52,19 @@
     --color-green-800: #095c37;
     --color-green-900: #084c2e;
     --color-green-950: #052e1c;
+
+    --color-red-25: #fffbfa;
+    --color-red-50: #fef3f2;
+    --color-red-100: #fee4e2;
+    --color-red-200: #fecdca;
+    --color-red-300: #fda29b;
+    --color-red-400: #f97066;
+    --color-red-500: #f04438;
+    --color-red-600: #d92d20;
+    --color-red-700: #b42318;
+    --color-red-800: #912018;
+    --color-red-900: #7a271a;
+    --color-red-950: #55160c;
 }
 
 @theme {
