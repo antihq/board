@@ -13,6 +13,8 @@ new class extends Component
 
     public string $title = '';
 
+    public int $page = 1;
+
     #[On('task.moved')]
     #[On('task.updated')]
     #[On('section.deleted')]
@@ -47,6 +49,11 @@ new class extends Component
         });
     }
 
+    public function loadMore()
+    {
+        $this->page++;
+    }
+
     #[Computed]
     public function tasks()
     {
@@ -56,7 +63,19 @@ new class extends Component
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
+            ->forPage($this->page, 20)
             ->get();
+    }
+
+    #[Computed]
+    public function hasMore()
+    {
+        $total = $this->project
+            ->tasks()
+            ->pending()
+            ->count();
+
+        return $total > $this->page * 20;
     }
 
     public function sortItem($item, $_position)
@@ -100,16 +119,15 @@ new class extends Component
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
-        @island(lazy: true, name: 'pending-tasks', always: true)
-            @placeholder
-                @foreach (range(1, min($this->tasks->count(), 5)) as $i)
-                    <flux:skeleton.line class="h-20 w-full rounded" />
-                @endforeach
-            @endplaceholder
-
+        @island(name: 'tasks')
             @foreach ($this->tasks as $task)
                 <flux:modal.trigger :name="'task-' . $task->id">
-                    <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}">
+                    <flux:kanban.card
+                        as="button"
+                        heading="{{ $task->title }}"
+                        wire:sort:item="{{ $task->id }}"
+                        wire:key="task-{{ $task->id }}"
+                    >
                         <x-slot name="header">
                             <div class="flex flex-wrap items-center gap-1.5">
                                 @if ($task->project)
@@ -189,6 +207,19 @@ new class extends Component
         @endisland
     </flux:kanban.column.cards>
     <flux:kanban.column.footer>
+        @if ($this->hasMore)
+            <flux:button
+                wire:click.append="loadMore"
+                wire:island="tasks"
+                type="button"
+                size="sm"
+                variant="ghost"
+                align="start"
+            >
+                Load more
+            </flux:button>
+        @endif
+
         <form wire:submit.prevent="createTask">
             <flux:composer
                 wire:model="title"
