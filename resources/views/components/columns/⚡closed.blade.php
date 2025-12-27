@@ -6,7 +6,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     #[On('task.moved')]
@@ -59,18 +60,27 @@ new class extends Component {
 
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Closed" count="{{ $this->tasks->count() }}" />
-    <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
-        @island(lazy: true, name: 'closed-tasks', always: true)
-            @placeholder
-                @foreach (range(1, min($this->tasks->count(), 5)) as $i)
-                    <flux:skeleton.line class="h-20 w-full rounded" />
-                @endforeach
-            @endplaceholder
-
-            @foreach ($this->tasks as $task)
-                <flux:modal class="w-full max-w-[95vw] lg:max-w-150" wire:key="task-{{ $task->id }}">
-                    <x-slot name="trigger">
-                        <flux:kanban.card as="button" heading="{{ $task->title }}" wire:sort:item="{{ $task->id }}">
+    <flux:kanban.column.cards>
+        @island(name: 'closed-tasks')
+            <div
+                x-data="{ isDragging: false, refreshInterval: null }"
+                x-init="
+                    if (! refreshInterval)
+                        refreshInterval = setInterval(() => {
+                            if (! isDragging) $wire.$refresh()
+                        }, 2500)
+                "
+                @dragstart="isDragging = true"
+                @dragend="isDragging = false"
+                class="flex flex-col gap-2"
+                wire:sort="sortItem"
+                wire:sort:group="tasks"
+            >
+                @foreach ($this->tasks as $task)
+                    <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
+                        <flux:modal class="w-full max-w-[95vw] lg:max-w-150" :name="'task-' . $task->id">
+                            <x-slot name="trigger">
+                                <flux:kanban.card as="button" heading="{{ $task->title }}">
                             <x-slot name="header">
                                 <div class="flex flex-wrap items-center gap-1.5">
                                     @if ($task->project)
@@ -143,12 +153,14 @@ new class extends Component {
                                     </div>
                                 </div>
                             </x-slot>
-                        </flux:kanban.card>
-                    </x-slot>
+                    </flux:kanban.card>
+                </x-slot>
 
-                    <livewire:task :task="$task" wire:key="task-{{ $task->id }}" lazy />
-                </flux:modal>
+                <livewire:task :task="$task" lazy />
+            </flux:modal>
+        </div>
             @endforeach
+            </div>
         @endisland
     </flux:kanban.column.cards>
 </flux:kanban.column>
