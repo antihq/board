@@ -41,13 +41,17 @@ new class extends Component
     #[Computed]
     public function tasks()
     {
-        return $this->project->pendingTasks($this->page, 25);
+        return $this->project
+            ->pendingTasks()
+            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
+            ->take($this->page * 25)
+            ->get();
     }
 
     #[Computed]
     public function hasMore()
     {
-        return $this->project->hasMorePendingTasks($this->page, 25);
+        return $this->project->pendingTasks()->count() > $this->page * 25;
     }
 
     public function sortItem($item, $_position)

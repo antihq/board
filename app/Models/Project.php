@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -75,22 +75,12 @@ class Project extends Model
         });
     }
 
-    public function pendingTasks(int $page, int $perPage): Collection
+    public function pendingTasks(): HasMany
     {
         return $this->tasks()
             ->pending()
-            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
-            ->orderBy('updated_at', 'desc')
-            ->take($page * $perPage)
-            ->get();
-    }
-
-    public function hasMorePendingTasks(int $page, int $perPage): bool
-    {
-        $total = $this->tasks()->pending()->count();
-
-        return $total > $page * $perPage;
+            ->orderBy('updated_at', 'desc');
     }
 
     protected function casts(): array
