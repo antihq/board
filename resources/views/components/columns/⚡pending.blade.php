@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -154,7 +155,7 @@ new class extends Component {
         </form>
     </div>
     <flux:kanban.column.cards>
-        @island(name: 'tasks')
+        @island(name: 'tasks', always: true)
             <div
                 x-data="{ isDragging: false, refreshInterval: null }"
                 x-init="
