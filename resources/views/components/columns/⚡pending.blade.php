@@ -118,17 +118,26 @@ new class extends Component
 
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}" />
-    <flux:kanban.column.cards wire:sort="sortItem" wire:sort:group="tasks">
+    <flux:kanban.column.cards>
         @island(name: 'tasks')
-            <div class="flex flex-col gap-2" wire:poll>
+            <div
+                x-data="{ isDragging: false, refreshInterval: null }"
+                x-init="
+                    if (! refreshInterval)
+                        refreshInterval = setInterval(() => {
+                            if (! isDragging) $wire.$refresh()
+                        }, 2500)
+                "
+                @dragstart="isDragging = true"
+                @dragend="isDragging = false"
+                class="flex flex-col gap-2"
+                wire:sort="sortItem"
+                wire:sort:group="tasks"
+            >
                 @foreach ($this->tasks as $task)
-                    <div wire:sort:item="{{ $task->id }}">
+                    <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
                         <flux:modal.trigger :name="'task-' . $task->id">
-                            <flux:kanban.card
-                                as="button"
-                                heading="{{ $task->title }}"
-                                wire:key="task-{{ $task->id }}"
-                            >
+                            <flux:kanban.card as="button" heading="{{ $task->title }}">
                                 <x-slot name="header">
                                     <div class="flex flex-wrap items-center gap-1.5">
                                         @if ($task->project)
@@ -202,7 +211,7 @@ new class extends Component
                         </flux:modal.trigger>
 
                         <flux:modal :name="'task-' . $task->id" class="w-full max-w-[95vw] lg:max-w-150">
-                            <livewire:task :task="$task" wire:key="task-{{ $task->id }}" lazy />
+                            <livewire:task :task="$task" lazy />
                         </flux:modal>
                     </div>
                 @endforeach
