@@ -6,8 +6,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public int $page = 1;
@@ -98,83 +97,81 @@ new class extends Component
             >
                 @foreach ($this->tasks as $task)
                     <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
-                        <flux:modal class="w-full max-w-[95vw] lg:max-w-150" :name="'task-' . $task->id">
-                            <x-slot name="trigger">
-                                <flux:kanban.card as="button" heading="{{ $task->title }}">
-                                    <x-slot name="header">
-                                        <div class="flex flex-wrap items-center gap-1.5">
-                                            @if ($task->project)
-                                                <flux:text class="font-mono text-xs">
-                                                    {{ $task->project->handle }}-{{ $task->number }}
+                        <flux:modal.trigger :name="'task-' . $task->id">
+                            <flux:kanban.card as="button" heading="{{ $task->title }}">
+                                <x-slot name="header">
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        @if ($task->project)
+                                            <flux:text class="font-mono text-xs">
+                                                {{ $task->project->handle }}-{{ $task->number }}
+                                            </flux:text>
+                                        @endif
+
+                                        @unless ($task->tags->isEmpty())
+                                            <div class="flex gap-1">
+                                                @foreach ($task->tags->take(3) as $tag)
+                                                    <flux:badge size="sm">{{ $tag->name }}</flux:badge>
+                                                @endforeach
+
+                                                @if ($task->tags->count() > 3)
+                                                    <flux:badge size="sm">+{{ $task->tags->count() - 3 }}</flux:badge>
+                                                @endif
+                                            </div>
+                                        @endunless
+                                    </div>
+                                </x-slot>
+                                <x-slot name="footer">
+                                    <div class="flex w-full items-center justify-between gap-3">
+                                        <div class="flex items-center gap-2">
+                                            <flux:avatar
+                                                circle
+                                                size="xs"
+                                                :src="$task->completer->profilePhotoUrl()"
+                                                name="{{ $task->completer->name }}"
+                                                color="auto"
+                                                color:seed="{{ $task->completer->id }}"
+                                                tooltip="{{ $task->completer->name }}"
+                                            />
+                                            <flux:text class="text-xs">
+                                                completed
+                                                {{ $task->completed_at->diffForHumans() }}
+                                            </flux:text>
+                                        </div>
+
+                                        <div class="flex items-center gap-3">
+                                            @unless ($task->comments->isEmpty())
+                                                <flux:text class="inline-flex gap-1 text-xs">
+                                                    <flux:icon.chat-bubble-bottom-center-text variant="micro" />
+                                                    {{ $task->comments->count() }}
                                                 </flux:text>
-                                            @endif
-
-                                            @unless ($task->tags->isEmpty())
-                                                <div class="flex gap-1">
-                                                    @foreach ($task->tags->take(3) as $tag)
-                                                        <flux:badge size="sm">{{ $tag->name }}</flux:badge>
-                                                    @endforeach
-
-                                                    @if ($task->tags->count() > 3)
-                                                        <flux:badge size="sm">
-                                                            +{{ $task->tags->count() - 3 }}
-                                                        </flux:badge>
-                                                    @endif
-                                                </div>
                                             @endunless
+
+                                            <flux:avatar.group>
+                                                @foreach ($task->assignees->take(3) as $assignee)
+                                                    <flux:avatar
+                                                        circle
+                                                        size="xs"
+                                                        :src="$assignee->profilePhotoUrl()"
+                                                        name="{{ $assignee->name }}"
+                                                        color="auto"
+                                                        color:seed="{{ $assignee->id }}"
+                                                        tooltip="{{ $assignee->name }}"
+                                                    />
+                                                @endforeach
+
+                                                @if ($task->assignees->count() > 3)
+                                                    <flux:avatar circle size="xs">
+                                                        {{ $task->assignees->count() }}+
+                                                    </flux:avatar>
+                                                @endif
+                                            </flux:avatar.group>
                                         </div>
-                                    </x-slot>
-                                    <x-slot name="footer">
-                                        <div class="flex w-full items-center justify-between gap-3">
-                                            <div class="flex items-center gap-2">
-                                                <flux:avatar
-                                                    circle
-                                                    size="xs"
-                                                    :src="$task->completer->profilePhotoUrl()"
-                                                    name="{{ $task->completer->name }}"
-                                                    color="auto"
-                                                    color:seed="{{ $task->completer->id }}"
-                                                    tooltip="{{ $task->completer->name }}"
-                                                />
-                                                <flux:text class="text-xs">
-                                                    completed
-                                                    {{ $task->completed_at->diffForHumans() }}
-                                                </flux:text>
-                                            </div>
+                                    </div>
+                                </x-slot>
+                            </flux:kanban.card>
+                        </flux:modal.trigger>
 
-                                            <div class="flex items-center gap-3">
-                                                @unless ($task->comments->isEmpty())
-                                                    <flux:text class="inline-flex gap-1 text-xs">
-                                                        <flux:icon.chat-bubble-bottom-center-text variant="micro" />
-                                                        {{ $task->comments->count() }}
-                                                    </flux:text>
-                                                @endunless
-
-                                                <flux:avatar.group>
-                                                    @foreach ($task->assignees->take(3) as $assignee)
-                                                        <flux:avatar
-                                                            circle
-                                                            size="xs"
-                                                            :src="$assignee->profilePhotoUrl()"
-                                                            name="{{ $assignee->name }}"
-                                                            color="auto"
-                                                            color:seed="{{ $assignee->id }}"
-                                                            tooltip="{{ $assignee->name }}"
-                                                        />
-                                                    @endforeach
-
-                                                    @if ($task->assignees->count() > 3)
-                                                        <flux:avatar circle size="xs">
-                                                            {{ $task->assignees->count() }}+
-                                                        </flux:avatar>
-                                                    @endif
-                                                </flux:avatar.group>
-                                            </div>
-                                        </div>
-                                    </x-slot>
-                                </flux:kanban.card>
-                            </x-slot>
-
+                        <flux:modal :name="'task-' . $task->id" class="w-full max-w-[95vw] lg:max-w-150">
                             <livewire:task :task="$task" lazy />
                         </flux:modal>
                     </div>
