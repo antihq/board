@@ -89,15 +89,13 @@ new class extends Component
         @else
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5 md:gap-6">
                 @foreach ($this->projects as $project)
-                    @if ($project->handle)
-                        <a
-                            href="{{ route('projects.show', [$team, $project]) }}"
-                            wire:key="project-{{ $project->id }}"
-                            wire:navigate
-                        >
-                            <flux:kanban.card :heading="$project->name" />
-                        </a>
-                    @endif
+                    <a
+                        href="{{ route('projects.show', [$team, $project]) }}"
+                        wire:key="project-{{ $project->id }}"
+                        wire:navigate
+                    >
+                        <flux:kanban.card :heading="$project->name" />
+                    </a>
                 @endforeach
             </div>
         @endif
