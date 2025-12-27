@@ -6,14 +6,22 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
+
+    public int $page = 1;
 
     #[On('task.moved')]
     #[On('task.updated')]
     public function refreshTasks()
     {
         unset($this->tasks);
+    }
+
+    public function loadMore()
+    {
+        $this->page++;
     }
 
     #[Computed]
@@ -25,7 +33,19 @@ new class extends Component {
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
+            ->take($this->page * 20)
             ->get();
+    }
+
+    #[Computed]
+    public function hasMore()
+    {
+        $total = $this->project
+            ->tasks()
+            ->completed()
+            ->count();
+
+        return $total > $this->page * 20;
     }
 
     public function sortItem($item, $_position)
@@ -162,4 +182,18 @@ new class extends Component {
             </div>
         @endisland
     </flux:kanban.column.cards>
+    <flux:kanban.column.footer>
+        @if ($this->hasMore)
+            <flux:button
+                wire:click="loadMore"
+                wire:island="completed-tasks"
+                type="button"
+                size="sm"
+                variant="ghost"
+                align="start"
+            >
+                Load more
+            </flux:button>
+        @endif
+    </flux:kanban.column.footer>
 </flux:kanban.column>

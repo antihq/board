@@ -13,6 +13,8 @@ new class extends Component {
     public $title = '';
     public $color = '';
 
+    public int $page = 1;
+
     #[On('task.moved')]
     #[On('task.updated')]
     public function refreshTasks()
@@ -59,6 +61,11 @@ new class extends Component {
         Flux::modal('delete-section-' . $this->section->id)->close();
     }
 
+    public function loadMore()
+    {
+        $this->page++;
+    }
+
     #[Computed]
     public function tasks()
     {
@@ -67,7 +74,16 @@ new class extends Component {
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
+            ->take($this->page * 20)
             ->get();
+    }
+
+    #[Computed]
+    public function hasMore()
+    {
+        $total = $this->section->tasks()->count();
+
+        return $total > $this->page * 20;
     }
 
     public function sortItem($item, $_position)
@@ -238,6 +254,20 @@ new class extends Component {
                 </div>
             @endisland
         </flux:kanban.column.cards>
+        <flux:kanban.column.footer>
+            @if ($this->hasMore)
+                <flux:button
+                    wire:click="loadMore"
+                    wire:island="section-tasks-{{ $section->id }}"
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    align="start"
+                >
+                    Load more
+                </flux:button>
+            @endif
+        </flux:kanban.column.footer>
     </flux:kanban.column>
 
     <flux:modal :name="'delete-section-' . $section->id" class="min-w-[22rem]">
