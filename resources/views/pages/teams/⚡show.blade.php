@@ -87,7 +87,7 @@ new class extends Component
                 <flux:text>Create your first project to get started.</flux:text>
             </flux:callout>
         @else
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-5">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-5 md:gap-6">
                 @foreach ($this->projects as $project)
                     @if ($project->handle)
                         <a href="{{ route('projects.show', [$team, $project]) }}" wire:navigate>
