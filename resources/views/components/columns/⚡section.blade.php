@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     public $title = '';
@@ -90,29 +91,8 @@ new class extends Component {
     {
         $task = $this->section->project->tasks()->findOrFail($item);
 
-        $updateData = [
-            'section_id' => $this->section->id,
-            'section_moved_at' => now(),
-            'section_moved_by' => Auth::id(),
-        ];
+        $task->moveToSection($this->section->id, Auth::id());
 
-        if ($task->completed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'completed_at' => null,
-                'completed_by' => null,
-                'reopened_at' => now(),
-                'reopened_by' => Auth::id(),
-            ]);
-        }
-
-        if ($task->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
-        }
-
-        $task->update($updateData);
         $this->dispatch('task.moved');
     }
 };

@@ -2,7 +2,6 @@
 
 use App\Models\Project;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -29,24 +28,9 @@ new class extends Component
             'title' => 'required',
         ]);
 
-        DB::transaction(function () {
-            $maxNumber =
-                $this->project
-                    ->tasks()
-                    ->lockForUpdate()
-                    ->max('number') ?? 0;
+        $this->project->addTask($this->pull('title'), Auth::id());
 
-            $task = $this->project->tasks()->create([
-                'team_id' => $this->project->team_id,
-                'user_id' => Auth::id(),
-                'title' => $this->pull('title'),
-                'number' => $maxNumber + 1,
-            ]);
-
-            $task->subscribers()->attach(Auth::id());
-
-            unset($this->tasks);
-        });
+        unset($this->tasks);
     }
 
     public function loadMore()
@@ -57,61 +41,22 @@ new class extends Component
     #[Computed]
     public function tasks()
     {
-        return $this->project
-            ->tasks()
-            ->pending()
-            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
-            ->orderBy('prioritized_at', 'desc')
-            ->orderBy('updated_at', 'desc')
-            ->take($this->page * 25)
-            ->get();
+        return $this->project->pendingTasks($this->page, 25);
     }
 
     #[Computed]
     public function hasMore()
     {
-        $total = $this->project
-            ->tasks()
-            ->pending()
-            ->count();
-
-        return $total > $this->page * 25;
+        return $this->project->hasMorePendingTasks($this->page, 25);
     }
 
     public function sortItem($item, $_position)
     {
         $task = $this->project->tasks()->findOrFail($item);
 
-        $updateData = [];
+        $task->moveToPending(Auth::id());
 
-        if ($task->completed_at !== null) {
-            $updateData = [
-                'completed_at' => null,
-                'completed_by' => null,
-                'reopened_at' => now(),
-                'reopened_by' => Auth::id(),
-            ];
-        }
-
-        if ($task->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
-        }
-
-        if ($task->section_id !== null) {
-            $updateData = array_merge($updateData, [
-                'section_id' => null,
-                'section_moved_at' => null,
-                'section_moved_by' => null,
-            ]);
-        }
-
-        if (! empty($updateData)) {
-            $task->update($updateData);
-            $this->dispatch('task.moved');
-        }
+        $this->dispatch('task.moved');
     }
 };
 ?>

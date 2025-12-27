@@ -155,6 +155,66 @@ class Task extends Model
         ]);
     }
 
+    public function moveToPending(int $userId): void
+    {
+        $updateData = [];
+
+        if ($this->completed_at !== null) {
+            $updateData = [
+                'completed_at' => null,
+                'completed_by' => null,
+                'reopened_at' => now(),
+                'reopened_by' => $userId,
+            ];
+        }
+
+        if ($this->closed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+        }
+
+        if ($this->section_id !== null) {
+            $updateData = array_merge($updateData, [
+                'section_id' => null,
+                'section_moved_at' => null,
+                'section_moved_by' => null,
+            ]);
+        }
+
+        if (! empty($updateData)) {
+            $this->update($updateData);
+        }
+    }
+
+    public function moveToSection(int $sectionId, int $userId): void
+    {
+        $updateData = [
+            'section_id' => $sectionId,
+            'section_moved_at' => now(),
+            'section_moved_by' => $userId,
+        ];
+
+        if ($this->completed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'completed_at' => null,
+                'completed_by' => null,
+                'reopened_at' => now(),
+                'reopened_by' => $userId,
+            ]);
+        }
+
+        if ($this->closed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+        }
+
+        $this->update($updateData);
+    }
+
     #[Scope]
     protected function pending(Builder $query): void
     {

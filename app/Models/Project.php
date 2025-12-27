@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Project extends Model
@@ -53,6 +55,42 @@ class Project extends Model
     public function getRouteKeyName()
     {
         return 'handle';
+    }
+
+    public function addTask(string $title, int $userId): Task
+    {
+        return DB::transaction(function () use ($title, $userId) {
+            $maxNumber = $this->tasks()->lockForUpdate()->max('number') ?? 0;
+
+            $task = $this->tasks()->create([
+                'team_id' => $this->team_id,
+                'user_id' => $userId,
+                'title' => $title,
+                'number' => $maxNumber + 1,
+            ]);
+
+            $task->subscribers()->attach($userId);
+
+            return $task;
+        });
+    }
+
+    public function pendingTasks(int $page, int $perPage): Collection
+    {
+        return $this->tasks()
+            ->pending()
+            ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->take($page * $perPage)
+            ->get();
+    }
+
+    public function hasMorePendingTasks(int $page, int $perPage): bool
+    {
+        $total = $this->tasks()->pending()->count();
+
+        return $total > $page * $perPage;
     }
 
     protected function casts(): array
