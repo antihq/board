@@ -15,7 +15,7 @@
             <flux:navbar class="-mb-px max-lg:hidden">
                 <livewire:teams-dropdown :team="$team" />
                 <flux:separator vertical variant="subtle" class="mx-1 my-1" />
-                <flux:navbar.item href="{{ route('teams.show', $team) }}">Home</flux:navbar.item>
+                <flux:navbar.item href="{{ route('teams.show', $team) }}" wire:navigate>Home</flux:navbar.item>
                 <livewire:projects-dropdown :team="$team" />
                 <flux:dropdown>
                     <flux:navbar.item icon:trailing="chevron-down">Tasks</flux:navbar.item>
@@ -178,7 +178,9 @@
             <flux:separator variant="subtle" />
 
             <flux:sidebar.nav>
-                <flux:sidebar.item href="{{ route('teams.show', $team) }}" current>Home</flux:sidebar.item>
+                <flux:sidebar.item href="{{ route('teams.show', $team) }}" current wire:navigate>
+                    Home
+                </flux:sidebar.item>
                 <livewire:projects-dropdown :team="$team" />
                 <flux:sidebar.group expandable heading="Tasks" class="grid">
                     <flux:sidebar.item
