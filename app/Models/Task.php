@@ -215,6 +215,55 @@ class Task extends Model
         $this->update($updateData);
     }
 
+    public function moveToCompleted(User $user): void
+    {
+        $updateData = [];
+
+        if ($this->completed_at === null) {
+            $updateData = [
+                'completed_at' => now(),
+                'completed_by' => $user->id,
+                'reopened_at' => null,
+                'reopened_by' => null,
+            ];
+        }
+
+        if ($this->closed_at !== null) {
+            $updateData = array_merge($updateData, [
+                'closed_at' => null,
+                'closed_by' => null,
+            ]);
+        }
+
+        if (! empty($updateData)) {
+            $this->update($updateData);
+        }
+    }
+
+    public function moveToClosed(User $user): void
+    {
+        $updateData = [];
+
+        if ($this->closed_at === null) {
+            $updateData = [
+                'closed_at' => now(),
+                'closed_by' => $user->id,
+            ];
+
+            if ($this->completed_at === null) {
+                $updateData['completed_at'] = now();
+                $updateData['completed_by'] = $user->id;
+            }
+
+            $updateData['reopened_at'] = null;
+            $updateData['reopened_by'] = null;
+        }
+
+        if (! empty($updateData)) {
+            $this->update($updateData);
+        }
+    }
+
     #[Scope]
     protected function pending(Builder $query): void
     {

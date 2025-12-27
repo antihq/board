@@ -83,6 +83,22 @@ class Project extends Model
             ->orderBy('updated_at', 'desc');
     }
 
+    public function completedTasks(): HasMany
+    {
+        return $this->tasks()
+            ->completed()
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc');
+    }
+
+    public function closedTasks(): HasMany
+    {
+        return $this->tasks()
+            ->closed()
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc');
+    }
+
     protected function casts(): array
     {
         return [

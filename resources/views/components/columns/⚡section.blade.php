@@ -73,8 +73,6 @@ new class extends Component
         return $this->section
             ->tasks()
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
-            ->orderBy('prioritized_at', 'desc')
-            ->orderBy('updated_at', 'desc')
             ->take($this->page * 25)
             ->get();
     }

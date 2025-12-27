@@ -28,11 +28,8 @@ new class extends Component
     public function tasks()
     {
         return $this->project
-            ->tasks()
-            ->closed()
+            ->closedTasks()
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
-            ->orderBy('prioritized_at', 'desc')
-            ->orderBy('updated_at', 'desc')
             ->take($this->page * 25)
             ->get();
     }
@@ -40,10 +37,7 @@ new class extends Component
     #[Computed]
     public function hasMore()
     {
-        $total = $this->project
-            ->tasks()
-            ->closed()
-            ->count();
+        $total = $this->project->closedTasks()->count();
 
         return $total > $this->page * 25;
     }
@@ -52,27 +46,9 @@ new class extends Component
     {
         $task = $this->project->tasks()->findOrFail($item);
 
-        $updateData = [];
+        $task->moveToClosed(Auth::user());
 
-        if ($task->closed_at === null) {
-            $updateData = [
-                'closed_at' => now(),
-                'closed_by' => Auth::id(),
-            ];
-
-            if ($task->completed_at === null) {
-                $updateData['completed_at'] = now();
-                $updateData['completed_by'] = Auth::id();
-            }
-
-            $updateData['reopened_at'] = null;
-            $updateData['reopened_by'] = null;
-        }
-
-        if (! empty($updateData)) {
-            $task->update($updateData);
-            $this->dispatch('task.moved');
-        }
+        $this->dispatch('task.moved');
     }
 };
 ?>

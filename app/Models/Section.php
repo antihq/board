@@ -18,7 +18,10 @@ class Section extends Model
 
     public function tasks()
     {
-        return $this->hasMany(Task::class)->whereNull('completed_at');
+        return $this->hasMany(Task::class)
+            ->whereNull('completed_at')
+            ->orderBy('prioritized_at', 'desc')
+            ->orderBy('updated_at', 'desc');
     }
 
     public function scopeOrdered($query)
