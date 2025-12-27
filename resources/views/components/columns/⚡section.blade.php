@@ -74,7 +74,7 @@ new class extends Component {
             ->with(['creator', 'project', 'tags', 'comments', 'assignees'])
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc')
-            ->take($this->page * 20)
+            ->take($this->page * 25)
             ->get();
     }
 
@@ -83,7 +83,7 @@ new class extends Component {
     {
         $total = $this->section->tasks()->count();
 
-        return $total > $this->page * 20;
+        return $total > $this->page * 25;
     }
 
     public function sortItem($item, $_position)
