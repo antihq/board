@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -156,8 +157,10 @@ new class extends Component {
     <flux:kanban.column.cards>
         @island(name: 'tasks', always: true)
             <div
-                @dragstart="$el.removeAttribute('wire:poll')"
-                @dragend="$el.setAttribute('wire:poll', '')"
+                @dragstart="$dispatch('kanban-drag-start'); $el.removeAttribute('wire:poll')"
+                @dragend="$dispatch('kanban-drag-end'); $el.setAttribute('wire:poll', '')"
+                @kanban-drag-start.window="$el.removeAttribute('wire:poll')"
+                @kanban-drag-end.window="$el.setAttribute('wire:poll', '')"
                 class="flex flex-col gap-2"
                 wire:sort="sortItem"
                 wire:sort:group="tasks"
