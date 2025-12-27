@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
@@ -135,7 +134,7 @@ new class extends Component
             <flux:button variant="subtle" icon="plus" size="sm" @click="showForm = true" />
         </x-slot>
     </flux:kanban.column.header>
-    <div class="flex flex-col p-2" x-show="showForm" x-cloak @keydown.escape.window="showForm = false">
+    <div class="flex flex-col px-2 pb-2" x-show="showForm" x-cloak @keydown.escape.window="showForm = false">
         <form wire:submit.prevent="createTask">
             <flux:composer
                 wire:model="title"
