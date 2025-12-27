@@ -82,16 +82,7 @@ new class extends Component
     <flux:kanban.column.header heading="Completed" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards>
         @island(name: 'completed-tasks')
-            <div
-                @dragstart="$dispatch('kanban-drag-start'); $el.removeAttribute('wire:poll')"
-                @dragend="$dispatch('kanban-drag-end'); $el.setAttribute('wire:poll', '')"
-                @kanban-drag-start.window="$el.removeAttribute('wire:poll')"
-                @kanban-drag-end.window="$el.setAttribute('wire:poll', '')"
-                class="flex flex-col gap-2"
-                wire:sort="sortItem"
-                wire:sort:group="tasks"
-                wire:poll
-            >
+            <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
                 @foreach ($this->tasks as $task)
                     <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
                         <flux:modal.trigger :name="'task-' . $task->id">
