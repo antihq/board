@@ -116,8 +116,44 @@ new class extends Component
 };
 ?>
 
-<flux:kanban.column {{ $attributes }}>
-    <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}" />
+<flux:kanban.column
+    {{ $attributes }}
+    x-data="{ showForm: false }"
+    x-init="
+        $watch(
+            'showForm',
+            (value) =>
+                value &&
+                $nextTick(() =>
+                    $refs.titleInput.querySelector('input, textarea')?.focus(),
+                ),
+        )
+    "
+>
+    <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}">
+        <x-slot name="actions">
+            <flux:button variant="subtle" icon="plus" size="sm" @click="showForm = true" />
+        </x-slot>
+    </flux:kanban.column.header>
+    <div class="flex flex-col p-2" x-show="showForm" x-cloak @keydown.escape.window="showForm = false">
+        <form wire:submit.prevent="createTask">
+            <flux:composer
+                wire:model="title"
+                rows="1"
+                label="Task title"
+                label:sr-only
+                placeholder="Enter task title..."
+                submit="enter"
+                x-ref="titleInput"
+            >
+                <x-slot name="actionsLeading">
+                    <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
+                        Add task
+                    </flux:button>
+                </x-slot>
+            </flux:composer>
+        </form>
+    </div>
     <flux:kanban.column.cards>
         @island(name: 'tasks')
             <div
@@ -231,22 +267,5 @@ new class extends Component
                 Load more
             </flux:button>
         @endif
-
-        <form wire:submit.prevent="createTask">
-            <flux:composer
-                wire:model="title"
-                rows="1"
-                label="Task title"
-                label:sr-only
-                placeholder="Enter task title..."
-                submit="enter"
-            >
-                <x-slot name="actionsLeading">
-                    <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
-                        Add task
-                    </flux:button>
-                </x-slot>
-            </flux:composer>
-        </form>
     </flux:kanban.column.footer>
 </flux:kanban.column>
