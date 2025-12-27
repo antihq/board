@@ -109,25 +109,40 @@ new #[Title('Profile settings')] class extends Component
                 <flux:heading size="lg">Profile</flux:heading>
                 <flux:text>Update your personal information.</flux:text>
 
-                <flux:file-upload wire:model="photo" label="Profile photo">
-                    <flux:file-upload.dropzone
-                        heading="Drop file here or click to browse"
-                        text="JPG, PNG, GIF up to 10MB"
-                    />
-                </flux:file-upload>
+                <div class="space-y-3">
+                    <flux:heading>Profile photo</flux:heading>
 
-                @if (Auth::user()->profile_photo_path)
-                    <div class="flex flex-col gap-2">
-                        <flux:file-item
-                            heading="Current profile photo"
-                            :image="Storage::disk('public')->url(Auth::user()->profile_photo_path)"
+                    <flux:file-upload wire:model="photo">
+                        <div
+                            class="relative flex size-20 cursor-pointer items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 transition-colors hover:border-zinc-300 hover:bg-zinc-200 dark:border-white/10 dark:bg-white/10 dark:hover:border-white/10 hover:dark:bg-white/15 in-data-dragging:dark:bg-white/15"
                         >
-                            <x-slot name="actions">
-                                <flux:file-item.remove wire:click="removePhoto" aria-label="Remove profile photo" />
-                            </x-slot>
-                        </flux:file-item>
-                    </div>
-                @endif
+                            @if ($photo)
+                                <img src="{{ $photo?->temporaryUrl() }}" class="size-full rounded-full object-cover" />
+                            @elseif (Auth::user()->profile_photo_path)
+                                <img
+                                    src="{{ Storage::disk('public')->url(Auth::user()->profile_photo_path) }}"
+                                    class="size-full rounded-full object-cover"
+                                />
+                            @else
+                                <flux:icon name="user" variant="solid" class="text-zinc-500 dark:text-zinc-400" />
+                            @endif
+
+                            <div class="absolute right-0 bottom-0 rounded-full bg-white dark:bg-zinc-800">
+                                <flux:icon
+                                    name="arrow-up-circle"
+                                    variant="solid"
+                                    class="text-zinc-500 dark:text-zinc-400"
+                                />
+                            </div>
+                        </div>
+                    </flux:file-upload>
+
+                    @if (Auth::user()->profile_photo_path)
+                        <div class="mt-3">
+                            <flux:button wire:click="removePhoto" size="xs">Remove photo</flux:button>
+                        </div>
+                    @endif
+                </div>
 
                 <div class="space-y-6">
                     <flux:input wire:model="name" label="Name" type="text" required autofocus autocomplete="name" />
