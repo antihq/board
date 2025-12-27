@@ -16,7 +16,11 @@ new class extends Component
     #[Computed]
     public function projects()
     {
-        return $this->team->projects()->get();
+        return $this->team
+            ->projects()
+            ->latest()
+            ->take(5)
+            ->get();
     }
 };
 ?>
