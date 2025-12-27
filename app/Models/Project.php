@@ -57,19 +57,19 @@ class Project extends Model
         return 'handle';
     }
 
-    public function addTask(string $title, int $userId): Task
+    public function addTask(string $title, User $user): Task
     {
-        return DB::transaction(function () use ($title, $userId) {
+        return DB::transaction(function () use ($title, $user) {
             $maxNumber = $this->tasks()->lockForUpdate()->max('number') ?? 0;
 
             $task = $this->tasks()->create([
                 'team_id' => $this->team_id,
-                'user_id' => $userId,
+                'user_id' => $user->id,
                 'title' => $title,
                 'number' => $maxNumber + 1,
             ]);
 
-            $task->subscribers()->attach($userId);
+            $task->subscribers()->attach($user->id);
 
             return $task;
         });

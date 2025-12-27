@@ -28,7 +28,7 @@ new class extends Component
             'title' => 'required',
         ]);
 
-        $this->project->addTask($this->pull('title'), Auth::id());
+        $this->project->addTask($this->pull('title'), Auth::user());
 
         unset($this->tasks);
     }
@@ -54,7 +54,7 @@ new class extends Component
     {
         $task = $this->project->tasks()->findOrFail($item);
 
-        $task->moveToPending(Auth::id());
+        $task->moveToPending(Auth::user());
 
         $this->dispatch('task.moved');
     }

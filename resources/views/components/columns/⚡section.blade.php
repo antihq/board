@@ -91,7 +91,7 @@ new class extends Component
     {
         $task = $this->section->project->tasks()->findOrFail($item);
 
-        $task->moveToSection($this->section->id, Auth::id());
+        $task->moveToSection($this->section->id, Auth::user());
 
         $this->dispatch('task.moved');
     }

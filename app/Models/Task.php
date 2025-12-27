@@ -155,7 +155,7 @@ class Task extends Model
         ]);
     }
 
-    public function moveToPending(int $userId): void
+    public function moveToPending(User $user): void
     {
         $updateData = [];
 
@@ -164,7 +164,7 @@ class Task extends Model
                 'completed_at' => null,
                 'completed_by' => null,
                 'reopened_at' => now(),
-                'reopened_by' => $userId,
+                'reopened_by' => $user->id,
             ];
         }
 
@@ -188,12 +188,12 @@ class Task extends Model
         }
     }
 
-    public function moveToSection(int $sectionId, int $userId): void
+    public function moveToSection(int $sectionId, User $user): void
     {
         $updateData = [
             'section_id' => $sectionId,
             'section_moved_at' => now(),
-            'section_moved_by' => $userId,
+            'section_moved_by' => $user->id,
         ];
 
         if ($this->completed_at !== null) {
@@ -201,7 +201,7 @@ class Task extends Model
                 'completed_at' => null,
                 'completed_by' => null,
                 'reopened_at' => now(),
-                'reopened_by' => $userId,
+                'reopened_by' => $user->id,
             ]);
         }
 
