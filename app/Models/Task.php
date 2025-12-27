@@ -100,6 +100,11 @@ class Task extends Model
         return $this->belongsToMany(User::class, 'saved_tasks')->withPivot('team_id');
     }
 
+    public function images()
+    {
+        return $this->hasMany(TaskImage::class)->latest();
+    }
+
     /**
      * Get the effective auto-close days for this task.
      */

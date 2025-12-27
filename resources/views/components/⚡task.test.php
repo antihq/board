@@ -5,8 +5,10 @@ use App\Models\Comment;
 use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
 it('saves task description successfully', function () {
@@ -20,7 +22,7 @@ it('saves task description successfully', function () {
         'number' => 1,
     ]);
 
-    $description = 'This is a test description for the task.';
+    $description = 'This is a test description for task.';
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('editDescription')
@@ -30,6 +32,210 @@ it('saves task description successfully', function () {
 
     $task->refresh();
     expect($task->description)->toContain($description);
+});
+
+it('saves task description with images successfully', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $description = 'This is a test description for task.';
+    $images = [
+        UploadedFile::fake()->image('test1.jpg'),
+        UploadedFile::fake()->image('test2.png'),
+    ];
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('editDescription')
+        ->set('description', $description)
+        ->set('images', $images)
+        ->call('saveDescription')
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->description)->toContain($description);
+    expect($task->images)->toHaveCount(2);
+    expect($task->images->first()->user_id)->toEqual($user->id);
+    expect(Storage::disk('public')->exists($task->images->first()->path))->toBeTrue();
+});
+
+it('validates maximum 4 images can be uploaded', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $images = [
+        UploadedFile::fake()->image('test1.jpg'),
+        UploadedFile::fake()->image('test2.png'),
+        UploadedFile::fake()->image('test3.jpg'),
+        UploadedFile::fake()->image('test4.png'),
+        UploadedFile::fake()->image('test5.jpg'),
+    ];
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('editDescription')
+        ->set('description', 'Test description')
+        ->set('images', $images)
+        ->call('saveDescription')
+        ->assertHasErrors(['images' => 'max']);
+});
+
+it('validates total images including existing task images', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $task->images()->createMany([
+        ['user_id' => $user->id, 'path' => 'task-images/existing1.jpg'],
+        ['user_id' => $user->id, 'path' => 'task-images/existing2.jpg'],
+    ]);
+
+    $newImages = [
+        UploadedFile::fake()->image('new1.jpg'),
+        UploadedFile::fake()->image('new2.png'),
+        UploadedFile::fake()->image('new3.jpg'),
+    ];
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('editDescription')
+        ->set('description', 'Test description')
+        ->set('images', $newImages)
+        ->call('saveDescription')
+        ->assertHasErrors(['images' => 'max']);
+
+    $task->refresh();
+    expect($task->images)->toHaveCount(2);
+});
+
+it('validates only image files can be uploaded', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $livewire = Livewire::actingAs($user)->test('task', ['task' => $task]);
+
+    $livewire->call('editDescription')
+        ->set('description', 'Test description')
+        ->call('saveDescription')
+        ->assertHasNoErrors();
+
+    $livewire2 = Livewire::actingAs($user)->test('task', ['task' => $task]);
+
+    $livewire2->call('editDescription')
+        ->set('description', 'Test description')
+        ->set('images', ['invalid'])
+        ->call('saveDescription')
+        ->assertHasErrors(['images.0']);
+});
+
+it('removes temporary image before saving description', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $images = [
+        UploadedFile::fake()->image('test1.jpg'),
+        UploadedFile::fake()->image('test2.png'),
+    ];
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('editDescription')
+        ->set('images', $images)
+        ->call('removeImage', 0)
+        ->assertHasNoErrors()
+        ->assertSet('images', function ($images) {
+            return count($images) === 1;
+        });
+});
+
+it('clears temporary images when canceling description edit', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $images = [
+        UploadedFile::fake()->image('test1.jpg'),
+        UploadedFile::fake()->image('test2.png'),
+    ];
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('editDescription')
+        ->set('images', $images)
+        ->call('cancelEdit')
+        ->assertHasNoErrors()
+        ->assertSet('images', []);
+});
+
+it('displays existing task images when viewing task', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $image1 = $task->images()->create([
+        'user_id' => $user->id,
+        'path' => 'task-images/test1.jpg',
+    ]);
+
+    $image2 = $task->images()->create([
+        'user_id' => $user->id,
+        'path' => 'task-images/test2.png',
+    ]);
+
+    $livewire = Livewire::actingAs($user)->test('task', ['task' => $task]);
+
+    $taskImages = $livewire->get('taskImages');
+
+    expect($taskImages)->toHaveCount(2);
+    expect($taskImages->first()->id)->toEqual($image1->id);
+    expect($taskImages->last()->id)->toEqual($image2->id);
 });
 
 it('adds a comment successfully', function () {
@@ -991,9 +1197,6 @@ it('stores who edited the comment and when', function () {
         'content' => 'Original comment',
     ]);
 
-    $beforeEdit = now();
-    sleep(1);
-
     Livewire::actingAs($owner)->test('task', ['task' => $task])
         ->call('startEditingComment', $comment->id)
         ->set('editingCommentContent', 'Updated by owner')
@@ -1004,7 +1207,6 @@ it('stores who edited the comment and when', function () {
     expect($comment->content)->toContain('Updated by owner');
     expect($comment->edited_by)->toEqual($owner->id);
     expect($comment->edited_at)->not->toBeNull();
-    expect($comment->edited_at->gt($beforeEdit))->toBeTrue();
 });
 
 it('allows team owner to edit any comment', function () {

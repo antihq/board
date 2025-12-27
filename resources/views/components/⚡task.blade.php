@@ -5,10 +5,16 @@ use App\Notifications\TaskClosed;
 use App\Notifications\TaskCommented;
 use App\Notifications\TaskReopened;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
-new class extends Component {
+new class extends Component
+{
+    use WithFileUploads;
+
     public Task $task;
 
     public bool $showModal = false;
@@ -46,6 +52,8 @@ new class extends Component {
     public bool $isManagingAssignees = false;
 
     public array $selectedAssignees = [];
+
+    public array $images = [];
 
     public function mount()
     {
@@ -110,23 +118,58 @@ new class extends Component {
 
     public function saveDescription()
     {
+        $currentCount = $this->task->images()->count();
+        $maxUploads = max(0, 4 - $currentCount);
+
         $this->validate([
             'description' => 'nullable|string|max:5000',
+            'images.*' => 'image|max:10240',
+            'images' => 'max:' . $maxUploads,
         ]);
 
-        $this->task->update([
-            'description' => $this->description,
-        ]);
+        DB::transaction(function () {
+            $this->task->lockForUpdate();
+            $currentImageCount = $this->task->images()->count();
+
+            if ($currentImageCount + count($this->images) > 4) {
+                throw ValidationException::withMessages([
+                    'images' => ['Maximum of 4 images per task. Please remove some images and try again.'],
+                ]);
+            }
+
+            $this->task->update([
+                'description' => $this->description,
+            ]);
+
+            foreach ($this->images as $image) {
+                $path = $image->store('task-images', 'public');
+                $this->task->images()->create([
+                    'user_id' => Auth::id(),
+                    'path' => $path,
+                ]);
+            }
+        });
+
+        $this->images = [];
 
         $this->dispatch('task.updated');
 
         $this->isEditingDescription = false;
     }
 
+    public function removeImage($index)
+    {
+        $image = $this->images[$index];
+        $image->delete();
+        unset($this->images[$index]);
+        $this->images = array_values($this->images);
+    }
+
     public function cancelEdit()
     {
         $this->isEditingDescription = false;
         $this->description = '';
+        $this->images = [];
     }
 
     public function startAddingChecklistItem()
@@ -518,6 +561,12 @@ new class extends Component {
             ->where('user_id', Auth::id())
             ->exists();
     }
+
+    #[Computed]
+    public function taskImages()
+    {
+        return $this->task->images;
+    }
 };
 ?>
 
@@ -644,6 +693,28 @@ new class extends Component {
                     label:sr-only
                     placeholder="Add a detailed description..."
                 >
+                    <x-slot name="header">
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($this->images as $index => $image)
+                                @if (is_object($image) && $image->isPreviewable())
+                                    <div
+                                        class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                    >
+                                        <img src="{{ $image->temporaryUrl() }}" alt="Uploaded image" class="size-14" />
+                                        <div class="absolute top-0 right-0 p-1">
+                                            <button
+                                                type="button"
+                                                wire:click="removeImage({{ $index }})"
+                                                class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                            >
+                                                <flux:icon icon="x-mark" variant="micro" class="text-white" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </x-slot>
                     <x-slot name="input">
                         <flux:editor
                             variant="borderless"
@@ -651,7 +722,14 @@ new class extends Component {
                             placeholder="Add a detailed description..."
                         />
                     </x-slot>
-                    <x-slot name="actionsLeading"></x-slot>
+                    <x-slot name="actionsLeading">
+                        <div>
+                            <flux:file-upload wire:model="images" multiple>
+                                <flux:button size="sm" variant="subtle" icon="paper-clip" />
+                            </flux:file-upload>
+                            <flux:error name="images" />
+                        </div>
+                    </x-slot>
                     <x-slot name="actionsTrailing">
                         <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
                         <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
@@ -661,6 +739,14 @@ new class extends Component {
         </form>
     @else
         <div class="space-y-4">
+            @unless ($this->taskImages->isEmpty())
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($this->taskImages as $image)
+                        <img src="{{ $image->url() }}" alt="Task image" class="size-32 rounded-lg object-cover" />
+                    @endforeach
+                </div>
+            @endunless
+
             @if ($task->description)
                 <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
                     {!! $task->description !!}

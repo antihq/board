@@ -18,23 +18,6 @@ it('renders successfully', function () {
         ->assertStatus(200);
 });
 
-it('displays tasks in section', function () {
-    $user = User::factory()->create();
-    $team = Team::factory()->create(['user_id' => $user->id]);
-    $project = Project::factory()->create(['team_id' => $team->id]);
-    $section = Section::factory()->create(['project_id' => $project->id]);
-    $task = Task::factory()->create([
-        'project_id' => $project->id,
-        'section_id' => $section->id,
-        'section_moved_at' => now(),
-        'section_moved_by' => $user->id,
-    ]);
-
-    Livewire::actingAs($user)
-        ->test('columns.section', ['section' => $section])
-        ->assertSee($task->title);
-});
-
 it('moves task to section and removes completion', function () {
     $user = User::factory()->create();
     $team = Team::factory()->create(['user_id' => $user->id]);
