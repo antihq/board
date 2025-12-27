@@ -34,6 +34,11 @@ class Comment extends Model
         return $this->belongsTo(User::class, 'edited_by');
     }
 
+    public function images()
+    {
+        return $this->hasMany(CommentImage::class);
+    }
+
     /**
      * Get the comment's content as safe HTML.
      */

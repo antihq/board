@@ -55,6 +55,8 @@ new class extends Component
 
     public array $images = [];
 
+    public array $commentImages = [];
+
     public function mount()
     {
         $this->completedChecklistItems = $this->task
@@ -219,16 +221,38 @@ new class extends Component
 
     public function addComment()
     {
+        $currentCount = 0;
+        $maxUploads = max(0, 4 - $currentCount);
+
         $this->validate([
             'newComment' => 'required|string|max:5000',
+            'commentImages.*' => 'image|max:10240',
+            'commentImages' => 'max:' . $maxUploads,
         ]);
 
-        $comment = $this->task->comments()->create([
-            'user_id' => Auth::id(),
-            'content' => $this->pull('newComment'),
-        ]);
+        DB::transaction(function () {
+            $comment = $this->task->comments()->create([
+                'user_id' => Auth::id(),
+                'content' => $this->pull('newComment'),
+            ]);
 
-        $this->task->touch();
+            foreach ($this->commentImages as $image) {
+                $path = $image->store('comment-images', 'public');
+                $comment->images()->create([
+                    'user_id' => Auth::id(),
+                    'path' => $path,
+                ]);
+            }
+
+            $this->task->touch();
+        });
+
+        $this->commentImages = [];
+
+        $comment = $this->task
+            ->comments()
+            ->latest()
+            ->first();
 
         $this->task->subscribers()->syncWithoutDetaching(Auth::id());
 
@@ -468,19 +492,45 @@ new class extends Component
 
     public function saveComment()
     {
-        $this->validate([
-            'editingCommentContent' => 'required|string|max:5000',
-        ]);
-
         $comment = $this->task->comments()->findOrFail($this->editingCommentId);
 
         $this->authorize('update', $comment);
 
-        $comment->update([
-            'content' => $this->pull('editingCommentContent'),
-            'edited_by' => Auth::id(),
-            'edited_at' => now(),
+        $currentCount = $comment->images()->count();
+        $maxUploads = max(0, 4 - $currentCount);
+
+        $this->validate([
+            'editingCommentContent' => 'required|string|max:5000',
+            'commentImages.*' => 'image|max:10240',
+            'commentImages' => 'max:' . $maxUploads,
         ]);
+
+        DB::transaction(function () use ($comment) {
+            $comment->lockForUpdate();
+            $currentImageCount = $comment->images()->count();
+
+            if ($currentImageCount + count($this->commentImages) > 4) {
+                throw ValidationException::withMessages([
+                    'commentImages' => ['Maximum of 4 images per comment. Please remove some images and try again.'],
+                ]);
+            }
+
+            $comment->update([
+                'content' => $this->pull('editingCommentContent'),
+                'edited_by' => Auth::id(),
+                'edited_at' => now(),
+            ]);
+
+            foreach ($this->commentImages as $image) {
+                $path = $image->store('comment-images', 'public');
+                $comment->images()->create([
+                    'user_id' => Auth::id(),
+                    'path' => $path,
+                ]);
+            }
+        });
+
+        $this->commentImages = [];
 
         $this->task->touch();
 
@@ -492,6 +542,15 @@ new class extends Component
     {
         $this->editingCommentId = null;
         $this->editingCommentContent = '';
+        $this->commentImages = [];
+    }
+
+    public function removeCommentImage($index)
+    {
+        $image = $this->commentImages[$index];
+        $image->delete();
+        unset($this->commentImages[$index]);
+        $this->commentImages = array_values($this->commentImages);
     }
 
     #[Computed]
@@ -508,7 +567,7 @@ new class extends Component
     {
         return $this->task
             ->comments()
-            ->with('user', 'editor')
+            ->with('user', 'editor', 'images')
             ->get();
     }
 
@@ -870,6 +929,36 @@ new class extends Component
                                         max-rows="8"
                                         placeholder="Edit your comment..."
                                     >
+                                        <x-slot name="header">
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($this->commentImages as $index => $image)
+                                                    @if (is_object($image) && $image->isPreviewable())
+                                                        <div
+                                                            class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                                        >
+                                                            <img
+                                                                src="{{ $image->temporaryUrl() }}"
+                                                                alt="Uploaded image"
+                                                                class="size-14"
+                                                            />
+                                                            <div class="absolute top-0 right-0 p-1">
+                                                                <button
+                                                                    type="button"
+                                                                    wire:click="removeCommentImage({{ $index }})"
+                                                                    class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                                                >
+                                                                    <flux:icon
+                                                                        icon="x-mark"
+                                                                        variant="micro"
+                                                                        class="text-white"
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                        </x-slot>
                                         <x-slot name="input">
                                             <flux:editor
                                                 variant="borderless"
@@ -878,7 +967,12 @@ new class extends Component
                                             />
                                         </x-slot>
                                         <x-slot name="actionsLeading">
-                                            <!-- ... -->
+                                            <div>
+                                                <flux:file-upload wire:model="commentImages" multiple>
+                                                    <flux:button size="sm" variant="subtle" icon="paper-clip" />
+                                                </flux:file-upload>
+                                                <flux:error name="commentImages" />
+                                            </div>
                                         </x-slot>
                                         <x-slot name="actionsTrailing">
                                             <flux:button
@@ -896,8 +990,22 @@ new class extends Component
                                     </flux:composer>
                                 </form>
                             @else
-                                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
-                                    {!! $comment->content !!}
+                                <div class="space-y-2">
+                                    @unless ($comment->images->isEmpty())
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach ($comment->images as $image)
+                                                <img
+                                                    src="{{ $image->url() }}"
+                                                    alt="Comment image"
+                                                    class="size-24 rounded-lg object-cover"
+                                                />
+                                            @endforeach
+                                        </div>
+                                    @endunless
+
+                                    <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                                        {!! $comment->content !!}
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -926,6 +1034,28 @@ new class extends Component
                     label:sr-only
                     placeholder="Write a comment..."
                 >
+                    <x-slot name="header">
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($this->commentImages as $index => $image)
+                                @if (is_object($image) && $image->isPreviewable())
+                                    <div
+                                        class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                    >
+                                        <img src="{{ $image->temporaryUrl() }}" alt="Uploaded image" class="size-14" />
+                                        <div class="absolute top-0 right-0 p-1">
+                                            <button
+                                                type="button"
+                                                wire:click="removeCommentImage({{ $index }})"
+                                                class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                            >
+                                                <flux:icon icon="x-mark" variant="micro" class="text-white" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                    </x-slot>
                     <x-slot name="input">
                         <flux:editor
                             variant="borderless"
@@ -933,7 +1063,14 @@ new class extends Component
                             placeholder="Write a comment..."
                         />
                     </x-slot>
-                    <x-slot name="actionsLeading"></x-slot>
+                    <x-slot name="actionsLeading">
+                        <div>
+                            <flux:file-upload wire:model="commentImages" multiple>
+                                <flux:button size="sm" variant="subtle" icon="paper-clip" />
+                            </flux:file-upload>
+                            <flux:error name="commentImages" />
+                        </div>
+                    </x-slot>
                     <x-slot name="actionsTrailing">
                         @unless ($task->completed_at)
                             <flux:button type="button" size="sm" wire:click="closeTask">Close task</flux:button>

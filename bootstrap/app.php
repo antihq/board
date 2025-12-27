@@ -11,7 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->prepend(\BeyondCode\ServerTiming\Middleware\ServerTimingMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->report(static function (Throwable $e) {
