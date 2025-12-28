@@ -5,16 +5,10 @@
 @php
     if ($task->completed_at) {
         $user = $task->completer;
-        $action = 'completed';
-        $date = $task->completed_at;
     } elseif ($task->closed_at) {
         $user = $task->closer;
-        $action = 'closed';
-        $date = $task->closed_at;
     } else {
         $user = $task->creator;
-        $action = 'opened';
-        $date = $task->created_at;
     }
 @endphp
 
@@ -40,51 +34,82 @@
     </x-slot>
     <x-slot name="footer">
         <div class="flex w-full items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-                @if ($user)
+            <div class="flex items-center gap-3">
+                @if ($task->savers->contains(auth()->id()))
+                    <flux:tooltip content="Saved">
+                        <flux:text class="text-xs">
+                            <flux:icon name="bookmark" variant="micro" />
+                        </flux:text>
+                    </flux:tooltip>
+                @endif
+
+                @if ($task->subscribers->contains(auth()->id()))
+                    <flux:tooltip content="Subscribed">
+                        <flux:text class="text-xs">
+                            <flux:icon name="eye" variant="micro" />
+                        </flux:text>
+                    </flux:tooltip>
+                @endif
+
+                @if ($task->description)
+                    <flux:tooltip content="Has description">
+                        <flux:text class="text-xs">
+                            <flux:icon name="bars-3-bottom-left" variant="micro" />
+                        </flux:text>
+                    </flux:tooltip>
+                @endif
+
+                @unless ($task->comments->isEmpty())
+                    <flux:tooltip
+                        content="{{ $task->comments->count() }} {{ Str::plural('comment', $task->comments->count()) }}"
+                    >
+                        <flux:text class="flex items-center gap-1 text-xs">
+                            <flux:icon name="chat-bubble-left-right" variant="micro" />
+                            {{ $task->comments->count() }}
+                        </flux:text>
+                    </flux:tooltip>
+                @endunless
+
+                @unless ($task->images->isEmpty())
+                    <flux:tooltip
+                        content="{{ $task->images->count() }} {{ Str::plural('attachment', $task->images->count()) }}"
+                    >
+                        <flux:text class="flex items-center gap-1 text-xs">
+                            <flux:icon name="paper-clip" variant="micro" />
+                            {{ $task->images->count() }}
+                        </flux:text>
+                    </flux:tooltip>
+                @endunless
+
+                @unless ($task->checklistItems->isEmpty())
+                    <flux:tooltip
+                        content="{{ $task->checklistItems->where('completed', true)->count() }} of {{ $task->checklistItems->count() }} items completed"
+                    >
+                        <flux:text class="flex items-center gap-1 text-xs">
+                            <flux:icon name="clipboard-document-check" variant="micro" />
+                            {{ $task->checklistItems->where('completed', true)->count() }}/{{ $task->checklistItems->count() }}
+                        </flux:text>
+                    </flux:tooltip>
+                @endunless
+            </div>
+
+            <flux:avatar.group>
+                @foreach ($task->assignees->take(3) as $assignee)
                     <flux:avatar
                         circle
                         size="xs"
-                        :src="$user->profilePhotoUrl()"
-                        name="{{ $user->name }}"
+                        :src="$assignee->profilePhotoUrl()"
+                        name="{{ $assignee->name }}"
                         color="auto"
-                        color:seed="{{ $user->id }}"
-                        tooltip="{{ $user->name }}"
+                        color:seed="{{ $assignee->id }}"
+                        tooltip="{{ $assignee->name }}"
                     />
+                @endforeach
+
+                @if ($task->assignees->count() > 3)
+                    <flux:avatar circle size="xs">{{ $task->assignees->count() }}+</flux:avatar>
                 @endif
-
-                <flux:text class="text-xs">
-                    {{ $action }}
-                    {{ $date->diffForHumans() }}
-                </flux:text>
-            </div>
-
-            <div class="flex items-center gap-3">
-                @unless ($task->comments->isEmpty())
-                    <flux:text class="inline-flex gap-1 text-xs">
-                        <flux:icon.chat-bubble-bottom-center-text variant="micro" />
-                        {{ $task->comments->count() }}
-                    </flux:text>
-                @endunless
-
-                <flux:avatar.group>
-                    @foreach ($task->assignees->take(3) as $assignee)
-                        <flux:avatar
-                            circle
-                            size="xs"
-                            :src="$assignee->profilePhotoUrl()"
-                            name="{{ $assignee->name }}"
-                            color="auto"
-                            color:seed="{{ $assignee->id }}"
-                            tooltip="{{ $assignee->name }}"
-                        />
-                    @endforeach
-
-                    @if ($task->assignees->count() > 3)
-                        <flux:avatar circle size="xs">{{ $task->assignees->count() }}+</flux:avatar>
-                    @endif
-                </flux:avatar.group>
-            </div>
+            </flux:avatar.group>
         </div>
     </x-slot>
 </flux:kanban.card>
