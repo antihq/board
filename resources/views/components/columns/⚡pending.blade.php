@@ -6,7 +6,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -198,11 +199,13 @@ new class extends Component {
 <script>
     this.$js.showForm = () => {
         this.showForm = true;
-        setTimeout(() => {
-            const textarea = this.$refs.input?.querySelector('textarea');
-            if (textarea) {
-                textarea.focus();
-            }
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                const textarea = this.$refs.input?.querySelector('textarea');
+                if (textarea) {
+                    textarea.focus();
+                }
+            }, 100);
         });
     };
 
