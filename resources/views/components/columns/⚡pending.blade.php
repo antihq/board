@@ -6,13 +6,14 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
 
     public int $page = 1;
+
+    public bool $showForm = false;
 
     #[On('task.moved')]
     #[On('task.updated')]
@@ -65,26 +66,13 @@ new class extends Component
 };
 ?>
 
-<flux:kanban.column
-    {{ $attributes }}
-    x-data="{ showForm: false }"
-    x-init="
-        $watch(
-            'showForm',
-            (value) =>
-                value &&
-                $nextTick(() =>
-                    $refs.titleInput.querySelector('input, textarea')?.focus(),
-                ),
-        )
-    "
->
+<flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}">
         <x-slot name="actions">
-            <flux:button variant="subtle" icon="plus" size="sm" @click="showForm = true" />
+            <flux:button variant="subtle" icon="plus" size="sm" wire:click="$js.showForm" />
         </x-slot>
     </flux:kanban.column.header>
-    <div class="flex flex-col px-2 pb-2" x-show="showForm" x-cloak @keydown.escape.window="showForm = false">
+    <div class="flex flex-col px-2 pb-2" wire:show="showForm" wire:cloak>
         <form wire:submit.prevent="createTask">
             <flux:composer
                 wire:model="title"
@@ -93,7 +81,7 @@ new class extends Component
                 label:sr-only
                 placeholder="Enter task title..."
                 submit="enter"
-                x-ref="titleInput"
+                wire:ref="input"
             >
                 <x-slot name="actionsLeading">
                     <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
@@ -205,3 +193,24 @@ new class extends Component
         @endif
     </flux:kanban.column.footer>
 </flux:kanban.column>
+
+<script>
+    this.$js.showForm = () => {
+        this.showForm = true;
+        setTimeout(() => {
+            this.$refs.input.focus();
+        });
+    };
+
+    this.$js.hideForm = () => {
+        this.showForm = false;
+    };
+
+    this.$el.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (this.showForm) {
+                this.showForm = false;
+            }
+        }
+    });
+</script>
