@@ -105,8 +105,6 @@ new class extends Component
             />
         </div>
 
-        <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
-            Verify and join
-        </flux:button>
+        <flux:button variant="primary" type="submit" class="w-full text-base!">Verify and join</flux:button>
     </form>
 </div>

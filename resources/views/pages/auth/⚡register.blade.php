@@ -10,8 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component
-{
+new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class extends Component {
     public string $name = '';
 
     public string $email = '';
@@ -110,7 +109,7 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Register')] class exten
                             placeholder="email@example.com"
                         />
 
-                        <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
+                        <flux:button variant="primary" type="submit" class="w-full text-base!">
                             Create account
                         </flux:button>
 

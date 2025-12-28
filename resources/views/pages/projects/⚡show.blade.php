@@ -5,8 +5,7 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -124,9 +123,7 @@ new class extends Component
                                 submit="enter"
                             >
                                 <x-slot name="actionsLeading">
-                                    <flux:button type="submit" size="sm" variant="primary" color="green">
-                                        Add section
-                                    </flux:button>
+                                    <flux:button type="submit" size="sm" variant="primary">Add section</flux:button>
                                 </x-slot>
                             </flux:composer>
                         </form>

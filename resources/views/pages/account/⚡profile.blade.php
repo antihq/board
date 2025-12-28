@@ -10,8 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new #[Title('Profile settings')] class extends Component
-{
+new #[Title('Profile settings')] class extends Component {
     use WithFileUploads;
 
     public Team $team;
@@ -150,7 +149,7 @@ new #[Title('Profile settings')] class extends Component
                     <flux:input wire:model="email" label="Email" type="email" required autocomplete="email" />
                 </div>
 
-                <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+                <flux:button type="submit" variant="primary">Save</flux:button>
             </form>
         </div>
     </div>

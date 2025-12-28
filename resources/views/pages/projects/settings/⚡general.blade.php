@@ -7,8 +7,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -151,7 +150,7 @@ new class extends Component
                 </flux:input>
 
                 <div class="flex gap-3">
-                    <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+                    <flux:button type="submit" variant="primary">Save</flux:button>
                 </div>
             </form>
         </div>
@@ -174,14 +173,19 @@ new class extends Component
                 <div class="space-y-6">
                     <div>
                         <flux:heading size="lg">Delete project?</flux:heading>
-                        <flux:text class="mt-2">You're about to delete this project and all its tasks, sections, and related data. This action cannot be reversed.</flux:text>
+                        <flux:text class="mt-2">
+                            You're about to delete this project and all its tasks, sections, and related data. This
+                            action cannot be reversed.
+                        </flux:text>
                     </div>
                     <div class="flex gap-2">
                         <flux:spacer />
                         <flux:modal.close>
                             <flux:button variant="ghost">Cancel</flux:button>
                         </flux:modal.close>
-                        <flux:button type="submit" variant="danger" wire:click="deleteProject">Delete project</flux:button>
+                        <flux:button type="submit" variant="danger" wire:click="deleteProject">
+                            Delete project
+                        </flux:button>
                     </div>
                 </div>
             </flux:modal>

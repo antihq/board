@@ -62,9 +62,7 @@ new class extends Component
                     />
                     <div class="flex">
                         <flux:spacer />
-                        <flux:button type="submit" variant="primary" size="sm" color="green">
-                            Create project
-                        </flux:button>
+                        <flux:button type="submit" variant="primary" size="sm">Create project</flux:button>
                     </div>
                 </div>
             </form>

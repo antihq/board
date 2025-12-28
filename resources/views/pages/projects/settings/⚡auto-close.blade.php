@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -116,7 +115,7 @@ new class extends Component
                 </flux:callout>
 
                 <div class="flex gap-3">
-                    <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+                    <flux:button type="submit" variant="primary">Save</flux:button>
                 </div>
             </form>
         </div>

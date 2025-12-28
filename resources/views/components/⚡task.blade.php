@@ -11,8 +11,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component
-{
+new class extends Component {
     use WithFileUploads;
 
     public Task $task;
@@ -716,7 +715,7 @@ new class extends Component
                 >
                     <x-slot name="actionsTrailing">
                         <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
-                        <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
+                        <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
                     </x-slot>
                 </flux:composer>
             </form>
@@ -791,7 +790,7 @@ new class extends Component
                     </x-slot>
                     <x-slot name="actionsTrailing">
                         <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
-                        <flux:button type="submit" size="sm" variant="primary" color="green">Save</flux:button>
+                        <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
                     </x-slot>
                 </flux:composer>
             </div>
@@ -845,7 +844,7 @@ new class extends Component
                             <flux:button type="button" size="sm" wire:click="cancelAddingChecklistItem">
                                 Cancel
                             </flux:button>
-                            <flux:button type="submit" size="sm" variant="primary" color="green">Add</flux:button>
+                            <flux:button type="submit" size="sm" variant="primary">Add</flux:button>
                         </x-slot>
                     </flux:composer>
                 </form>
@@ -983,7 +982,7 @@ new class extends Component
                                             >
                                                 Cancel
                                             </flux:button>
-                                            <flux:button type="submit" size="sm" variant="primary" color="green">
+                                            <flux:button type="submit" size="sm" variant="primary">
                                                 Update comment
                                             </flux:button>
                                         </x-slot>
@@ -1077,7 +1076,7 @@ new class extends Component
                         @else
                             <flux:button type="button" size="sm" wire:click="reopenTask">Reopen task</flux:button>
                         @endunless
-                        <flux:button type="submit" size="sm" variant="primary" color="green">Comment</flux:button>
+                        <flux:button type="submit" size="sm" variant="primary">Comment</flux:button>
                     </x-slot>
                 </flux:composer>
             </form>

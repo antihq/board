@@ -6,7 +6,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -87,7 +88,7 @@ new class extends Component {
                     <flux:button type="submit" size="sm" variant="primary" wire:click="createTask">
                         Add task
                     </flux:button>
-                    <flux:button size="sm" color="green" wire:click="$js.hideForm">Cancel</flux:button>
+                    <flux:button size="sm" wire:click="$js.hideForm">Cancel</flux:button>
                 </x-slot>
             </flux:composer>
         </form>

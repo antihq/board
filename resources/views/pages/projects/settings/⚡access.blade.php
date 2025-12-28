@@ -6,8 +6,7 @@ use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -113,7 +112,7 @@ new class extends Component
                 @endif
 
                 <div class="mt-6">
-                    <flux:button wire:click="save" variant="primary" color="green">Save changes</flux:button>
+                    <flux:button wire:click="save" variant="primary">Save changes</flux:button>
                 </div>
             </div>
 

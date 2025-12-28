@@ -22,7 +22,7 @@
                 />
             </div>
 
-            <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
+            <flux:button variant="primary" type="submit" class="w-full text-base!">
                 Verify
             </flux:button>
         </form>

@@ -6,8 +6,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     #[Validate('required|string|max:255')]
@@ -105,7 +104,7 @@ new class extends Component
                 </flux:input>
 
                 <div class="flex gap-3">
-                    <flux:button type="submit" variant="primary" color="green">Save</flux:button>
+                    <flux:button type="submit" variant="primary">Save</flux:button>
                 </div>
             </form>
         </div>

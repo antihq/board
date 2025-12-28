@@ -10,8 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends Component
-{
+new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends Component {
     public Team $team;
     public string $invitationCode;
     public string $name = '';
@@ -154,9 +153,7 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends C
                             placeholder="email@example.com"
                         />
 
-                        <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
-                            Join team
-                        </flux:button>
+                        <flux:button variant="primary" type="submit" class="w-full text-base!">Join team</flux:button>
                     </form>
                 </div>
             </div>
@@ -174,7 +171,7 @@ new #[Layout('layouts::auth', ['dark' => false]), Title('Join')] class extends C
                         </div>
 
                         <form wire:submit="join" class="space-y-8">
-                            <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
+                            <flux:button variant="primary" type="submit" class="w-full text-base!">
                                 Join team
                             </flux:button>
                         </form>

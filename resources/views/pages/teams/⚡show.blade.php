@@ -5,8 +5,7 @@ use App\Models\Team;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public string $name = '';
@@ -72,9 +71,7 @@ new class extends Component
                         />
                         <div class="flex">
                             <flux:spacer />
-                            <flux:button type="submit" variant="primary" size="sm" color="green">
-                                Create project
-                            </flux:button>
+                            <flux:button type="submit" variant="primary" size="sm">Create project</flux:button>
                         </div>
                     </div>
                 </form>

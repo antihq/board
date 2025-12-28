@@ -8,7 +8,8 @@ use Livewire\Component;
 use Spatie\OneTimePasswords\Models\Concerns\HasOneTimePasswords;
 use Spatie\OneTimePasswords\Rules\OneTimePasswordRule;
 
-new class extends Component {
+new class extends Component
+{
     public ?string $email = null;
 
     public string $oneTimePassword = '';
@@ -128,7 +129,7 @@ new class extends Component {
         <form wire:submit="submitEmail" class="space-y-8">
             <flux:input wire:model="email" label="Email" type="email" required autofocus />
 
-            <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">Sign in</flux:button>
+            <flux:button variant="primary" type="submit" class="w-full text-base!">Sign in</flux:button>
         </form>
     @else
         <div x-data="{ resendText: 'Resend code', isResending: false }" class="space-y-8">
@@ -149,9 +150,7 @@ new class extends Component {
                 </div>
 
                 <div class="space-y-2">
-                    <flux:button variant="primary" color="green" type="submit" class="w-full text-base!">
-                        Verify
-                    </flux:button>
+                    <flux:button variant="primary" type="submit" class="w-full text-base!">Verify</flux:button>
                     <flux:button
                         @click="
                             if (!isResending) {
