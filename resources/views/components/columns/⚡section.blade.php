@@ -130,7 +130,7 @@ new class extends Component {
         <flux:kanban.column.cards>
             @island(name: 'section-tasks-{{ $section->id }}')
                 <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
-                    @foreach ($this->tasks as $task)
+                    @forelse ($this->tasks as $task)
                         <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
                             <flux:modal.trigger :name="'task-' . $task->id">
                                 <x-columns.task-card :task="$task" />
@@ -140,12 +140,14 @@ new class extends Component {
                                 <livewire:task :task="$task" lazy />
                             </flux:modal>
                         </div>
-                    @endforeach
+                    @empty
+                        <flux:text class="py-3 text-center" wire:sort:ignore>Drag and drop tasks here</flux:text>
+                    @endforelse
                 </div>
             @endisland
         </flux:kanban.column.cards>
-        <flux:kanban.column.footer>
-            @if ($this->hasMore)
+        @if ($this->hasMore)
+            <flux:kanban.column.footer>
                 <flux:button
                     wire:click="loadMore"
                     wire:island="section-tasks-{{ $section->id }}"
@@ -156,8 +158,8 @@ new class extends Component {
                 >
                     Load more
                 </flux:button>
-            @endif
-        </flux:kanban.column.footer>
+            </flux:kanban.column.footer>
+        @endif
     </flux:kanban.column>
 
     <flux:modal :name="'delete-section-' . $section->id" class="min-w-[22rem]">
