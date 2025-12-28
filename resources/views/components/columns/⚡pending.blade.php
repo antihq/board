@@ -87,6 +87,7 @@ new class extends Component {
                     <flux:button type="submit" size="sm" variant="primary" color="green" wire:click="createTask">
                         Add task
                     </flux:button>
+                    <flux:button size="sm" color="green" wire:click="$js.hideForm">Cancel</flux:button>
                 </x-slot>
             </flux:composer>
         </form>
@@ -178,8 +179,8 @@ new class extends Component {
             </div>
         @endisland
     </flux:kanban.column.cards>
-    <flux:kanban.column.footer>
-        @if ($this->hasMore)
+    @if ($this->hasMore)
+        <flux:kanban.column.footer>
             <flux:button
                 wire:click="loadMore"
                 wire:island="tasks"
@@ -190,15 +191,18 @@ new class extends Component {
             >
                 Load more
             </flux:button>
-        @endif
-    </flux:kanban.column.footer>
+        </flux:kanban.column.footer>
+    @endif
 </flux:kanban.column>
 
 <script>
     this.$js.showForm = () => {
         this.showForm = true;
         setTimeout(() => {
-            this.$refs.input.focus();
+            const textarea = this.$refs.input?.querySelector('textarea');
+            if (textarea) {
+                textarea.focus();
+            }
         });
     };
 
