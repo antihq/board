@@ -147,12 +147,8 @@ new class extends Component {
             @endisland
         </flux:kanban.column.cards>
         @if ($this->hasMore)
-            <div
-                wire:intersect.margin.200px="loadMore"
-                wire:island="section-tasks-{{ $section->id }}"
-                class="py-2 text-center"
-            >
-                <flux:text>Loading...</flux:text>
+            <div wire:intersect.margin.200px="loadMore" wire:island="section-tasks-{{ $section->id }}">
+                <flux:text class="py-2 text-center">Loading...</flux:text>
             </div>
         @endif
     </flux:kanban.column>
