@@ -2,16 +2,6 @@
     'task',
 ])
 
-@php
-    if ($task->completed_at) {
-        $user = $task->completer;
-    } elseif ($task->closed_at) {
-        $user = $task->closer;
-    } else {
-        $user = $task->creator;
-    }
-@endphp
-
 <flux:kanban.card as="button" heading="{{ $task->title }}">
     <x-slot name="header">
         <div class="flex flex-wrap items-center gap-1.5">
