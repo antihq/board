@@ -6,7 +6,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public int $page = 1;
@@ -74,17 +75,8 @@ new class extends Component {
         @endisland
     </flux:kanban.column.cards>
     @if ($this->hasMore)
-        <flux:kanban.column.footer>
-            <flux:button
-                wire:click="loadMore"
-                wire:island="completed-tasks"
-                type="button"
-                size="sm"
-                variant="ghost"
-                align="start"
-            >
-                Load more
-            </flux:button>
-        </flux:kanban.column.footer>
+        <div wire:intersect.margin.200px="loadMore" wire:island="completed-tasks" class="py-2 text-center">
+            <flux:text>Loading...</flux:text>
+        </div>
     @endif
 </flux:kanban.column>
