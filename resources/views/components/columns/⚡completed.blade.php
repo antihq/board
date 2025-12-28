@@ -56,7 +56,7 @@ new class extends Component
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Completed" count="{{ $this->tasks->count() }}" />
     <flux:kanban.column.cards>
-        @island(name: 'completed-tasks')
+        @island(name: 'completed-tasks', always: true)
             <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
                 @forelse ($this->tasks as $task)
                     <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">

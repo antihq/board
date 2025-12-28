@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     public $title = '';
@@ -128,7 +129,7 @@ new class extends Component {
             </x-slot>
         </flux:kanban.column.header>
         <flux:kanban.column.cards>
-            @island(name: 'section-tasks-{{ $section->id }}')
+            @island(name: 'section-tasks-{{ $section->id }}', always: true)
                 <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
                     @forelse ($this->tasks as $task)
                         <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
