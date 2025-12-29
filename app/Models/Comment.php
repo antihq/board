@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Tiptap\Editor;
 
 class Comment extends Model
@@ -37,6 +39,19 @@ class Comment extends Model
     public function images()
     {
         return $this->hasMany(CommentImage::class);
+    }
+
+    /**
+     * Attach an image to this comment.
+     */
+    public function attachImage(TemporaryUploadedFile $image): CommentImage
+    {
+        $path = $image->store('comment-images', 'public');
+
+        return $this->images()->create([
+            'user_id' => Auth::id(),
+            'path' => $path,
+        ]);
     }
 
     /**

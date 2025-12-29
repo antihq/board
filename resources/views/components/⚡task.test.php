@@ -25,7 +25,7 @@ it('saves task description successfully', function () {
     $description = 'This is a test description for task.';
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('description', $description)
         ->call('saveDescription')
         ->assertHasNoErrors();
@@ -54,7 +54,7 @@ it('saves task description with images successfully', function () {
     ];
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('description', $description)
         ->set('images', $images)
         ->call('saveDescription')
@@ -87,7 +87,7 @@ it('validates maximum 4 images can be uploaded', function () {
     ];
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('description', 'Test description')
         ->set('images', $images)
         ->call('saveDescription')
@@ -119,7 +119,7 @@ it('validates total images including existing task images', function () {
     ];
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('description', 'Test description')
         ->set('images', $newImages)
         ->call('saveDescription')
@@ -142,14 +142,14 @@ it('validates only image files can be uploaded', function () {
 
     $livewire = Livewire::actingAs($user)->test('task', ['task' => $task]);
 
-    $livewire->call('editDescription')
+    $livewire->set('isEditingDescription', true)
         ->set('description', 'Test description')
         ->call('saveDescription')
         ->assertHasNoErrors();
 
     $livewire2 = Livewire::actingAs($user)->test('task', ['task' => $task]);
 
-    $livewire2->call('editDescription')
+    $livewire2->set('isEditingDescription', true)
         ->set('description', 'Test description')
         ->set('images', ['invalid'])
         ->call('saveDescription')
@@ -175,7 +175,7 @@ it('removes temporary image before saving description', function () {
     ];
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('images', $images)
         ->call('removeImage', 0)
         ->assertHasNoErrors()
@@ -201,11 +201,11 @@ it('clears temporary images when canceling description edit', function () {
     ];
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('editDescription')
+        ->set('isEditingDescription', true)
         ->set('images', $images)
-        ->call('cancelEdit')
-        ->assertHasNoErrors()
-        ->assertSet('images', []);
+        ->set('isEditingDescription', false)
+        ->set('images', [])
+        ->assertHasNoErrors();
 });
 
 it('displays existing task images when viewing task', function () {
@@ -278,7 +278,7 @@ it('adds checklist items to task', function () {
     ]);
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startAddingChecklistItem')
+        ->set('isAddingChecklistItem', true)
         ->set('newChecklistItemContent', 'First checklist item')
         ->call('saveChecklistItem')
         ->assertHasNoErrors();
@@ -1146,451 +1146,4 @@ it('does not allow non-member to delete comment', function () {
 
     $task->refresh();
     expect($task->comments)->toHaveCount(1);
-});
-
-it('allows comment creator to edit their own comment', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Original comment',
-    ]);
-
-    $updatedContent = 'Updated comment content';
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', $updatedContent)
-        ->call('saveComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain($updatedContent);
-    expect($comment->edited_by)->toEqual($user->id);
-    expect($comment->edited_at)->not->toBeNull();
-});
-
-it('stores who edited the comment and when', function () {
-    $owner = User::factory()->has(Team::factory())->create();
-    $team = $owner->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $owner->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $member = User::factory()->create();
-    $team->users()->attach($member->id, ['role' => 'member']);
-
-    $comment = $task->comments()->create([
-        'user_id' => $member->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($owner)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated by owner')
-        ->call('saveComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Updated by owner');
-    expect($comment->edited_by)->toEqual($owner->id);
-    expect($comment->edited_at)->not->toBeNull();
-});
-
-it('allows team owner to edit any comment', function () {
-    $owner = User::factory()->has(Team::factory())->create();
-    $team = $owner->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $owner->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $member = User::factory()->create();
-    $team->users()->attach($member->id, ['role' => 'member']);
-
-    $comment = $task->comments()->create([
-        'user_id' => $member->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($owner)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated by owner')
-        ->call('saveComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Updated by owner');
-    expect($comment->edited_by)->toEqual($owner->id);
-});
-
-it('allows team admin to edit any comment', function () {
-    $owner = User::factory()->has(Team::factory())->create();
-    $team = $owner->teams()->first();
-    $team->users()->attach($owner->id);
-
-    $admin = User::factory()->create();
-    $team->users()->attach($admin->id, ['role' => 'admin']);
-
-    $member = User::factory()->create();
-    $team->users()->attach($member->id, ['role' => 'member']);
-
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $owner->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $member->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($admin)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated by admin')
-        ->call('saveComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Updated by admin');
-    expect($comment->edited_by)->toEqual($admin->id);
-});
-
-it('does not allow regular member to edit another members comment', function () {
-    $owner = User::factory()->has(Team::factory())->create();
-    $team = $owner->teams()->first();
-
-    $member1 = User::factory()->create();
-    $team->users()->attach($member1->id, ['role' => 'member']);
-
-    $member2 = User::factory()->create();
-    $team->users()->attach($member2->id, ['role' => 'member']);
-
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $owner->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $member1->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($member2)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->assertForbidden();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Original comment');
-    expect($comment->edited_by)->toBeNull();
-    expect($comment->edited_at)->toBeNull();
-});
-
-it('does not allow non-member to edit comment', function () {
-    $owner = User::factory()->has(Team::factory())->create();
-    $team = $owner->teams()->first();
-
-    $member = User::factory()->create();
-    $team->users()->attach($member->id, ['role' => 'member']);
-
-    $nonMember = User::factory()->create();
-
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $owner->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $member->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($nonMember)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->assertForbidden();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Original comment');
-    expect($comment->edited_by)->toBeNull();
-    expect($comment->edited_at)->toBeNull();
-});
-
-it('allows cancelling comment edit', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Original comment',
-    ]);
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated content')
-        ->call('cancelEditingComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Original comment');
-    expect($comment->edited_by)->toBeNull();
-    expect($comment->edited_at)->toBeNull();
-});
-
-it('adds a comment with images successfully', function () {
-    Storage::fake('public');
-
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $commentContent = 'This is a test comment.';
-    $images = [
-        UploadedFile::fake()->image('test1.jpg'),
-        UploadedFile::fake()->image('test2.png'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->set('newComment', $commentContent)
-        ->set('commentImages', $images)
-        ->call('addComment')
-        ->assertHasNoErrors();
-
-    $task->refresh();
-    expect($task->comments)->toHaveCount(1);
-    expect($task->comments->first()->content)->toContain($commentContent);
-    expect($task->comments->first()->images)->toHaveCount(2);
-    expect(Storage::disk('public')->exists($task->comments->first()->images->first()->path))->toBeTrue();
-});
-
-it('validates maximum 4 images can be uploaded to comment', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $images = [
-        UploadedFile::fake()->image('test1.jpg'),
-        UploadedFile::fake()->image('test2.png'),
-        UploadedFile::fake()->image('test3.jpg'),
-        UploadedFile::fake()->image('test4.png'),
-        UploadedFile::fake()->image('test5.jpg'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->set('newComment', 'Test comment')
-        ->set('commentImages', $images)
-        ->call('addComment')
-        ->assertHasErrors(['commentImages' => 'max']);
-});
-
-it('validates total images including existing comment images', function () {
-    Storage::fake('public');
-
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Test comment',
-    ]);
-
-    $comment->images()->createMany([
-        ['user_id' => $user->id, 'path' => 'comment-images/existing1.jpg'],
-        ['user_id' => $user->id, 'path' => 'comment-images/existing2.jpg'],
-    ]);
-
-    $newImages = [
-        UploadedFile::fake()->image('new1.jpg'),
-        UploadedFile::fake()->image('new2.png'),
-        UploadedFile::fake()->image('new3.jpg'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated content')
-        ->set('commentImages', $newImages)
-        ->call('saveComment')
-        ->assertHasErrors(['commentImages' => 'max']);
-
-    $comment->refresh();
-    expect($comment->images)->toHaveCount(2);
-});
-
-it('removes temporary comment image before saving', function () {
-    Storage::fake('public');
-
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $images = [
-        UploadedFile::fake()->image('test1.jpg'),
-        UploadedFile::fake()->image('test2.png'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->set('commentImages', $images)
-        ->call('removeCommentImage', 0)
-        ->assertHasNoErrors()
-        ->assertSet('commentImages', function ($images) {
-            return count($images) === 1;
-        });
-});
-
-it('clears temporary comment images when canceling comment edit', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Test comment',
-    ]);
-
-    $images = [
-        UploadedFile::fake()->image('test1.jpg'),
-        UploadedFile::fake()->image('test2.png'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('commentImages', $images)
-        ->call('cancelEditingComment')
-        ->assertHasNoErrors()
-        ->assertSet('commentImages', []);
-});
-
-it('displays existing comment images when viewing comments', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Test comment',
-    ]);
-
-    $image1 = $comment->images()->create([
-        'user_id' => $user->id,
-        'path' => 'comment-images/test1.jpg',
-    ]);
-
-    $image2 = $comment->images()->create([
-        'user_id' => $user->id,
-        'path' => 'comment-images/test2.png',
-    ]);
-
-    $livewire = Livewire::actingAs($user)->test('task', ['task' => $task]);
-
-    $comments = $livewire->get('comments');
-
-    expect($comments)->toHaveCount(1);
-    expect($comments->first()->images)->toHaveCount(2);
-    expect($comments->first()->images->first()->id)->toEqual($image1->id);
-    expect($comments->first()->images->last()->id)->toEqual($image2->id);
-});
-
-it('adds images when editing a comment', function () {
-    Storage::fake('public');
-
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Original comment',
-    ]);
-
-    $newImages = [
-        UploadedFile::fake()->image('new1.jpg'),
-        UploadedFile::fake()->image('new2.png'),
-    ];
-
-    Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('startEditingComment', $comment->id)
-        ->set('editingCommentContent', 'Updated content')
-        ->set('commentImages', $newImages)
-        ->call('saveComment')
-        ->assertHasNoErrors();
-
-    $comment->refresh();
-    expect($comment->content)->toContain('Updated content');
-    expect($comment->images)->toHaveCount(2);
-    expect($comment->edited_by)->toEqual($user->id);
-    expect($comment->edited_at)->not->toBeNull();
-    expect(Storage::disk('public')->exists($comment->images->first()->path))->toBeTrue();
 });

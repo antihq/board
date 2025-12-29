@@ -17,8 +17,6 @@ new class extends Component
 
     public Task $task;
 
-    public bool $showModal = false;
-
     public string $description = '';
 
     public bool $isEditingDescription = false;
@@ -28,10 +26,6 @@ new class extends Component
     public string $title = '';
 
     public string $newComment = '';
-
-    public ?int $editingCommentId = null;
-
-    public string $editingCommentContent = '';
 
     public bool $isAddingChecklistItem = false;
 
@@ -59,6 +53,8 @@ new class extends Component
 
     public function mount()
     {
+        $this->title = $this->task->title;
+
         $this->completedChecklistItems = $this->task
             ->checklistItems()
             ->where('completed', true)
@@ -78,25 +74,6 @@ new class extends Component
             ->toArray();
     }
 
-    public function openModal()
-    {
-        $this->showModal = true;
-    }
-
-    public function closeModal()
-    {
-        $this->showModal = false;
-        $this->isEditingDescription = false;
-        $this->isAddingChecklistItem = false;
-        $this->newChecklistItemContent = '';
-    }
-
-    public function editTitle()
-    {
-        $this->title = $this->task->title;
-        $this->isEditingTitle = true;
-    }
-
     public function saveTitle()
     {
         $this->validate([
@@ -110,12 +87,6 @@ new class extends Component
         $this->dispatch('task.updated');
 
         $this->isEditingTitle = false;
-    }
-
-    public function editDescription()
-    {
-        $this->description = $this->task->description ?? '';
-        $this->isEditingDescription = true;
     }
 
     public function saveDescription()
@@ -159,27 +130,6 @@ new class extends Component
         $this->isEditingDescription = false;
     }
 
-    public function removeImage($index)
-    {
-        $image = $this->images[$index];
-        $image->delete();
-        unset($this->images[$index]);
-        $this->images = array_values($this->images);
-    }
-
-    public function cancelEdit()
-    {
-        $this->isEditingDescription = false;
-        $this->description = '';
-        $this->images = [];
-    }
-
-    public function startAddingChecklistItem()
-    {
-        $this->isAddingChecklistItem = true;
-        $this->newChecklistItemContent = '';
-    }
-
     public function saveChecklistItem()
     {
         $this->validate([
@@ -192,31 +142,6 @@ new class extends Component
         ]);
 
         $this->task->touch();
-    }
-
-    public function cancelAddingChecklistItem()
-    {
-        $this->isAddingChecklistItem = false;
-        $this->newChecklistItemContent = '';
-    }
-
-    public function updatedCompletedChecklistItems()
-    {
-        $this->task
-            ->checklistItems()
-            ->whereIn('id', $this->completedChecklistItems)
-            ->where('completed', false)
-            ->update(['completed' => true]);
-
-        $this->task
-            ->checklistItems()
-            ->whereNotIn('id', $this->completedChecklistItems)
-            ->where('completed', true)
-            ->update(['completed' => false]);
-
-        $this->task->touch();
-
-        $this->dispatch('task.updated');
     }
 
     public function addComment()
@@ -267,6 +192,25 @@ new class extends Component
         $this->dispatch('task.updated');
     }
 
+    public function createTag()
+    {
+        $this->validate([
+            'tagSearch' => 'required|string|max:255',
+        ]);
+
+        $tag = $this->task->team->tags()->create([
+            'name' => $this->pull('tagSearch'),
+        ]);
+
+        $this->task->tags()->attach($tag->id);
+        $this->selectedTags[] = $tag->id;
+        $this->tagSearch = '';
+
+        $this->task->touch();
+
+        $this->dispatch('task.updated');
+    }
+
     public function closeTask()
     {
         $this->task->update([
@@ -303,100 +247,57 @@ new class extends Component
         $this->dispatch('task.updated');
     }
 
-    public function startManagingTags()
+    public function deleteTask()
     {
-        $this->isManagingTags = true;
+        $this->authorize('delete', $this->task->project);
+
+        $this->task->comments()->delete();
+        $this->task->checklistItems()->delete();
+        $this->task->tags()->detach();
+        $this->task->delete();
+
+        $this->dispatch('task-deleted', taskId: $this->task->id);
     }
 
-    public function cancelManagingTags()
+    public function deleteComment($commentId)
     {
-        $this->isManagingTags = false;
-        $this->tagSearch = '';
-    }
+        $comment = $this->task->comments()->findOrFail($commentId);
 
-    public function startManagingSection()
-    {
-        $this->isManagingSection = true;
-    }
+        $this->authorize('delete', $comment);
 
-    public function cancelManagingSection()
-    {
-        $this->isManagingSection = false;
-    }
-
-    public function startManagingAssignees()
-    {
-        $this->isManagingAssignees = true;
-    }
-
-    public function cancelManagingAssignees()
-    {
-        $this->isManagingAssignees = false;
-    }
-
-    public function updatedSelectedAssignees()
-    {
-        // Authorize that user can manage task assignees
-        $this->authorize('manageAssignees', $this->task);
-
-        // Get team members and team owner
-        $teamUsers = $this->task->team->users()->get();
-        $allPossibleAssignees = $teamUsers->push($this->task->team->owner);
-
-        // Filter to only include valid assignees
-        $validAssignees = $allPossibleAssignees->whereIn('id', $this->selectedAssignees);
-
-        $this->task->assignees()->sync($validAssignees->pluck('id'));
-
-        $this->task->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
+        $comment->delete();
 
         $this->task->touch();
 
         $this->dispatch('task.updated');
     }
 
-    public function updatedSelectedSection()
+    public function cancelEditTitle()
     {
-        $section = $this->selectedSection ? $this->task->project->sections()->findOrFail($this->selectedSection) : null;
-
-        $this->task->update([
-            'section_id' => $section?->id,
-            'section_moved_at' => now(),
-            'section_moved_by' => Auth::id(),
-        ]);
-
-        $this->task->touch();
-
-        $this->dispatch('task.updated');
+        $this->title = $this->task->title;
+        $this->isEditingTitle = false;
     }
 
-    public function createTag()
+    public function editDescription()
     {
-        $this->validate([
-            'tagSearch' => 'required|string|max:255',
-        ]);
-
-        $tag = $this->task->team->tags()->create([
-            'name' => $this->pull('tagSearch'),
-        ]);
-
-        $this->task->tags()->attach($tag->id);
-        $this->selectedTags[] = $tag->id;
-        $this->tagSearch = '';
-
-        $this->task->touch();
-
-        $this->dispatch('task.updated');
+        $this->description = $this->task->description ?? '';
+        $this->isEditingDescription = true;
     }
 
-    public function updatedSelectedTags()
+    public function removeImage($index)
     {
-        $tags = $this->task->team->tags()->findMany($this->selectedTags);
-        $this->task->tags()->sync($tags->pluck('id'));
+        $image = $this->images[$index];
+        $image->delete();
+        unset($this->images[$index]);
+        $this->images = array_values($this->images);
+    }
 
-        $this->task->touch();
-
-        $this->dispatch('task.updated');
+    public function removeCommentImage($index)
+    {
+        $image = $this->commentImages[$index];
+        $image->delete();
+        unset($this->commentImages[$index]);
+        $this->commentImages = array_values($this->commentImages);
     }
 
     public function togglePriority()
@@ -416,18 +317,6 @@ new class extends Component
         $this->task->touch();
 
         $this->dispatch('task.updated');
-    }
-
-    public function deleteTask()
-    {
-        $this->authorize('delete', $this->task->project);
-
-        $this->task->comments()->delete();
-        $this->task->checklistItems()->delete();
-        $this->task->tags()->detach();
-        $this->task->delete();
-
-        $this->dispatch('task-deleted', taskId: $this->task->id);
     }
 
     public function toggleSubscribe()
@@ -467,90 +356,66 @@ new class extends Component
         }
     }
 
-    public function deleteComment($commentId)
+    public function updatedCompletedChecklistItems()
     {
-        $comment = $this->task->comments()->findOrFail($commentId);
+        $this->task
+            ->checklistItems()
+            ->whereIn('id', $this->completedChecklistItems)
+            ->where('completed', false)
+            ->update(['completed' => true]);
 
-        $this->authorize('delete', $comment);
-
-        $comment->delete();
+        $this->task
+            ->checklistItems()
+            ->whereNotIn('id', $this->completedChecklistItems)
+            ->where('completed', true)
+            ->update(['completed' => false]);
 
         $this->task->touch();
 
         $this->dispatch('task.updated');
     }
 
-    public function startEditingComment($commentId)
+    public function updatedSelectedAssignees()
     {
-        $comment = $this->task->comments()->findOrFail($commentId);
+        $this->authorize('manageAssignees', $this->task);
 
-        $this->authorize('update', $comment);
+        $teamUsers = $this->task->team->users()->get();
+        $allPossibleAssignees = $teamUsers->push($this->task->team->owner);
 
-        $this->editingCommentId = $commentId;
-        $this->editingCommentContent = $comment->content;
+        $validAssignees = $allPossibleAssignees->whereIn('id', $this->selectedAssignees);
+
+        $this->task->assignees()->sync($validAssignees->pluck('id'));
+
+        $this->task->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
+
+        $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
-    public function saveComment()
+    public function updatedSelectedSection()
     {
-        $comment = $this->task->comments()->findOrFail($this->editingCommentId);
+        $section = $this->selectedSection ? $this->task->project->sections()->findOrFail($this->selectedSection) : null;
 
-        $this->authorize('update', $comment);
-
-        $currentCount = $comment->images()->count();
-        $maxUploads = max(0, 4 - $currentCount);
-
-        $this->validate([
-            'editingCommentContent' => 'required|string|max:5000',
-            'commentImages.*' => 'image|max:10240',
-            'commentImages' => 'max:' . $maxUploads,
+        $this->task->update([
+            'section_id' => $section?->id,
+            'section_moved_at' => now(),
+            'section_moved_by' => Auth::id(),
         ]);
 
-        DB::transaction(function () use ($comment) {
-            $comment->lockForUpdate();
-            $currentImageCount = $comment->images()->count();
-
-            if ($currentImageCount + count($this->commentImages) > 4) {
-                throw ValidationException::withMessages([
-                    'commentImages' => ['Maximum of 4 images per comment. Please remove some images and try again.'],
-                ]);
-            }
-
-            $comment->update([
-                'content' => $this->pull('editingCommentContent'),
-                'edited_by' => Auth::id(),
-                'edited_at' => now(),
-            ]);
-
-            foreach ($this->commentImages as $image) {
-                $path = $image->store('comment-images', 'public');
-                $comment->images()->create([
-                    'user_id' => Auth::id(),
-                    'path' => $path,
-                ]);
-            }
-        });
-
-        $this->commentImages = [];
-
         $this->task->touch();
 
-        $this->editingCommentId = null;
         $this->dispatch('task.updated');
     }
 
-    public function cancelEditingComment()
+    public function updatedSelectedTags()
     {
-        $this->editingCommentId = null;
-        $this->editingCommentContent = '';
-        $this->commentImages = [];
-    }
+        $tags = $this->task->team->tags()->findMany($this->selectedTags);
+        $this->task->tags()->sync($tags->pluck('id'));
 
-    public function removeCommentImage($index)
-    {
-        $image = $this->commentImages[$index];
-        $image->delete();
-        unset($this->commentImages[$index]);
-        $this->commentImages = array_values($this->commentImages);
+        $this->task->touch();
+
+        $this->dispatch('task.updated');
     }
 
     #[Computed]
@@ -597,7 +462,6 @@ new class extends Component
             ->orderBy('name')
             ->get();
 
-        // Include team owner if not already in the list
         $owner = $this->task->team->owner;
         if (! $teamUsers->contains('id', $owner->id)) {
             $teamUsers = $teamUsers->push($owner);
@@ -705,46 +569,43 @@ new class extends Component
     <!-- Main Content -->
     <div class="min-w-0 flex-1 space-y-6">
         <div>
-            @if ($this->isEditingTitle)
-                <form wire:submit="saveTitle">
-                    <flux:composer
-                        wire:model="title"
-                        rows="1"
-                        label="Task Title"
-                        label:sr-only
-                        placeholder="Enter task title..."
-                        submit="enter"
-                        inline
-                    >
-                        <x-slot name="actionsTrailing">
-                            <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
-                            <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
-                        </x-slot>
-                    </flux:composer>
-                </form>
-            @else
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2">
-                        <flux:heading size="lg">{{ $task->title }}</flux:heading>
-                        <flux:button size="xs" wire:click="editTitle">Edit</flux:button>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        @if ($task->prioritized_at)
-                            <flux:badge color="amber" size="lg" icon="star">Top priority</flux:badge>
-                        @endif
-
-                        @if ($task->completed_at)
-                            <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
-                        @else
-                            <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
-                        @endif
-                    </div>
+            <form wire:submit="saveTitle" wire:show="isEditingTitle" wire:cloak>
+                <flux:composer
+                    wire:model="title"
+                    rows="1"
+                    label="Task Title"
+                    label:sr-only
+                    placeholder="Enter task title..."
+                    submit="enter"
+                    inline
+                >
+                    <x-slot name="actionsTrailing">
+                        <flux:button type="button" size="sm" wire:click="cancelEditTitle">Cancel</flux:button>
+                        <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
+                    </x-slot>
+                </flux:composer>
+            </form>
+            <div class="space-y-2" wire:show="!isEditingTitle">
+                <div class="flex items-center gap-2">
+                    <flux:heading size="lg">{{ $task->title }}</flux:heading>
+                    <flux:button size="xs" wire:click="$js.editTitle">Edit</flux:button>
                 </div>
-            @endif
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($task->prioritized_at)
+                        <flux:badge color="amber" size="lg" icon="star">Top priority</flux:badge>
+                    @endif
+
+                    @if ($task->completed_at)
+                        <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
+                    @else
+                        <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
+                    @endif
+                </div>
+            </div>
         </div>
 
-        @if ($this->isEditingDescription)
-            <form wire:submit="saveDescription">
+        @if ($isEditingDescription)
+            <form wire:submit="saveDescription" wire:show="isEditingDescription" wire:cloak>
                 <div>
                     <flux:composer
                         wire:model="description"
@@ -796,32 +657,34 @@ new class extends Component
                             </div>
                         </x-slot>
                         <x-slot name="actionsTrailing">
-                            <flux:button type="button" size="sm" wire:click="cancelEdit">Cancel</flux:button>
+                            <flux:button type="button" size="sm" wire:click="$js.cancelEditDescription">
+                                Cancel
+                            </flux:button>
                             <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
                         </x-slot>
                     </flux:composer>
                 </div>
             </form>
-        @else
-            <div class="space-y-4">
-                @unless ($this->taskImages->isEmpty())
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ($this->taskImages as $image)
-                            <img src="{{ $image->url() }}" alt="Task image" class="size-32 rounded-lg object-cover" />
-                        @endforeach
-                    </div>
-                @endunless
-
-                @if ($task->description)
-                    <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
-                        {!! $task->description !!}
-                    </div>
-                    <flux:button size="xs" wire:click="editDescription">Edit description</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
-                @endif
-            </div>
         @endif
+
+        <div class="space-y-4" wire:show="!isEditingDescription">
+            @unless ($this->taskImages->isEmpty())
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($this->taskImages as $image)
+                        <img src="{{ $image->url() }}" alt="Task image" class="size-32 rounded-lg object-cover" />
+                    @endforeach
+                </div>
+            @endunless
+
+            @if ($task->description)
+                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                    {!! $task->description !!}
+                </div>
+                <flux:button size="xs" wire:click="editDescription">Edit description</flux:button>
+            @else
+                <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
+            @endif
+        </div>
 
         <div>
             <div class="space-y-2">
@@ -838,28 +701,25 @@ new class extends Component
                     </flux:checkbox.group>
                 @endunless
 
-                @if ($this->isAddingChecklistItem)
-                    <form wire:submit="saveChecklistItem">
-                        <flux:composer
-                            wire:model="newChecklistItemContent"
-                            rows="1"
-                            placeholder="New checklist item..."
-                            submit="enter"
-                            inline
-                        >
-                            <x-slot name="actionsTrailing">
-                                <flux:button type="button" size="sm" wire:click="cancelAddingChecklistItem">
-                                    Cancel
-                                </flux:button>
-                                <flux:button type="submit" size="sm" variant="primary">Add</flux:button>
-                            </x-slot>
-                        </flux:composer>
-                    </form>
-                @else
-                    <flux:button size="xs" wire:click="startAddingChecklistItem">
-                        {{ $this->checklistItems->isEmpty() ? 'Add checklist' : 'Add checklist item' }}
-                    </flux:button>
-                @endif
+                <form wire:submit="saveChecklistItem" wire:show="isAddingChecklistItem" wire:cloak>
+                    <flux:composer
+                        wire:model="newChecklistItemContent"
+                        rows="1"
+                        placeholder="New checklist item..."
+                        submit="enter"
+                        inline
+                    >
+                        <x-slot name="actionsTrailing">
+                            <flux:button type="button" size="sm" wire:click="$js.cancelAddingChecklistItem">
+                                Cancel
+                            </flux:button>
+                            <flux:button type="submit" size="sm" variant="primary">Add</flux:button>
+                        </x-slot>
+                    </flux:composer>
+                </form>
+                <flux:button size="xs" wire:click="$js.startAddingChecklistItem" wire:show="!isAddingChecklistItem">
+                    {{ $this->checklistItems->isEmpty() ? 'Add checklist' : 'Add checklist item' }}
+                </flux:button>
             </div>
         </div>
 
@@ -873,149 +733,7 @@ new class extends Component
                 <!-- Comments List -->
                 <div class="space-y-3">
                     @foreach ($this->comments as $comment)
-                        <div class="flex gap-3">
-                            <flux:avatar
-                                circle
-                                size="sm"
-                                :src="$comment->user->profilePhotoUrl()"
-                                name="{{ $comment->user->name }}"
-                                color="auto"
-                                color:seed="{{ $comment->user->id }}"
-                                tooltip="{{ $comment->user->name }}"
-                            />
-                            <div class="flex-1 space-y-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <div class="flex items-center gap-1">
-                                        <div class="flex items-center gap-2">
-                                            <flux:heading>{{ $comment->user->name }}</flux:heading>
-                                            <flux:text class="text-xs">
-                                                {{ $comment->created_at->diffForHumans() }}
-                                            </flux:text>
-                                        </div>
-                                        @if ($comment->edited_at)
-                                            <div class="flex items-center gap-1">
-                                                <flux:text>·</flux:text>
-                                                <flux:text class="text-xs">
-                                                    edited by {{ $comment->editor->name }}
-                                                </flux:text>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex gap-1">
-                                        @if (Auth::user()->can('update', $comment) || Auth::user()->can('delete', $comment))
-                                            <flux:dropdown position="bottom" align="end">
-                                                <flux:button size="xs" icon="ellipsis-horizontal" variant="subtle" />
-                                                <flux:menu>
-                                                    @if (Auth::user()->can('update', $comment))
-                                                        <flux:menu.item
-                                                            icon="pencil"
-                                                            wire:click="startEditingComment({{ $comment->id }})"
-                                                        >
-                                                            Edit
-                                                        </flux:menu.item>
-                                                    @endif
-
-                                                    @if (Auth::user()->can('delete', $comment))
-                                                        <flux:modal.trigger :name="'delete-comment-' . $comment->id">
-                                                            <flux:menu.item variant="danger" icon="trash">
-                                                                Delete
-                                                            </flux:menu.item>
-                                                        </flux:modal.trigger>
-                                                    @endif
-                                                </flux:menu>
-                                            </flux:dropdown>
-                                        @endif
-                                    </div>
-                                </div>
-                                @if ($editingCommentId === $comment->id)
-                                    <form wire:submit="saveComment" class="space-y-2">
-                                        <flux:composer
-                                            wire:model="editingCommentContent"
-                                            rows="3"
-                                            max-rows="8"
-                                            placeholder="Edit your comment..."
-                                        >
-                                            <x-slot name="header">
-                                                <div class="flex flex-wrap gap-2">
-                                                    @foreach ($this->commentImages as $index => $image)
-                                                        @if (is_object($image) && $image->isPreviewable())
-                                                            <div
-                                                                class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
-                                                            >
-                                                                <img
-                                                                    src="{{ $image->temporaryUrl() }}"
-                                                                    alt="Uploaded image"
-                                                                    class="size-14"
-                                                                />
-                                                                <div class="absolute top-0 right-0 p-1">
-                                                                    <button
-                                                                        type="button"
-                                                                        wire:click="removeCommentImage({{ $index }})"
-                                                                        class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
-                                                                    >
-                                                                        <flux:icon
-                                                                            icon="x-mark"
-                                                                            variant="micro"
-                                                                            class="text-white"
-                                                                        />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-                                            </x-slot>
-                                            <x-slot name="input">
-                                                <flux:editor
-                                                    variant="borderless"
-                                                    toolbar="bold italic | link"
-                                                    placeholder="Edit your comment..."
-                                                />
-                                            </x-slot>
-                                            <x-slot name="actionsLeading">
-                                                <div>
-                                                    <flux:file-upload wire:model="commentImages" multiple>
-                                                        <flux:button size="sm" variant="subtle" icon="paper-clip" />
-                                                    </flux:file-upload>
-                                                    <flux:error name="commentImages" />
-                                                </div>
-                                            </x-slot>
-                                            <x-slot name="actionsTrailing">
-                                                <flux:button
-                                                    type="button"
-                                                    size="sm"
-                                                    variant="subtle"
-                                                    wire:click="cancelEditingComment"
-                                                >
-                                                    Cancel
-                                                </flux:button>
-                                                <flux:button type="submit" size="sm" variant="primary">
-                                                    Update comment
-                                                </flux:button>
-                                            </x-slot>
-                                        </flux:composer>
-                                    </form>
-                                @else
-                                    <div class="space-y-2">
-                                        @unless ($comment->images->isEmpty())
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach ($comment->images as $image)
-                                                    <img
-                                                        src="{{ $image->url() }}"
-                                                        alt="Comment image"
-                                                        class="size-24 rounded-lg object-cover"
-                                                    />
-                                                @endforeach
-                                            </div>
-                                        @endunless
-
-                                        <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
-                                            {!! $comment->content !!}
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        <livewire:comment-item :comment="$comment" :key="$comment->id" />
                     @endforeach
                 </div>
             @endunless
@@ -1109,52 +827,49 @@ new class extends Component
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
                     <flux:heading class="text-xs">Assignees</flux:heading>
-                    @unless ($this->isManagingAssignees)
-                        <flux:button size="xs" wire:click="startManagingAssignees">Edit</flux:button>
+                    <flux:button size="xs" wire:click="$js.startManagingAssignees" wire:show="!isManagingAssignees">
+                        Edit
+                    </flux:button>
+                </div>
+                <div class="space-y-2" wire:show="isManagingAssignees" wire:cloak>
+                    <flux:pillbox
+                        wire:model.live="selectedAssignees"
+                        label="Assignees"
+                        placeholder="Select assignees..."
+                        size="sm"
+                        multiple
+                        label:sr-only
+                    >
+                        @foreach ($this->teamMembers as $member)
+                            <flux:pillbox.option :value="$member->id" wire:key="member-{{ $member->id }}">
+                                {{ $member->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+                    </flux:pillbox>
+
+                    <div>
+                        <flux:button wire:click="$js.cancelManagingAssignees" size="sm">Done</flux:button>
+                    </div>
+                </div>
+                <div class="space-y-2" wire:show="!isManagingAssignees">
+                    @unless ($task->assignees->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->assignees as $assignee)
+                                <flux:avatar
+                                    circle
+                                    size="sm"
+                                    :src="$assignee->profilePhotoUrl()"
+                                    name="{{ $assignee->name }}"
+                                    color="auto"
+                                    color:seed="{{ $assignee->id }}"
+                                    tooltip="{{ $assignee->name }}"
+                                />
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No one assigned</flux:text>
                     @endunless
                 </div>
-                @if ($this->isManagingAssignees)
-                    <div class="space-y-2">
-                        <flux:pillbox
-                            wire:model.live="selectedAssignees"
-                            label="Assignees"
-                            placeholder="Select assignees..."
-                            size="sm"
-                            multiple
-                            label:sr-only
-                        >
-                            @foreach ($this->teamMembers as $member)
-                                <flux:pillbox.option :value="$member->id" wire:key="member-{{ $member->id }}">
-                                    {{ $member->name }}
-                                </flux:pillbox.option>
-                            @endforeach
-                        </flux:pillbox>
-
-                        <div>
-                            <flux:button wire:click="cancelManagingAssignees" size="sm">Done</flux:button>
-                        </div>
-                    </div>
-                @else
-                    <div class="space-y-2">
-                        @unless ($task->assignees->isEmpty())
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($task->assignees as $assignee)
-                                    <flux:avatar
-                                        circle
-                                        size="sm"
-                                        :src="$assignee->profilePhotoUrl()"
-                                        name="{{ $assignee->name }}"
-                                        color="auto"
-                                        color:seed="{{ $assignee->id }}"
-                                        tooltip="{{ $assignee->name }}"
-                                    />
-                                @endforeach
-                            </div>
-                        @else
-                            <flux:text class="text-xs">No one assigned</flux:text>
-                        @endunless
-                    </div>
-                @endif
             </div>
 
             <flux:separator variant="subtle" />
@@ -1163,42 +878,39 @@ new class extends Component
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
                     <flux:heading class="text-xs">Section</flux:heading>
-                    @unless ($this->isManagingSection)
-                        <flux:button size="xs" wire:click="startManagingSection">Edit</flux:button>
-                    @endunless
+                    <flux:button size="xs" wire:click="$js.startManagingSection" wire:show="!isManagingSection">
+                        Edit
+                    </flux:button>
                 </div>
-                @if ($this->isManagingSection)
-                    <div class="space-y-2">
-                        <flux:select
-                            variant="listbox"
-                            searchable
-                            wire:model.live="selectedSection"
-                            label="Section"
-                            placeholder="Select a section..."
-                            size="sm"
-                            label:sr-only
-                        >
-                            <flux:select.option value="">No section</flux:select.option>
-                            @foreach ($this->projectSections as $section)
-                                <flux:select.option :value="$section->id" wire:key="section-{{ $section->id }}">
-                                    {{ $section->title }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
+                <div class="space-y-2" wire:show="isManagingSection" wire:cloak>
+                    <flux:select
+                        variant="listbox"
+                        searchable
+                        wire:model.live="selectedSection"
+                        label="Section"
+                        placeholder="Select a section..."
+                        size="sm"
+                        label:sr-only
+                    >
+                        <flux:select.option value="">No section</flux:select.option>
+                        @foreach ($this->projectSections as $section)
+                            <flux:select.option :value="$section->id" wire:key="section-{{ $section->id }}">
+                                {{ $section->title }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
 
-                        <div>
-                            <flux:button wire:click="cancelManagingSection" size="sm">Done</flux:button>
-                        </div>
+                    <div>
+                        <flux:button wire:click="$js.cancelManagingSection" size="sm">Done</flux:button>
                     </div>
-                @else
-                    <div class="space-y-2">
-                        @if ($task->section)
-                            <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
-                        @else
-                            <flux:text class="text-xs">No section assigned</flux:text>
-                        @endif
-                    </div>
-                @endif
+                </div>
+                <div class="space-y-2" wire:show="!isManagingSection">
+                    @if ($task->section)
+                        <flux:badge size="sm">{{ $task->section->title }}</flux:badge>
+                    @else
+                        <flux:text class="text-xs">No section assigned</flux:text>
+                    @endif
+                </div>
             </div>
 
             <flux:separator variant="subtle" />
@@ -1223,55 +935,52 @@ new class extends Component
             <div class="space-y-2">
                 <div class="flex items-center justify-between gap-2">
                     <flux:heading class="text-xs">Tags</flux:heading>
-                    @unless ($this->isManagingTags)
-                        <flux:button size="xs" wire:click="startManagingTags">Edit</flux:button>
+                    <flux:button size="xs" wire:click="$js.startManagingTags" wire:show="!isManagingTags">
+                        Edit
+                    </flux:button>
+                </div>
+                <div class="space-y-2" wire:show="isManagingTags" wire:cloak>
+                    <flux:pillbox
+                        wire:model.live="selectedTags"
+                        variant="combobox"
+                        label="Tags"
+                        placeholder="Select tags..."
+                        size="sm"
+                        multiple
+                        label:sr-only
+                    >
+                        <x-slot name="input">
+                            <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
+                        </x-slot>
+
+                        @foreach ($this->teamTags as $tag)
+                            <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
+                                {{ $tag->name }}
+                            </flux:pillbox.option>
+                        @endforeach
+
+                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
+                            Create "
+                            <span wire:text="tagSearch"></span>
+                            "
+                        </flux:pillbox.option.create>
+                    </flux:pillbox>
+
+                    <div>
+                        <flux:button wire:click="$js.cancelManagingTags" size="sm">Done</flux:button>
+                    </div>
+                </div>
+                <div class="space-y-2" wire:show="!isManagingTags">
+                    @unless ($task->tags->isEmpty())
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($task->tags as $tag)
+                                <flux:badge size="sm">{{ $tag->name }}</flux:badge>
+                            @endforeach
+                        </div>
+                    @else
+                        <flux:text class="text-xs">No tags assigned</flux:text>
                     @endunless
                 </div>
-                @if ($this->isManagingTags)
-                    <div class="space-y-2">
-                        <flux:pillbox
-                            wire:model.live="selectedTags"
-                            variant="combobox"
-                            label="Tags"
-                            placeholder="Select tags..."
-                            size="sm"
-                            multiple
-                            label:sr-only
-                        >
-                            <x-slot name="input">
-                                <flux:pillbox.input wire:model="tagSearch" placeholder="Search or create tags..." />
-                            </x-slot>
-
-                            @foreach ($this->teamTags as $tag)
-                                <flux:pillbox.option :value="$tag->id" wire:key="tag-{{ $tag->id }}">
-                                    {{ $tag->name }}
-                                </flux:pillbox.option>
-                            @endforeach
-
-                            <flux:pillbox.option.create wire:click="createTag" min-length="2">
-                                Create "
-                                <span wire:text="tagSearch"></span>
-                                "
-                            </flux:pillbox.option.create>
-                        </flux:pillbox>
-
-                        <div>
-                            <flux:button wire:click="cancelManagingTags" size="sm">Done</flux:button>
-                        </div>
-                    </div>
-                @else
-                    <div class="space-y-2">
-                        @unless ($task->tags->isEmpty())
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($task->tags as $tag)
-                                    <flux:badge size="sm">{{ $tag->name }}</flux:badge>
-                                @endforeach
-                            </div>
-                        @else
-                            <flux:text class="text-xs">No tags assigned</flux:text>
-                        @endunless
-                    </div>
-                @endif
             </div>
 
             <flux:separator variant="subtle" />
@@ -1334,3 +1043,49 @@ new class extends Component
         </div>
     </div>
 </div>
+
+<script>
+    this.$js.editTitle = () => {
+        this.isEditingTitle = true;
+    };
+
+    this.$js.cancelEditDescription = () => {
+        this.isEditingDescription = false;
+        this.description = '';
+        this.images = [];
+    };
+
+    this.$js.startAddingChecklistItem = () => {
+        this.isAddingChecklistItem = true;
+    };
+
+    this.$js.cancelAddingChecklistItem = () => {
+        this.isAddingChecklistItem = false;
+        this.newChecklistItemContent = '';
+    };
+
+    this.$js.startManagingTags = () => {
+        this.isManagingTags = true;
+    };
+
+    this.$js.cancelManagingTags = () => {
+        this.isManagingTags = false;
+        this.tagSearch = '';
+    };
+
+    this.$js.startManagingSection = () => {
+        this.isManagingSection = true;
+    };
+
+    this.$js.cancelManagingSection = () => {
+        this.isManagingSection = false;
+    };
+
+    this.$js.startManagingAssignees = () => {
+        this.isManagingAssignees = true;
+    };
+
+    this.$js.cancelManagingAssignees = () => {
+        this.isManagingAssignees = false;
+    };
+</script>
