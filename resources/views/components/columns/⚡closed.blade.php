@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Project;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -45,6 +46,12 @@ new class extends Component
     public function sortItem($item, $_position)
     {
         $task = $this->project->tasks()->findOrFail($item);
+
+        if ($task->isClosed()) {
+            Flux::toast(heading: 'Cannot move', text: 'Card is already in this column', variant: 'warning');
+
+            return;
+        }
 
         $task->moveToClosed(Auth::user());
 

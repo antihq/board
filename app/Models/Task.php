@@ -223,8 +223,6 @@ class Task extends Model
             $updateData = [
                 'completed_at' => now(),
                 'completed_by' => $user->id,
-                'reopened_at' => null,
-                'reopened_by' => null,
             ];
         }
 
@@ -234,6 +232,9 @@ class Task extends Model
                 'closed_by' => null,
             ]);
         }
+
+        $updateData['reopened_at'] = null;
+        $updateData['reopened_by'] = null;
 
         if (! empty($updateData)) {
             $this->update($updateData);
@@ -248,20 +249,36 @@ class Task extends Model
             $updateData = [
                 'closed_at' => now(),
                 'closed_by' => $user->id,
+                'completed_at' => null,
+                'completed_by' => null,
+                'reopened_at' => null,
+                'reopened_by' => null,
             ];
-
-            if ($this->completed_at === null) {
-                $updateData['completed_at'] = now();
-                $updateData['completed_by'] = $user->id;
-            }
-
-            $updateData['reopened_at'] = null;
-            $updateData['reopened_by'] = null;
         }
 
         if (! empty($updateData)) {
             $this->update($updateData);
         }
+    }
+
+    public function isPending(): bool
+    {
+        return $this->section_id === null && $this->completed_at === null && $this->closed_at === null;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->completed_at !== null;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    public function isInSection(Section $section): bool
+    {
+        return $this->section_id === $section->id;
     }
 
     #[Scope]

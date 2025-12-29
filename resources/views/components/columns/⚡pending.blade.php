@@ -1,12 +1,14 @@
 <?php
 
 use App\Models\Project;
+use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -58,6 +60,12 @@ new class extends Component {
     public function sortItem($item, $_position)
     {
         $task = $this->project->tasks()->findOrFail($item);
+
+        if ($task->isPending()) {
+            Flux::toast(heading: 'Cannot move', text: 'Card is already in this column', variant: 'warning');
+
+            return;
+        }
 
         $task->moveToPending(Auth::user());
 

@@ -22,8 +22,8 @@ it('closes a pending task when moved to closed', function () {
     $task->refresh();
     expect($task->closed_at)->not->toBeNull();
     expect($task->closed_by)->toEqual($user->id);
-    expect($task->completed_at)->not->toBeNull();
-    expect($task->completed_by)->toEqual($user->id);
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
 });
 
 it('closes a completed task when moved to closed', function () {
@@ -46,7 +46,8 @@ it('closes a completed task when moved to closed', function () {
     $task->refresh();
     expect($task->closed_at)->not->toBeNull();
     expect($task->closed_by)->toEqual($user->id);
-    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
 });
 
 it('reopens a closed task when moved to pending', function () {

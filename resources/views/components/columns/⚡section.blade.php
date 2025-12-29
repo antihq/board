@@ -108,6 +108,12 @@ new class extends Component
     {
         $task = $this->section->project->tasks()->findOrFail($item);
 
+        if ($task->isInSection($this->section)) {
+            Flux::toast(heading: 'Cannot move', text: 'Card is already in this section', variant: 'warning');
+
+            return;
+        }
+
         $task->moveToSection($this->section->id, Auth::user());
 
         $this->dispatch('task.moved');
