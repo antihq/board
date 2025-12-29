@@ -28,4 +28,15 @@ class Section extends Model
     {
         return $query->orderBy('order');
     }
+
+    public function delete()
+    {
+        $this->tasks()->update([
+            'section_id' => null,
+            'section_moved_at' => null,
+            'section_moved_by' => null,
+        ]);
+
+        return parent::delete();
+    }
 }

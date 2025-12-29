@@ -101,7 +101,7 @@ it('updates section title', function () {
     Livewire::actingAs($user)
         ->test('columns.section', ['section' => $section])
         ->set('title', 'New Title')
-        ->call('saveSection');
+        ->call('save');
 
     $section->refresh();
 
@@ -117,7 +117,7 @@ it('updates section color', function () {
     Livewire::actingAs($user)
         ->test('columns.section', ['section' => $section])
         ->set('color', '#ff0000')
-        ->call('saveSection');
+        ->call('save');
 
     $section->refresh();
 
@@ -133,7 +133,7 @@ it('clears section color when empty', function () {
     Livewire::actingAs($user)
         ->test('columns.section', ['section' => $section])
         ->set('color', '')
-        ->call('saveSection');
+        ->call('save');
 
     $section->refresh();
 
@@ -150,7 +150,7 @@ it('prevents non-owner from updating section', function () {
     Livewire::actingAs($member)
         ->test('columns.section', ['section' => $section])
         ->set('title', 'New Title')
-        ->call('saveSection')
+        ->call('save')
         ->assertForbidden();
 
     $section->refresh();
@@ -172,7 +172,7 @@ it('allows owner to delete section', function () {
 
     Livewire::actingAs($user)
         ->test('columns.section', ['section' => $section])
-        ->call('deleteSection')
+        ->call('delete')
         ->assertDispatched('task.moved')
         ->assertDispatched('section.deleted');
 
@@ -201,7 +201,7 @@ it('allows admin to delete section', function () {
 
     Livewire::actingAs($admin)
         ->test('columns.section', ['section' => $section])
-        ->call('deleteSection')
+        ->call('delete')
         ->assertDispatched('task.moved')
         ->assertDispatched('section.deleted');
 
@@ -223,7 +223,7 @@ it('prevents non-admin from deleting section', function () {
 
     Livewire::actingAs($member)
         ->test('columns.section', ['section' => $section])
-        ->call('deleteSection')
+        ->call('delete')
         ->assertForbidden();
 
     expect(Section::find($section->id))->not->toBeNull();
@@ -243,7 +243,7 @@ it('moves multiple tasks to pending when section is deleted', function () {
 
     Livewire::actingAs($user)
         ->test('columns.section', ['section' => $section])
-        ->call('deleteSection');
+        ->call('delete');
 
     expect(Section::find($section->id))->toBeNull();
 
