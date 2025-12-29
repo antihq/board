@@ -71,7 +71,7 @@ new class extends Component
                             <x-columns.task-card :task="$task" />
                         </flux:modal.trigger>
 
-                        <flux:modal :name="'task-' . $task->id" class="w-full max-w-[95vw] lg:max-w-150">
+                        <flux:modal :name="'task-' . $task->id" class="w-full max-w-[95vw] lg:max-w-216">
                             <livewire:task :task="$task" lazy />
                         </flux:modal>
                     </div>
