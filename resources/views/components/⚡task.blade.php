@@ -11,7 +11,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component {
+new class extends Component
+{
     use WithFileUploads;
 
     public Task $task;
@@ -216,6 +217,8 @@ new class extends Component {
         $this->task->subscribers
             ->where('id', '!=', Auth::id())
             ->each(fn ($subscriber) => $subscriber->notify(new TaskClosed($this->task->load('project', 'team'))));
+
+        $this->dispatch('task.moved');
     }
 
     public function reopenTask()
@@ -232,6 +235,8 @@ new class extends Component {
         $this->task->subscribers
             ->where('id', '!=', Auth::id())
             ->each(fn ($subscriber) => $subscriber->notify(new TaskReopened($this->task->load('project', 'team'))));
+
+        $this->dispatch('task.moved');
     }
 
     public function deleteTask()
@@ -383,6 +388,8 @@ new class extends Component {
         ]);
 
         $this->task->touch();
+
+        $this->dispatch('task.moved');
     }
 
     public function updatedSelectedTags()
