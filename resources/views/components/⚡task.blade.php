@@ -453,86 +453,130 @@ new class extends Component {
                 </div>
             </div>
 
-            @if ($isEditingDescription)
-                <form wire:submit="saveDescription" wire:show="isEditingDescription" wire:cloak>
-                    <div>
-                        <flux:composer
-                            wire:model="description"
-                            rows="6"
-                            max-rows="12"
-                            label="Task Description"
-                            label:sr-only
-                            placeholder="Add a detailed description..."
-                        >
-                            <x-slot name="header">
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ($this->images as $index => $image)
-                                        @if (is_object($image) && $image->isPreviewable())
-                                            <div
-                                                class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
-                                            >
-                                                <img
-                                                    src="{{ $image->temporaryUrl() }}"
-                                                    alt="Uploaded image"
-                                                    class="size-14"
-                                                />
-                                                <div class="absolute top-0 right-0 p-1">
-                                                    <button
-                                                        type="button"
-                                                        wire:click="removeImage({{ $index }})"
-                                                        class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
-                                                    >
-                                                        <flux:icon icon="x-mark" variant="micro" class="text-white" />
-                                                    </button>
-                                                </div>
+            <div>
+                <div class="flex gap-3">
+                    <flux:avatar
+                        circle
+                        size="sm"
+                        :src="$task->creator->profilePhotoUrl()"
+                        name="{{ $task->creator->name }}"
+                        color="auto"
+                        color:seed="{{ $task->creator->id }}"
+                        tooltip="{{ $task->creator->name }}"
+                    />
+                    <div class="flex-1 space-y-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1">
+                                <div class="flex items-center gap-2">
+                                    <flux:heading>{{ $task->creator->name }}</flux:heading>
+                                    <flux:text class="text-xs">
+                                        opened {{ $task->created_at->diffForHumans() }}
+                                    </flux:text>
+                                </div>
+                            </div>
+                            <div class="flex gap-1">
+                                @if (Auth::user()->can('update', $task) && $task->description)
+                                    <flux:button
+                                        size="xs"
+                                        wire:click="editDescription"
+                                        wire:show="!isEditingDescription"
+                                    >
+                                        Edit
+                                    </flux:button>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if ($isEditingDescription)
+                            <form wire:submit="saveDescription" wire:show="isEditingDescription" wire:cloak>
+                                <div>
+                                    <flux:composer
+                                        wire:model="description"
+                                        rows="6"
+                                        max-rows="12"
+                                        label="Task Description"
+                                        label:sr-only
+                                        placeholder="Add a detailed description..."
+                                    >
+                                        <x-slot name="header">
+                                            <div class="flex flex-wrap gap-2">
+                                                @foreach ($this->images as $index => $image)
+                                                    @if (is_object($image) && $image->isPreviewable())
+                                                        <div
+                                                            class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                                        >
+                                                            <img
+                                                                src="{{ $image->temporaryUrl() }}"
+                                                                alt="Uploaded image"
+                                                                class="size-14"
+                                                            />
+                                                            <div class="absolute top-0 right-0 p-1">
+                                                                <button
+                                                                    type="button"
+                                                                    wire:click="removeImage({{ $index }})"
+                                                                    class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                                                >
+                                                                    <flux:icon
+                                                                        icon="x-mark"
+                                                                        variant="micro"
+                                                                        class="text-white"
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
                                             </div>
-                                        @endif
+                                        </x-slot>
+                                        <x-slot name="input">
+                                            <flux:editor
+                                                variant="borderless"
+                                                toolbar="heading | bold italic | bullet ordered | link"
+                                                placeholder="Add a detailed description..."
+                                            />
+                                        </x-slot>
+                                        <x-slot name="actionsLeading">
+                                            <div>
+                                                <flux:file-upload wire:model="images" multiple>
+                                                    <flux:button size="sm" variant="subtle" icon="paper-clip" />
+                                                </flux:file-upload>
+                                                <flux:error name="images" />
+                                            </div>
+                                        </x-slot>
+                                        <x-slot name="actionsTrailing">
+                                            <flux:button type="button" size="sm" wire:click="$js.cancelEditDescription">
+                                                Cancel
+                                            </flux:button>
+                                            <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
+                                        </x-slot>
+                                    </flux:composer>
+                                </div>
+                            </form>
+                        @endif
+
+                        <div wire:show="!isEditingDescription" class="space-y-2">
+                            @unless ($this->taskImages->isEmpty())
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($this->taskImages as $image)
+                                        <img
+                                            src="{{ $image->url() }}"
+                                            alt="Task image"
+                                            class="size-32 rounded-lg object-cover"
+                                        />
                                     @endforeach
                                 </div>
-                            </x-slot>
-                            <x-slot name="input">
-                                <flux:editor
-                                    variant="borderless"
-                                    toolbar="heading | bold italic | bullet ordered | link"
-                                    placeholder="Add a detailed description..."
-                                />
-                            </x-slot>
-                            <x-slot name="actionsLeading">
-                                <div>
-                                    <flux:file-upload wire:model="images" multiple>
-                                        <flux:button size="sm" variant="subtle" icon="paper-clip" />
-                                    </flux:file-upload>
-                                    <flux:error name="images" />
+                            @endunless
+
+                            @if ($task->description)
+                                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                                    {!! $task->description !!}
                                 </div>
-                            </x-slot>
-                            <x-slot name="actionsTrailing">
-                                <flux:button type="button" size="sm" wire:click="$js.cancelEditDescription">
-                                    Cancel
-                                </flux:button>
-                                <flux:button type="submit" size="sm" variant="primary">Save</flux:button>
-                            </x-slot>
-                        </flux:composer>
+                            @else
+                                <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
+                            @endif
+                        </div>
                     </div>
-                </form>
-            @endif
-
-            <div class="space-y-4" wire:show="!isEditingDescription">
-                @unless ($this->taskImages->isEmpty())
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ($this->taskImages as $image)
-                            <img src="{{ $image->url() }}" alt="Task image" class="size-32 rounded-lg object-cover" />
-                        @endforeach
-                    </div>
-                @endunless
-
-                @if ($task->description)
-                    <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
-                        {!! $task->description !!}
-                    </div>
-                    <flux:button size="xs" wire:click="editDescription">Edit description</flux:button>
-                @else
-                    <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
-                @endif
+                </div>
             </div>
 
             <div>
