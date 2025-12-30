@@ -514,36 +514,39 @@ new class extends Component {
                                         label:sr-only
                                         placeholder="Add a detailed description..."
                                     >
-                                        <x-slot name="header">
-                                            <div class="flex flex-wrap gap-2">
-                                                @foreach ($this->images as $index => $image)
-                                                    @if (is_object($image) && $image->isPreviewable())
-                                                        <div
-                                                            class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
-                                                        >
-                                                            <img
-                                                                src="{{ $image->temporaryUrl() }}"
-                                                                alt="Uploaded image"
-                                                                class="size-14"
-                                                            />
-                                                            <div class="absolute top-0 right-0 p-1">
-                                                                <button
-                                                                    type="button"
-                                                                    wire:click="removeImage({{ $index }})"
-                                                                    class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
-                                                                >
-                                                                    <flux:icon
-                                                                        icon="x-mark"
-                                                                        variant="micro"
-                                                                        class="text-white"
-                                                                    />
-                                                                </button>
+                                        @if (count($this->images) > 0)
+                                            <x-slot name="header">
+                                                <div class="flex flex-wrap gap-2">
+                                                    @foreach ($this->images as $index => $image)
+                                                        @if (is_object($image) && $image->isPreviewable())
+                                                            <div
+                                                                class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                                            >
+                                                                <img
+                                                                    src="{{ $image->temporaryUrl() }}"
+                                                                    alt="Uploaded image"
+                                                                    class="size-14"
+                                                                />
+                                                                <div class="absolute top-0 right-0 p-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        wire:click="removeImage({{ $index }})"
+                                                                        class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                                                    >
+                                                                        <flux:icon
+                                                                            icon="x-mark"
+                                                                            variant="micro"
+                                                                            class="text-white"
+                                                                        />
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        </x-slot>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </x-slot>
+                                        @endif
+
                                         <x-slot name="input">
                                             <flux:editor
                                                 variant="borderless"
@@ -688,32 +691,39 @@ new class extends Component {
                             label:sr-only
                             placeholder="Write a comment..."
                         >
-                            <x-slot name="header">
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ($this->commentImages as $index => $image)
-                                        @if (is_object($image) && $image->isPreviewable())
-                                            <div
-                                                class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
-                                            >
-                                                <img
-                                                    src="{{ $image->temporaryUrl() }}"
-                                                    alt="Uploaded image"
-                                                    class="size-14"
-                                                />
-                                                <div class="absolute top-0 right-0 p-1">
-                                                    <button
-                                                        type="button"
-                                                        wire:click="removeCommentImage({{ $index }})"
-                                                        class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
-                                                    >
-                                                        <flux:icon icon="x-mark" variant="micro" class="text-white" />
-                                                    </button>
+                            @if (count($this->commentImages) > 0)
+                                <x-slot name="header">
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach ($this->commentImages as $index => $image)
+                                            @if (is_object($image) && $image->isPreviewable())
+                                                <div
+                                                    class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700"
+                                                >
+                                                    <img
+                                                        src="{{ $image->temporaryUrl() }}"
+                                                        alt="Uploaded image"
+                                                        class="size-14"
+                                                    />
+                                                    <div class="absolute top-0 right-0 p-1">
+                                                        <button
+                                                            type="button"
+                                                            wire:click="removeCommentImage({{ $index }})"
+                                                            class="flex items-center justify-center rounded-full bg-zinc-900/50 p-0.5 hover:bg-zinc-900/70"
+                                                        >
+                                                            <flux:icon
+                                                                icon="x-mark"
+                                                                variant="micro"
+                                                                class="text-white"
+                                                            />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            </x-slot>
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                </x-slot>
+                            @endif
+
                             <x-slot name="input">
                                 <flux:editor
                                     variant="borderless"
