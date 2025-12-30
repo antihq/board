@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component {
+new class extends Component
+{
     use WithFileUploads;
 
     public Task $task;
@@ -272,6 +273,17 @@ new class extends Component {
     public function updatedCompletedChecklistItems()
     {
         $this->task->syncChecklist($this->completedChecklistItems);
+    }
+
+    public function deleteChecklistItem($itemId)
+    {
+        $item = $this->task->checklistItems()->findOrFail($itemId);
+
+        $this->authorize('update', $this->task);
+
+        $item->delete();
+
+        $this->completedChecklistItems = array_filter($this->completedChecklistItems, fn ($id) => $id !== $itemId);
     }
 
     #[Computed]
@@ -582,16 +594,35 @@ new class extends Component {
             <div>
                 <div class="space-y-2">
                     @unless ($this->checklistItems->isEmpty())
-                        <flux:checkbox.group label="Checklist" wire:model.live="completedChecklistItems">
+                        <flux:checkbox.group
+                            label="Checklist"
+                            wire:model.live="completedChecklistItems"
+                            class="space-y-2"
+                        >
                             @foreach ($this->checklistItems as $item)
-                                <flux:field variant="inline" wire:key="{{ $item->id }}">
-                                    <flux:checkbox :value="$item->id" />
-                                    <flux:label
-                                        @class(['line-through' => in_array($item->id, $completedChecklistItems)])
-                                    >
-                                        {{ $item->content }}
-                                    </flux:label>
-                                </flux:field>
+                                <div wire:key="{{ $item->id }}" class="flex items-center justify-between gap-3">
+                                    <flux:field variant="inline">
+                                        <flux:checkbox :value="$item->id" />
+                                        <flux:label
+                                            @class(['line-through' => in_array($item->id, $completedChecklistItems)])
+                                        >
+                                            {{ $item->content }}
+                                        </flux:label>
+                                    </flux:field>
+                                    @if (Auth::user()->can('update', $task))
+                                        <flux:dropdown position="bottom" align="end">
+                                            <flux:button size="xs" icon="ellipsis-horizontal" variant="subtle" />
+                                            <flux:menu>
+                                                <flux:menu.item
+                                                    icon="trash"
+                                                    wire:click="deleteChecklistItem({{ $item->id }})"
+                                                >
+                                                    Delete
+                                                </flux:menu.item>
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    @endif
+                                </div>
                             @endforeach
                         </flux:checkbox.group>
                     @endunless

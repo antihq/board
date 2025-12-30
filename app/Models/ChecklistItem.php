@@ -18,6 +18,13 @@ class ChecklistItem extends Model
         return $this->belongsTo(Task::class);
     }
 
+    public function delete()
+    {
+        parent::delete();
+
+        $this->task->touch();
+    }
+
     protected function casts(): array
     {
         return [

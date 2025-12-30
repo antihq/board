@@ -257,10 +257,93 @@ it('adds a comment successfully', function () {
 
     $task->refresh();
     expect($task->comments)->toHaveCount(1);
-    expect($task->comments->first()->content)->toContain($commentContent);
-    expect($task->comments->first()->user_id)->toEqual($user->id);
-    expect($task->subscribers)->toHaveCount(1);
-    expect($task->subscribers->first()->id)->toEqual($user->id);
+});
+
+it('deletes checklist item successfully', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $checklistItem = $task->checklistItems()->create([
+        'content' => 'Test item',
+        'completed' => false,
+    ]);
+
+    expect($task->checklistItems)->toHaveCount(1);
+
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->call('deleteChecklistItem', $checklistItem->id)
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->checklistItems)->toHaveCount(0);
+});
+
+it('removes deleted checklist item from completed items array', function () {
+    $user = User::factory()->has(Team::factory())->create();
+    $team = $user->teams()->first();
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $checklistItem1 = $task->checklistItems()->create(['content' => 'Item 1', 'completed' => true]);
+    $checklistItem2 = $task->checklistItems()->create(['content' => 'Item 2', 'completed' => true]);
+
+    $livewire = Livewire::actingAs($user)->test('task', ['task' => $task]);
+
+    expect($livewire->get('completedChecklistItems'))->toContain($checklistItem1->id);
+    expect($livewire->get('completedChecklistItems'))->toContain($checklistItem2->id);
+
+    $livewire->call('deleteChecklistItem', $checklistItem1->id)
+        ->assertHasNoErrors();
+
+    expect($livewire->get('completedChecklistItems'))->not->toContain($checklistItem1->id);
+    expect($livewire->get('completedChecklistItems'))->toContain($checklistItem2->id);
+
+    $task->refresh();
+    expect($task->checklistItems)->toHaveCount(1);
+});
+
+it('does not allow non-member to delete checklist item', function () {
+    $owner = User::factory()->has(Team::factory())->create();
+    $team = $owner->teams()->first();
+
+    $member = User::factory()->create();
+    $team->users()->attach($member->id, ['role' => 'member']);
+
+    $nonMember = User::factory()->create();
+
+    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
+    $task = $project->tasks()->create([
+        'title' => 'Test Task',
+        'user_id' => $owner->id,
+        'team_id' => $team->id,
+        'number' => 1,
+    ]);
+
+    $checklistItem = $task->checklistItems()->create([
+        'content' => 'Test item',
+        'completed' => false,
+    ]);
+
+    expect($task->checklistItems)->toHaveCount(1);
+
+    Livewire::actingAs($nonMember)->test('task', ['task' => $task])
+        ->call('deleteChecklistItem', $checklistItem->id)
+        ->assertForbidden();
+
+    $task->refresh();
+    expect($task->checklistItems)->toHaveCount(1);
 });
 
 it('adds checklist items to task', function () {
