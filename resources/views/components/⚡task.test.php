@@ -236,8 +236,6 @@ it('displays existing task images when viewing task', function () {
 });
 
 it('adds a comment successfully', function () {
-    Notification::fake();
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -506,8 +504,6 @@ it('updates selected section successfully', function () {
 });
 
 it('closes a task successfully', function () {
-    Notification::fake();
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -543,8 +539,6 @@ it('closes a task successfully', function () {
 });
 
 it('reopens a task successfully', function () {
-    Notification::fake();
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -950,8 +944,6 @@ it('notifies subscribers when task is closed', function () {
     $subscriber2 = User::factory()->create();
     $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
 
-    Notification::fake();
-
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('close')
         ->assertHasNoErrors();
@@ -980,8 +972,6 @@ it('notifies subscribers when task is reopened', function () {
     $subscriber2 = User::factory()->create();
     $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
 
-    Notification::fake();
-
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('reopen')
         ->assertHasNoErrors();
@@ -1007,8 +997,6 @@ it('notifies subscribers when comment is added', function () {
     $subscriber1 = User::factory()->create();
     $subscriber2 = User::factory()->create();
     $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
-
-    Notification::fake();
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('newComment', 'Test comment')

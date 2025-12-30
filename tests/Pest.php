@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Notification;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -13,6 +15,9 @@
 
 pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->beforeEach(function () {
+        Notification::fake();
+    })
     ->in('Feature', '../resources/views/**');
 
 /*

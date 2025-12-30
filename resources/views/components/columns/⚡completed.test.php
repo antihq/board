@@ -45,8 +45,6 @@ it('notifies subscribers when task is completed', function () {
     $subscriber2 = User::factory()->create();
     $task->subscribers()->attach([$subscriber1->id, $subscriber2->id]);
 
-    Notification::fake();
-
     Livewire::actingAs($user)->test('columns.completed', ['project' => $project])
         ->call('sortItem', $task->id, 0);
 
