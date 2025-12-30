@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\ChecklistItem;
-use App\Models\Comment;
-use App\Models\Task;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -715,68 +712,6 @@ it('can remove all assignees from task', function () {
 
     $task->refresh();
     expect($task->assignees)->toHaveCount(0);
-});
-
-it('deletes task and all related resources successfully', function () {
-    $user = User::factory()->has(Team::factory())->create();
-    $team = $user->teams()->first();
-    $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user->id,
-        'team_id' => $team->id,
-        'number' => 1,
-    ]);
-
-    // Create related resources
-    $comment = $task->comments()->create([
-        'user_id' => $user->id,
-        'content' => 'Test comment',
-    ]);
-
-    $checklistItem = $task->checklistItems()->create([
-        'content' => 'Test checklist item',
-        'completed' => false,
-    ]);
-
-    $tag = $team->tags()->create(['name' => 'Bug Fix']);
-    $task->tags()->attach($tag->id);
-
-    // Verify all related resources exist
-    expect($task->comments)->toHaveCount(1);
-    expect($task->checklistItems)->toHaveCount(1);
-    expect($task->tags)->toHaveCount(1);
-
-    $livewire = Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('deleteTask')
-        ->assertDispatched('task-deleted', taskId: $task->id);
-
-    // Verify task and all related resources are deleted
-    expect(Task::find($task->id))->toBeNull();
-    expect(Comment::find($comment->id))->toBeNull();
-    expect(ChecklistItem::find($checklistItem->id))->toBeNull();
-    expect($tag->fresh())->not->toBeNull(); // Tag should still exist
-});
-
-it('prevents non-authorized users from deleting tasks', function () {
-    $user1 = User::factory()->has(Team::factory())->create();
-    $team1 = $user1->teams()->first();
-    $project = $team1->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
-    $task = $project->tasks()->create([
-        'title' => 'Test Task',
-        'user_id' => $user1->id,
-        'team_id' => $team1->id,
-        'number' => 1,
-    ]);
-
-    $user2 = User::factory()->create();
-
-    Livewire::actingAs($user2)->test('task', ['task' => $task])
-        ->call('deleteTask')
-        ->assertForbidden();
-
-    // Verify task still exists
-    expect(Task::find($task->id))->not->toBeNull();
 });
 
 it('subscribes to task successfully', function () {

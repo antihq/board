@@ -83,15 +83,6 @@ new class extends Component
         $this->dispatch('task.moved');
     }
 
-    public function deleteTask()
-    {
-        $this->authorize('delete', $this->task->project);
-
-        $this->task->delete();
-
-        $this->dispatch('task-deleted', taskId: $this->task->id);
-    }
-
     public function saveTitle()
     {
         $this->validate([
@@ -873,24 +864,6 @@ new class extends Component
             <flux:modal.trigger :name="'delete-task-' . $task->id">
                 <flux:button size="xs" variant="subtle" icon="trash">Delete task</flux:button>
             </flux:modal.trigger>
-
-            <flux:modal :name="'delete-task-' . $task->id" class="min-w-[22rem]">
-                <div class="space-y-6">
-                    <div>
-                        <flux:heading size="lg">Delete task?</flux:heading>
-                        <flux:text class="mt-2">
-                            You're about to delete this task. This action cannot be reversed.
-                        </flux:text>
-                    </div>
-                    <div class="flex gap-2">
-                        <flux:spacer />
-                        <flux:modal.close>
-                            <flux:button variant="ghost">Cancel</flux:button>
-                        </flux:modal.close>
-                        <flux:button type="submit" variant="danger" wire:click="deleteTask">Delete task</flux:button>
-                    </div>
-                </div>
-            </flux:modal>
         </div>
     </div>
 </div>
