@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component
-{
+new class extends Component {
     use WithFileUploads;
 
     public Task $task;
@@ -287,6 +286,7 @@ new class extends Component
 
         if ($key !== false) {
             unset($this->completedChecklistItems[$key]);
+            $this->completedChecklistItems = array_values($this->completedChecklistItems);
         }
     }
 
