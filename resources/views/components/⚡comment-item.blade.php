@@ -33,7 +33,7 @@ new class extends Component
         $this->validate([
             'content' => 'required|string|max:5000',
             'images.*' => 'image|max:10240',
-            'images' => 'max:' . $this->getMaxAllowedUploads(),
+            'images' => 'max:' . $this->maxAllowedUploads(),
         ]);
 
         DB::transaction(function () {
@@ -61,7 +61,7 @@ new class extends Component
         $this->isEditing = true;
     }
 
-    private function getMaxAllowedUploads(): int
+    private function maxAllowedUploads(): int
     {
         return max(0, 4 - $this->comment->images()->count());
     }

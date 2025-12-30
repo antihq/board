@@ -114,7 +114,7 @@ new class extends Component
             return;
         }
 
-        $task->moveToSection($this->section->id, Auth::user());
+        $task->moveToSection($this->section, Auth::user());
 
         $this->dispatch('task.moved');
     }

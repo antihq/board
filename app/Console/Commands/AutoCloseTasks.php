@@ -55,7 +55,7 @@ class AutoCloseTasks extends Command
                 $this->line('');
 
                 if (! $dryRun) {
-                    $task->close();
+                    $task->autoClose();
                     $this->info('  ✓ Task auto-closed');
                 }
             });

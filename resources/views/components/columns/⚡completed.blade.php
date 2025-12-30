@@ -53,7 +53,7 @@ new class extends Component
             return;
         }
 
-        $task->moveToCompleted(Auth::user());
+        $task->complete(Auth::user());
 
         $this->dispatch('task.moved');
     }

@@ -36,9 +36,8 @@ it('auto-closes tasks that are older than team default setting', function () {
         ->assertExitCode(0);
 
     $task->refresh();
-    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_at)->toBeNull();
     expect($task->closed_at)->not->toBeNull();
-    expect($task->completed_at->toDateTimeString())->toEqual($task->closed_at->toDateTimeString());
 });
 
 it('auto-closes tasks that are older than project specific setting', function () {
@@ -57,9 +56,8 @@ it('auto-closes tasks that are older than project specific setting', function ()
         ->assertExitCode(0);
 
     $task->refresh();
-    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_at)->toBeNull();
     expect($task->closed_at)->not->toBeNull();
-    expect($task->completed_at->toDateTimeString())->toEqual($task->closed_at->toDateTimeString());
 });
 
 it('auto-closes tasks when not in dry run mode', function () {
@@ -75,9 +73,8 @@ it('auto-closes tasks when not in dry run mode', function () {
         ->assertExitCode(0);
 
     $task->refresh();
-    expect($task->completed_at)->not->toBeNull();
+    expect($task->completed_at)->toBeNull();
     expect($task->closed_at)->not->toBeNull();
-    expect($task->completed_at->toDateTimeString())->toEqual($task->closed_at->toDateTimeString());
 });
 
 it('does not auto-close already completed tasks', function () {
@@ -104,7 +101,6 @@ it('does not auto-close already auto-closed tasks', function () {
         'project_id' => $project->id,
         'team_id' => $team->id,
         'closed_at' => now()->subDays(5),
-        'completed_at' => now()->subDays(5),
         'updated_at' => now()->subDays(40),
     ]);
 
@@ -113,4 +109,5 @@ it('does not auto-close already auto-closed tasks', function () {
 
     $task->refresh();
     expect($task->closed_at)->not->toBeNull();
+    expect($task->completed_at)->toBeNull();
 });

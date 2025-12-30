@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use App\Notifications\TaskClosed;
+use App\Notifications\TaskCompleted;
+use App\Notifications\TaskReopened;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Tiptap\Editor;
 
 class Task extends Model
@@ -80,6 +85,11 @@ class Task extends Model
         return $this->hasMany(ChecklistItem::class);
     }
 
+    public function completedChecklistItems()
+    {
+        return $this->checklistItems()->completed();
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class);
@@ -103,6 +113,93 @@ class Task extends Model
     public function images()
     {
         return $this->hasMany(TaskImage::class)->latest();
+    }
+
+    public function attachImage(TemporaryUploadedFile $image): TaskImage
+    {
+        $path = $image->store('task-images', 'public');
+
+        return $this->images()->create([
+            'user_id' => Auth::id(),
+            'path' => $path,
+        ]);
+    }
+
+    public function addChecklistItem(string $content): ChecklistItem
+    {
+        $item = $this->checklistItems()->create([
+            'content' => $content,
+            'completed' => false,
+        ]);
+
+        $this->touch();
+
+        return $item;
+    }
+
+    public function addComment(string $content, ?User $user = null): Comment
+    {
+        $user = $user ?? Auth::user();
+
+        $comment = $this->comments()->create([
+            'user_id' => $user->id,
+            'content' => $content,
+        ]);
+
+        $this->touch();
+
+        $comment->notifySubscribers();
+
+        return $comment;
+    }
+
+    public function addTag(string $name): Tag
+    {
+        $tag = $this->team->tags()->create([
+            'name' => $name,
+        ]);
+
+        $this->tags()->attach($tag->id);
+
+        $this->touch();
+
+        return $tag;
+    }
+
+    public function reopen(User $user): void
+    {
+        if ($this->isOpen()) {
+            return;
+        }
+
+        $this->update([
+            'completed_at' => null,
+            'completed_by' => null,
+            'closed_at' => null,
+            'closed_by' => null,
+            'reopened_at' => now(),
+            'reopened_by' => $user->id,
+        ]);
+
+        $this->notifyReopened($user);
+    }
+
+    public function complete(User $user): void
+    {
+        if ($this->isCompleted()) {
+            return;
+        }
+
+        $this->update([
+            'completed_at' => now(),
+            'completed_by' => $user->id,
+            'closed_at' => null,
+            'closed_by' => null,
+            'reopened_at' => null,
+            'reopened_by' => null,
+        ]);
+
+        $this->notifyCompleted($user);
     }
 
     /**
@@ -142,14 +239,13 @@ class Task extends Model
     /**
      * Auto-close this task.
      */
-    public function close(): void
+    public function autoClose(): void
     {
         if (! $this->needsClose()) {
             return;
         }
 
         $this->update([
-            'completed_at' => now(),
             'closed_at' => now(),
             'closed_by' => null,
         ]);
@@ -157,108 +253,48 @@ class Task extends Model
 
     public function moveToPending(User $user): void
     {
-        $updateData = [];
-
-        if ($this->completed_at !== null) {
-            $updateData = [
-                'completed_at' => null,
-                'completed_by' => null,
-                'reopened_at' => now(),
-                'reopened_by' => $user->id,
-            ];
+        if ($this->isOpen() && $this->section_id === null) {
+            return;
         }
 
-        if ($this->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
-        }
+        $this->reopen($user);
 
-        if ($this->section_id !== null) {
-            $updateData = array_merge($updateData, [
-                'section_id' => null,
-                'section_moved_at' => null,
-                'section_moved_by' => null,
-            ]);
-        }
-
-        if (! empty($updateData)) {
-            $this->update($updateData);
-        }
+        $this->update([
+            'section_id' => null,
+            'section_moved_at' => null,
+            'section_moved_by' => null,
+        ]);
     }
 
-    public function moveToSection(int $sectionId, User $user): void
+    public function moveToSection(Section $section, User $user): void
     {
-        $updateData = [
-            'section_id' => $sectionId,
+        if (! $this->isOpen()) {
+            $this->reopen($user);
+        }
+
+        $this->update([
+            'section_id' => $section->id,
             'section_moved_at' => now(),
             'section_moved_by' => $user->id,
-        ];
-
-        if ($this->completed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'completed_at' => null,
-                'completed_by' => null,
-                'reopened_at' => now(),
-                'reopened_by' => $user->id,
-            ]);
-        }
-
-        if ($this->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
-        }
-
-        $this->update($updateData);
+        ]);
     }
 
-    public function moveToCompleted(User $user): void
+    public function close(User $user): void
     {
-        $updateData = [];
-
-        if ($this->completed_at === null) {
-            $updateData = [
-                'completed_at' => now(),
-                'completed_by' => $user->id,
-            ];
+        if ($this->isClosed()) {
+            return;
         }
 
-        if ($this->closed_at !== null) {
-            $updateData = array_merge($updateData, [
-                'closed_at' => null,
-                'closed_by' => null,
-            ]);
-        }
+        $this->update([
+            'closed_at' => now(),
+            'closed_by' => $user->id,
+            'completed_at' => null,
+            'completed_by' => null,
+            'reopened_at' => null,
+            'reopened_by' => null,
+        ]);
 
-        $updateData['reopened_at'] = null;
-        $updateData['reopened_by'] = null;
-
-        if (! empty($updateData)) {
-            $this->update($updateData);
-        }
-    }
-
-    public function moveToClosed(User $user): void
-    {
-        $updateData = [];
-
-        if ($this->closed_at === null) {
-            $updateData = [
-                'closed_at' => now(),
-                'closed_by' => $user->id,
-                'completed_at' => null,
-                'completed_by' => null,
-                'reopened_at' => null,
-                'reopened_by' => null,
-            ];
-        }
-
-        if (! empty($updateData)) {
-            $this->update($updateData);
-        }
+        $this->notifyClosed($user);
     }
 
     public function isPending(): bool
@@ -274,6 +310,11 @@ class Task extends Model
     public function isClosed(): bool
     {
         return $this->closed_at !== null;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->completed_at === null && $this->closed_at === null;
     }
 
     public function isInSection(Section $section): bool
@@ -336,6 +377,27 @@ class Task extends Model
             get: fn (?string $value) => $value ? $this->sanitizeHtml($value) : null,
             set: fn (string $value) => $this->attributes['description'] = $value,
         );
+    }
+
+    private function notifyClosed(User $user): void
+    {
+        $this->subscribers
+            ->where('id', '!=', $user->id)
+            ->each(fn ($subscriber) => $subscriber->notify(new TaskClosed($this)));
+    }
+
+    private function notifyReopened(User $user): void
+    {
+        $this->subscribers
+            ->where('id', '!=', $user->id)
+            ->each(fn ($subscriber) => $subscriber->notify(new TaskReopened($this)));
+    }
+
+    private function notifyCompleted(User $user): void
+    {
+        $this->subscribers
+            ->where('id', '!=', $user->id)
+            ->each(fn ($subscriber) => $subscriber->notify(new TaskCompleted($this)));
     }
 
     /**

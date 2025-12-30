@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\TaskCommented;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -52,6 +53,19 @@ class Comment extends Model
             'user_id' => Auth::id(),
             'path' => $path,
         ]);
+    }
+
+    public function notifySubscribers(): void
+    {
+        $this->task->subscribers()->syncWithoutDetaching($this->user->id);
+
+        $this->task->subscribers
+            ->where('id', '!=', $this->user->id)
+            ->each(
+                fn ($subscriber) => $subscriber->notify(
+                    new TaskCommented($this),
+                ),
+            );
     }
 
     /**

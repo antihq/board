@@ -279,8 +279,8 @@ it('adds checklist items to task', function () {
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('isAddingChecklistItem', true)
-        ->set('newChecklistItemContent', 'First checklist item')
-        ->call('saveChecklistItem')
+        ->set('newChecklistItem', 'First checklist item')
+        ->call('addChecklist')
         ->assertHasNoErrors();
 
     $task->refresh();
@@ -328,7 +328,7 @@ it('creates a new tag successfully', function () {
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->set('tagSearch', $tagName)
-        ->call('createTag')
+        ->call('addTag')
         ->assertHasNoErrors();
 
     $task->refresh();
@@ -412,8 +412,17 @@ it('updates selected section successfully', function () {
 
     $task->refresh();
     expect($task->section_id)->toBeNull();
-    expect($task->section_moved_at)->not->toBeNull();
-    expect($task->section_moved_by)->toEqual($user->id);
+    expect($task->section_moved_at)->toBeNull();
+    expect($task->section_moved_by)->toBeNull();
+
+    // Test that setting to null again does nothing (no-op)
+    Livewire::actingAs($user)->test('task', ['task' => $task])
+        ->set('selectedSection', null)
+        ->assertHasNoErrors();
+
+    $task->refresh();
+    expect($task->section_id)->toBeNull();
+    expect($task->section_moved_at)->toBeNull();
 });
 
 it('closes a task successfully', function () {
@@ -438,12 +447,14 @@ it('closes a task successfully', function () {
     expect($task->section_id)->toEqual($section->id);
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('closeTask')
+        ->call('close')
         ->assertHasNoErrors();
 
     $task->refresh();
-    expect($task->completed_at)->not->toBeNull();
-    expect($task->completed_by)->toEqual($user->id);
+    expect($task->completed_at)->toBeNull();
+    expect($task->completed_by)->toBeNull();
+    expect($task->closed_at)->not->toBeNull();
+    expect($task->closed_by)->toEqual($user->id);
     expect($task->reopened_at)->toBeNull();
     expect($task->reopened_by)->toBeNull();
     expect($task->section_id)->toEqual($section->id);
@@ -476,7 +487,7 @@ it('reopens a task successfully', function () {
     expect($task->reopened_by)->toBeNull();
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('reopenTask')
+        ->call('reopen')
         ->assertHasNoErrors();
 
     $task->refresh();
@@ -924,7 +935,7 @@ it('notifies subscribers when task is closed', function () {
     Notification::fake();
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('closeTask')
+        ->call('close')
         ->assertHasNoErrors();
 
     Notification::assertSentTo(
@@ -954,7 +965,7 @@ it('notifies subscribers when task is reopened', function () {
     Notification::fake();
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
-        ->call('reopenTask')
+        ->call('reopen')
         ->assertHasNoErrors();
 
     Notification::assertSentTo(
@@ -1013,7 +1024,6 @@ it('allows comment creator to delete their own comment', function () {
 
     Livewire::actingAs($user)->test('task', ['task' => $task])
         ->call('deleteComment', $comment->id)
-        ->assertDispatched('task.updated')
         ->assertHasNoErrors();
 
     $task->refresh();
@@ -1041,7 +1051,6 @@ it('allows team owner to delete any comment', function () {
 
     Livewire::actingAs($owner)->test('task', ['task' => $task])
         ->call('deleteComment', $comment->id)
-        ->assertDispatched('task.updated')
         ->assertHasNoErrors();
 
     $task->refresh();
@@ -1076,7 +1085,6 @@ it('allows team admin to delete any comment', function () {
 
     Livewire::actingAs($admin)->test('task', ['task' => $task])
         ->call('deleteComment', $comment->id)
-        ->assertDispatched('task.updated')
         ->assertHasNoErrors();
 
     $task->refresh();

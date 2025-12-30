@@ -1,12 +1,8 @@
 <?php
 
 use App\Models\Task;
-use App\Notifications\TaskClosed;
-use App\Notifications\TaskCommented;
-use App\Notifications\TaskReopened;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -29,7 +25,7 @@ new class extends Component
 
     public bool $isAddingChecklistItem = false;
 
-    public string $newChecklistItemContent = '';
+    public string $newChecklistItem = '';
 
     public array $completedChecklistItems = [];
 
@@ -56,8 +52,7 @@ new class extends Component
         $this->title = $this->task->title;
 
         $this->completedChecklistItems = $this->task
-            ->checklistItems()
-            ->where('completed', true)
+            ->completedChecklistItems()
             ->pluck('id')
             ->toArray();
 
@@ -89,153 +84,76 @@ new class extends Component
 
     public function saveDescription()
     {
-        $currentCount = $this->task->images()->count();
-        $maxUploads = max(0, 4 - $currentCount);
+        $this->authorize('update', $this->task);
 
         $this->validate([
             'description' => 'nullable|string|max:5000',
             'images.*' => 'image|max:10240',
-            'images' => 'max:' . $maxUploads,
+            'images' => 'max:' . $this->maxAllowedUploads(),
         ]);
 
         DB::transaction(function () {
             $this->task->lockForUpdate();
-            $currentImageCount = $this->task->images()->count();
-
-            if ($currentImageCount + count($this->images) > 4) {
-                throw ValidationException::withMessages([
-                    'images' => ['Maximum of 4 images per task. Please remove some images and try again.'],
-                ]);
-            }
 
             $this->task->update([
                 'description' => $this->description,
             ]);
 
             foreach ($this->images as $image) {
-                $path = $image->store('task-images', 'public');
-                $this->task->images()->create([
-                    'user_id' => Auth::id(),
-                    'path' => $path,
-                ]);
+                $this->task->attachImage($image);
             }
         });
 
-        $this->images = [];
-
+        $this->reset('images');
         $this->isEditingDescription = false;
     }
 
-    public function saveChecklistItem()
+    public function addChecklist()
     {
         $this->validate([
-            'newChecklistItemContent' => 'required|string|max:500',
+            'newChecklistItem' => 'required|string|max:500',
         ]);
 
-        $this->task->checklistItems()->create([
-            'content' => $this->pull('newChecklistItemContent'),
-            'completed' => false,
-        ]);
-
-        $this->task->touch();
+        $this->task->addChecklistItem($this->pull('newChecklistItem'));
     }
 
     public function addComment()
     {
-        $currentCount = 0;
-        $maxUploads = max(0, 4 - $currentCount);
-
         $this->validate([
             'newComment' => 'required|string|max:5000',
             'commentImages.*' => 'image|max:10240',
-            'commentImages' => 'max:' . $maxUploads,
+            'commentImages' => 'max:' . $this->maxAllowedCommentUploads(),
         ]);
 
-        DB::transaction(function () {
-            $comment = $this->task->comments()->create([
-                'user_id' => Auth::id(),
-                'content' => $this->pull('newComment'),
-            ]);
+        $comment = $this->task->addComment($this->pull('newComment'));
 
-            foreach ($this->commentImages as $image) {
-                $path = $image->store('comment-images', 'public');
-                $comment->images()->create([
-                    'user_id' => Auth::id(),
-                    'path' => $path,
-                ]);
-            }
+        foreach ($this->commentImages as $image) {
+            $comment->attachImage($image);
+        }
 
-            $this->task->touch();
-        });
-
-        $this->commentImages = [];
-
-        $comment = $this->task
-            ->comments()
-            ->latest()
-            ->first();
-
-        $this->task->subscribers()->syncWithoutDetaching(Auth::id());
-
-        $this->task->subscribers
-            ->where('id', '!=', Auth::id())
-            ->each(
-                fn ($subscriber) => $subscriber->notify(
-                    new TaskCommented($comment->load('user', 'task.project', 'task.team')),
-                ),
-            );
+        $this->reset('commentImages');
     }
 
-    public function createTag()
+    public function addTag()
     {
         $this->validate([
             'tagSearch' => 'required|string|max:255',
         ]);
 
-        $tag = $this->task->team->tags()->create([
-            'name' => $this->pull('tagSearch'),
-        ]);
+        $tag = $this->task->addTag($this->pull('tagSearch'));
 
-        $this->task->tags()->attach($tag->id);
         $this->selectedTags[] = $tag->id;
-        $this->tagSearch = '';
-
-        $this->task->touch();
     }
 
-    public function closeTask()
+    public function close()
     {
-        $this->task->update([
-            'completed_at' => now(),
-            'completed_by' => Auth::id(),
-            'reopened_at' => null,
-            'reopened_by' => null,
-        ]);
-
-        $this->task->touch();
-
-        $this->task->subscribers
-            ->where('id', '!=', Auth::id())
-            ->each(fn ($subscriber) => $subscriber->notify(new TaskClosed($this->task->load('project', 'team'))));
-
+        $this->task->close(Auth::user());
         $this->dispatch('task.moved');
     }
 
-    public function reopenTask()
+    public function reopen()
     {
-        $this->task->update([
-            'completed_at' => null,
-            'completed_by' => null,
-            'reopened_at' => now(),
-            'reopened_by' => Auth::id(),
-        ]);
-
-        $this->task->touch();
-
-        $this->task->subscribers
-            ->where('id', '!=', Auth::id())
-            ->each(fn ($subscriber) => $subscriber->notify(new TaskReopened($this->task->load('project', 'team'))));
-
+        $this->task->reopen(Auth::user());
         $this->dispatch('task.moved');
     }
 
@@ -379,15 +297,16 @@ new class extends Component
 
     public function updatedSelectedSection()
     {
-        $section = $this->selectedSection ? $this->task->project->sections()->findOrFail($this->selectedSection) : null;
+        if ($this->selectedSection === null && $this->task->section_id === null) {
+            return;
+        }
 
-        $this->task->update([
-            'section_id' => $section?->id,
-            'section_moved_at' => now(),
-            'section_moved_by' => Auth::id(),
-        ]);
-
-        $this->task->touch();
+        if ($this->selectedSection === null) {
+            $this->task->moveToPending(Auth::user());
+        } else {
+            $section = $this->task->project->sections()->findOrFail($this->selectedSection);
+            $this->task->moveToSection($section, Auth::user());
+        }
 
         $this->dispatch('task.moved');
     }
@@ -471,6 +390,16 @@ new class extends Component
     public function taskImages()
     {
         return $this->task->images;
+    }
+
+    private function maxAllowedUploads(): int
+    {
+        return max(0, 4 - $this->task->images()->count());
+    }
+
+    private function maxAllowedCommentUploads(): int
+    {
+        return 4;
     }
 };
 ?>
@@ -683,9 +612,9 @@ new class extends Component
                     </flux:checkbox.group>
                 @endunless
 
-                <form wire:submit="saveChecklistItem" wire:show="isAddingChecklistItem" wire:cloak>
+                <form wire:submit="addChecklist" wire:show="isAddingChecklistItem" wire:cloak>
                     <flux:composer
-                        wire:model="newChecklistItemContent"
+                        wire:model="newChecklistItem"
                         rows="1"
                         placeholder="New checklist item..."
                         submit="enter"
@@ -783,9 +712,9 @@ new class extends Component
                         </x-slot>
                         <x-slot name="actionsTrailing">
                             @unless ($task->completed_at)
-                                <flux:button type="button" size="sm" wire:click="closeTask">Close task</flux:button>
+                                <flux:button type="button" size="sm" wire:click="close">Close task</flux:button>
                             @else
-                                <flux:button type="button" size="sm" wire:click="reopenTask">Reopen task</flux:button>
+                                <flux:button type="button" size="sm" wire:click="reopen">Reopen task</flux:button>
                             @endunless
                             <flux:button type="submit" size="sm" variant="primary">Comment</flux:button>
                         </x-slot>
@@ -941,7 +870,7 @@ new class extends Component
                             </flux:pillbox.option>
                         @endforeach
 
-                        <flux:pillbox.option.create wire:click="createTag" min-length="2">
+                        <flux:pillbox.option.create wire:click="addTag" min-length="2">
                             Create "
                             <span wire:text="tagSearch"></span>
                             "
@@ -1043,7 +972,7 @@ new class extends Component
 
     this.$js.cancelAddingChecklistItem = () => {
         this.isAddingChecklistItem = false;
-        this.newChecklistItemContent = '';
+        this.newChecklistItem = '';
     };
 
     this.$js.startManagingTags = () => {
