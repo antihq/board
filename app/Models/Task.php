@@ -115,28 +115,6 @@ class Task extends Model
         return $this->hasMany(TaskImage::class)->latest();
     }
 
-    public function attachImage(TemporaryUploadedFile $image): TaskImage
-    {
-        $path = $image->store('task-images', 'public');
-
-        return $this->images()->create([
-            'user_id' => Auth::id(),
-            'path' => $path,
-        ]);
-    }
-
-    public function addChecklistItem(string $content): ChecklistItem
-    {
-        $item = $this->checklistItems()->create([
-            'content' => $content,
-            'completed' => false,
-        ]);
-
-        $this->touch();
-
-        return $item;
-    }
-
     public function addComment(string $content, ?User $user = null): Comment
     {
         $user = $user ?? Auth::user();
@@ -153,6 +131,18 @@ class Task extends Model
         return $comment;
     }
 
+    public function addChecklistItem(string $content): ChecklistItem
+    {
+        $item = $this->checklistItems()->create([
+            'content' => $content,
+            'completed' => false,
+        ]);
+
+        $this->touch();
+
+        return $item;
+    }
+
     public function addTag(string $name): Tag
     {
         $tag = $this->team->tags()->create([
@@ -164,6 +154,109 @@ class Task extends Model
         $this->touch();
 
         return $tag;
+    }
+
+    public function attachImage(TemporaryUploadedFile $image): TaskImage
+    {
+        $path = $image->store('task-images', 'public');
+
+        return $this->images()->create([
+            'user_id' => Auth::id(),
+            'path' => $path,
+        ]);
+    }
+
+    public function syncChecklist(array $ids): void
+    {
+        $this->checklistItems()
+            ->whereIn('id', $ids)
+            ->where('completed', false)
+            ->update(['completed' => true]);
+
+        $this->checklistItems()
+            ->whereNotIn('id', $ids)
+            ->where('completed', true)
+            ->update(['completed' => false]);
+
+        $this->touch();
+    }
+
+    public function syncAssignees(array $ids): void
+    {
+        $validAssignees = $this->team->allUsers()->whereIn('id', $ids);
+
+        $this->assignees()->sync($validAssignees->pluck('id'));
+
+        $this->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
+
+        $this->touch();
+    }
+
+    public function syncTags(array $ids): void
+    {
+        $tags = $this->team->tags()->findMany($ids);
+
+        $this->tags()->sync($tags->pluck('id'));
+
+        $this->touch();
+    }
+
+    public function isPending(): bool
+    {
+        return $this->section_id === null && $this->completed_at === null && $this->closed_at === null;
+    }
+
+    public function isCompleted(): bool
+    {
+        return $this->completed_at !== null;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->completed_at === null && $this->closed_at === null;
+    }
+
+    public function isInSection(Section $section): bool
+    {
+        return $this->section_id === $section->id;
+    }
+
+    public function isPrioritized(): bool
+    {
+        return $this->prioritized_at !== null;
+    }
+
+    public function isSubscribed(User $user): bool
+    {
+        return $this->subscribers()->where('user_id', $user->id)->exists();
+    }
+
+    public function isSaved(User $user): bool
+    {
+        return $this->savers()->where('user_id', $user->id)->exists();
+    }
+
+    public function close(User $user): void
+    {
+        if ($this->isClosed()) {
+            return;
+        }
+
+        $this->update([
+            'closed_at' => now(),
+            'closed_by' => $user->id,
+            'completed_at' => null,
+            'completed_by' => null,
+            'reopened_at' => null,
+            'reopened_by' => null,
+        ]);
+
+        $this->notifyClosed($user);
     }
 
     public function reopen(User $user): void
@@ -202,8 +295,72 @@ class Task extends Model
         $this->notifyCompleted($user);
     }
 
+    public function prioritize(User $user): void
+    {
+        $this->update([
+            'prioritized_at' => now(),
+            'prioritized_by' => $user->id,
+        ]);
+    }
+
+    public function unprioritize(): void
+    {
+        $this->update([
+            'prioritized_at' => null,
+            'prioritized_by' => null,
+        ]);
+    }
+
+    public function moveToPending(User $user): void
+    {
+        if ($this->isOpen() && $this->section_id === null) {
+            return;
+        }
+
+        $this->reopen($user);
+
+        $this->update([
+            'section_id' => null,
+            'section_moved_at' => null,
+            'section_moved_by' => null,
+        ]);
+    }
+
+    public function moveToSection(Section $section, User $user): void
+    {
+        if (! $this->isOpen()) {
+            $this->reopen($user);
+        }
+
+        $this->update([
+            'section_id' => $section->id,
+            'section_moved_at' => now(),
+            'section_moved_by' => $user->id,
+        ]);
+    }
+
+    public function subscribe(User $user): void
+    {
+        $this->subscribers()->attach($user->id);
+    }
+
+    public function unsubscribe(User $user): void
+    {
+        $this->subscribers()->detach($user->id);
+    }
+
+    public function addToSaved(User $user): void
+    {
+        $this->savers()->attach($user->id, ['team_id' => $this->team_id]);
+    }
+
+    public function removeFromSaved(User $user): void
+    {
+        $this->savers()->detach($user->id);
+    }
+
     /**
-     * Get the effective auto-close days for this task.
+     * Get effective auto-close days for this task.
      */
     public function autoCloseDays(): ?int
     {
@@ -251,75 +408,22 @@ class Task extends Model
         ]);
     }
 
-    public function moveToPending(User $user): void
+    /**
+     * Delete task and all its related data.
+     */
+    public function delete()
     {
-        if ($this->isOpen() && $this->section_id === null) {
-            return;
+        $this->comments()->delete();
+
+        $this->checklistItems()->delete();
+
+        $this->tags()->detach();
+
+        foreach ($this->images as $image) {
+            $image->delete();
         }
 
-        $this->reopen($user);
-
-        $this->update([
-            'section_id' => null,
-            'section_moved_at' => null,
-            'section_moved_by' => null,
-        ]);
-    }
-
-    public function moveToSection(Section $section, User $user): void
-    {
-        if (! $this->isOpen()) {
-            $this->reopen($user);
-        }
-
-        $this->update([
-            'section_id' => $section->id,
-            'section_moved_at' => now(),
-            'section_moved_by' => $user->id,
-        ]);
-    }
-
-    public function close(User $user): void
-    {
-        if ($this->isClosed()) {
-            return;
-        }
-
-        $this->update([
-            'closed_at' => now(),
-            'closed_by' => $user->id,
-            'completed_at' => null,
-            'completed_by' => null,
-            'reopened_at' => null,
-            'reopened_by' => null,
-        ]);
-
-        $this->notifyClosed($user);
-    }
-
-    public function isPending(): bool
-    {
-        return $this->section_id === null && $this->completed_at === null && $this->closed_at === null;
-    }
-
-    public function isCompleted(): bool
-    {
-        return $this->completed_at !== null;
-    }
-
-    public function isClosed(): bool
-    {
-        return $this->closed_at !== null;
-    }
-
-    public function isOpen(): bool
-    {
-        return $this->completed_at === null && $this->closed_at === null;
-    }
-
-    public function isInSection(Section $section): bool
-    {
-        return $this->section_id === $section->id;
+        parent::delete();
     }
 
     #[Scope]
@@ -369,7 +473,7 @@ class Task extends Model
     }
 
     /**
-     * Get the task's description as safe HTML.
+     * Get task's description as safe HTML.
      */
     protected function description(): Attribute
     {

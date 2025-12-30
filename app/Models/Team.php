@@ -58,6 +58,18 @@ class Team extends Model
             ->withPivot('role');
     }
 
+    public function allUsers()
+    {
+        $teamUsers = $this->users()->get();
+        $owner = $this->owner;
+
+        if (! $teamUsers->contains('id', $owner->id)) {
+            $teamUsers = $teamUsers->push($owner);
+        }
+
+        return $teamUsers->sortBy('name')->values();
+    }
+
     public function getRouteKeyName(): string
     {
         return 'handle';

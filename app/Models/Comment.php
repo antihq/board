@@ -69,6 +69,19 @@ class Comment extends Model
     }
 
     /**
+     * Delete the comment and touch the associated task.
+     */
+    public function delete()
+    {
+        foreach ($this->images as $image) {
+            $image->delete();
+        }
+
+        parent::delete();
+        $this->task->touch();
+    }
+
+    /**
      * Get the comment's content as safe HTML.
      */
     protected function content(): Attribute

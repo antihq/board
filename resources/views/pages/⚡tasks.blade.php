@@ -6,7 +6,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component {
+new class extends Component
+{
     use WithPagination;
 
     public Team $team;
@@ -100,17 +101,7 @@ new class extends Component {
     #[Computed]
     public function teamMembers()
     {
-        $members = $this->team
-            ->users()
-            ->orderBy('name')
-            ->get();
-
-        // Include team owner if not already in the list
-        if (! $members->contains('id', $this->team->owner->id)) {
-            $members->prepend($this->team->owner);
-        }
-
-        return $members;
+        return $this->team->allUsers();
     }
 
     public function clearFilters()

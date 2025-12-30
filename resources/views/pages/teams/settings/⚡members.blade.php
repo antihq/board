@@ -8,7 +8,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     #[Validate('required|integer|min:1')]
@@ -46,13 +47,7 @@ new class extends Component {
     #[Computed]
     public function teamMembers()
     {
-        $members = collect();
-
-        $members->push($this->team->owner);
-
-        $members = $members->merge($this->team->users);
-
-        return $members->unique('id');
+        return $this->team->allUsers();
     }
 
     #[Computed]
@@ -288,10 +283,8 @@ new class extends Component {
                                 $currentRole = $memberWithPivot && $memberWithPivot->pivot ? $memberWithPivot->pivot->role : 'member';
                                 $newRole = $currentRole === 'member' ? 'admin' : 'member';
                             @endphp
-                            <flux:button
-                                size="sm"
-                                wire:click="toggleMemberRole({{ $member->getKey() }})"
-                            >
+
+                            <flux:button size="sm" wire:click="toggleMemberRole({{ $member->getKey() }})">
                                 Make {{ ucfirst($newRole) }}
                             </flux:button>
                         @endif

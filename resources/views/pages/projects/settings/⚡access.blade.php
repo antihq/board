@@ -6,7 +6,8 @@ use Flux\Flux;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public Project $project;
@@ -53,7 +54,7 @@ new class extends Component {
     #[Computed]
     public function teamMembers()
     {
-        return $this->team->users->concat([$this->team->owner])->unique('id');
+        return $this->team->allUsers();
     }
 };
 ?>

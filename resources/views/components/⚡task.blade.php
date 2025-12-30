@@ -69,6 +69,29 @@ new class extends Component
             ->toArray();
     }
 
+    public function close()
+    {
+        $this->task->close(Auth::user());
+
+        $this->dispatch('task.moved');
+    }
+
+    public function reopen()
+    {
+        $this->task->reopen(Auth::user());
+
+        $this->dispatch('task.moved');
+    }
+
+    public function deleteTask()
+    {
+        $this->authorize('delete', $this->task->project);
+
+        $this->task->delete();
+
+        $this->dispatch('task-deleted', taskId: $this->task->id);
+    }
+
     public function saveTitle()
     {
         $this->validate([
@@ -80,6 +103,20 @@ new class extends Component
         ]);
 
         $this->isEditingTitle = false;
+    }
+
+    public function cancelEditTitle()
+    {
+        $this->title = $this->task->title;
+
+        $this->isEditingTitle = false;
+    }
+
+    public function editDescription()
+    {
+        $this->description = $this->task->description ?? '';
+
+        $this->isEditingDescription = true;
     }
 
     public function saveDescription()
@@ -105,194 +142,30 @@ new class extends Component
         });
 
         $this->reset('images');
+
         $this->isEditingDescription = false;
-    }
-
-    public function addChecklist()
-    {
-        $this->validate([
-            'newChecklistItem' => 'required|string|max:500',
-        ]);
-
-        $this->task->addChecklistItem($this->pull('newChecklistItem'));
-    }
-
-    public function addComment()
-    {
-        $this->validate([
-            'newComment' => 'required|string|max:5000',
-            'commentImages.*' => 'image|max:10240',
-            'commentImages' => 'max:' . $this->maxAllowedCommentUploads(),
-        ]);
-
-        $comment = $this->task->addComment($this->pull('newComment'));
-
-        foreach ($this->commentImages as $image) {
-            $comment->attachImage($image);
-        }
-
-        $this->reset('commentImages');
-    }
-
-    public function addTag()
-    {
-        $this->validate([
-            'tagSearch' => 'required|string|max:255',
-        ]);
-
-        $tag = $this->task->addTag($this->pull('tagSearch'));
-
-        $this->selectedTags[] = $tag->id;
-    }
-
-    public function close()
-    {
-        $this->task->close(Auth::user());
-        $this->dispatch('task.moved');
-    }
-
-    public function reopen()
-    {
-        $this->task->reopen(Auth::user());
-        $this->dispatch('task.moved');
-    }
-
-    public function deleteTask()
-    {
-        $this->authorize('delete', $this->task->project);
-
-        $this->task->comments()->delete();
-        $this->task->checklistItems()->delete();
-        $this->task->tags()->detach();
-        $this->task->delete();
-
-        $this->dispatch('task-deleted', taskId: $this->task->id);
-    }
-
-    public function deleteComment($commentId)
-    {
-        $comment = $this->task->comments()->findOrFail($commentId);
-
-        $this->authorize('delete', $comment);
-
-        $comment->delete();
-
-        $this->task->touch();
-    }
-
-    public function cancelEditTitle()
-    {
-        $this->title = $this->task->title;
-        $this->isEditingTitle = false;
-    }
-
-    public function editDescription()
-    {
-        $this->description = $this->task->description ?? '';
-        $this->isEditingDescription = true;
     }
 
     public function removeImage($index)
     {
         $image = $this->images[$index];
-        $image->delete();
-        unset($this->images[$index]);
-        $this->images = array_values($this->images);
-    }
 
-    public function removeCommentImage($index)
-    {
-        $image = $this->commentImages[$index];
         $image->delete();
-        unset($this->commentImages[$index]);
-        $this->commentImages = array_values($this->commentImages);
+
+        unset($this->images[$index]);
+
+        $this->images = array_values($this->images);
     }
 
     public function togglePriority()
     {
-        if ($this->task->prioritized_at) {
-            $this->task->update([
-                'prioritized_at' => null,
-                'prioritized_by' => null,
-            ]);
-        } else {
-            $this->task->update([
-                'prioritized_at' => now(),
-                'prioritized_by' => Auth::id(),
-            ]);
+        if ($this->task->isPrioritized()) {
+            $this->task->unprioritize();
+
+            return;
         }
 
-        $this->task->touch();
-    }
-
-    public function toggleSubscribe()
-    {
-        $this->authorize('update', $this->task);
-
-        $userId = Auth::id();
-
-        if (
-            $this->task
-                ->subscribers()
-                ->where('user_id', $userId)
-                ->exists()
-        ) {
-            $this->task->subscribers()->detach($userId);
-        } else {
-            $this->task->subscribers()->attach($userId);
-        }
-    }
-
-    public function toggleSaved()
-    {
-        $this->authorize('update', $this->task);
-
-        $userId = Auth::id();
-        $teamId = $this->task->team_id;
-
-        if (
-            $this->task
-                ->savers()
-                ->where('user_id', $userId)
-                ->exists()
-        ) {
-            $this->task->savers()->detach($userId);
-        } else {
-            $this->task->savers()->attach($userId, ['team_id' => $teamId]);
-        }
-    }
-
-    public function updatedCompletedChecklistItems()
-    {
-        $this->task
-            ->checklistItems()
-            ->whereIn('id', $this->completedChecklistItems)
-            ->where('completed', false)
-            ->update(['completed' => true]);
-
-        $this->task
-            ->checklistItems()
-            ->whereNotIn('id', $this->completedChecklistItems)
-            ->where('completed', true)
-            ->update(['completed' => false]);
-
-        $this->task->touch();
-    }
-
-    public function updatedSelectedAssignees()
-    {
-        $this->authorize('manageAssignees', $this->task);
-
-        $teamUsers = $this->task->team->users()->get();
-        $allPossibleAssignees = $teamUsers->push($this->task->team->owner);
-
-        $validAssignees = $allPossibleAssignees->whereIn('id', $this->selectedAssignees);
-
-        $this->task->assignees()->sync($validAssignees->pluck('id'));
-
-        $this->task->subscribers()->syncWithoutDetaching($validAssignees->pluck('id'));
-
-        $this->task->touch();
+        $this->task->prioritize(Auth::user());
     }
 
     public function updatedSelectedSection()
@@ -313,10 +186,102 @@ new class extends Component
 
     public function updatedSelectedTags()
     {
-        $tags = $this->task->team->tags()->findMany($this->selectedTags);
-        $this->task->tags()->sync($tags->pluck('id'));
+        $this->task->syncTags($this->selectedTags);
+    }
 
-        $this->task->touch();
+    public function addTag()
+    {
+        $this->validate([
+            'tagSearch' => 'required|string|max:255',
+        ]);
+
+        $tag = $this->task->addTag($this->pull('tagSearch'));
+
+        $this->selectedTags[] = $tag->id;
+    }
+
+    public function updatedSelectedAssignees()
+    {
+        $this->authorize('manageAssignees', $this->task);
+
+        $this->task->syncAssignees($this->selectedAssignees);
+    }
+
+    public function toggleSubscribe()
+    {
+        $this->authorize('update', $this->task);
+
+        if ($this->task->isSubscribed(Auth::user())) {
+            $this->task->unsubscribe(Auth::user());
+
+            return;
+        }
+
+        $this->task->subscribe(Auth::user());
+    }
+
+    public function toggleSaved()
+    {
+        $this->authorize('update', $this->task);
+
+        if ($this->task->isSaved(Auth::user())) {
+            $this->task->removeFromSaved(Auth::user());
+
+            return;
+        }
+
+        $this->task->addToSaved(Auth::user());
+    }
+
+    public function addComment()
+    {
+        $this->validate([
+            'newComment' => 'required|string|max:5000',
+            'commentImages.*' => 'image|max:10240',
+            'commentImages' => 'max:' . $this->maxAllowedCommentUploads(),
+        ]);
+
+        $comment = $this->task->addComment($this->pull('newComment'));
+
+        foreach ($this->commentImages as $image) {
+            $comment->attachImage($image);
+        }
+
+        $this->reset('commentImages');
+    }
+
+    public function deleteComment($commentId)
+    {
+        $comment = $this->task->comments()->findOrFail($commentId);
+
+        $this->authorize('delete', $comment);
+
+        $comment->delete();
+    }
+
+    public function removeCommentImage($index)
+    {
+        $image = $this->commentImages[$index];
+
+        $image->delete();
+
+        unset($this->commentImages[$index]);
+
+        $this->commentImages = array_values($this->commentImages);
+    }
+
+    public function addChecklist()
+    {
+        $this->validate([
+            'newChecklistItem' => 'required|string|max:500',
+        ]);
+
+        $this->task->addChecklistItem($this->pull('newChecklistItem'));
+    }
+
+    public function updatedCompletedChecklistItems()
+    {
+        $this->task->syncChecklist($this->completedChecklistItems);
     }
 
     #[Computed]
@@ -358,32 +323,7 @@ new class extends Component
     #[Computed]
     public function teamMembers()
     {
-        $teamUsers = $this->task->team
-            ->users()
-            ->orderBy('name')
-            ->get();
-
-        $owner = $this->task->team->owner;
-        if (! $teamUsers->contains('id', $owner->id)) {
-            $teamUsers = $teamUsers->push($owner);
-        }
-
-        return $teamUsers->sortBy('name')->values();
-    }
-
-    #[Computed]
-    public function subscribers()
-    {
-        return $this->task->subscribers;
-    }
-
-    #[Computed]
-    public function isSaved()
-    {
-        return $this->task
-            ->savers()
-            ->where('user_id', Auth::id())
-            ->exists();
+        return $this->task->team->allUsers();
     }
 
     #[Computed]
@@ -901,7 +841,7 @@ new class extends Component
                 <div class="flex items-center justify-between gap-2">
                     <flux:heading class="text-xs">Notifications</flux:heading>
                 </div>
-                @if ($this->subscribers->contains('id', auth()->id()))
+                @if ($task->isSubscribed(auth()->user()))
                     <flux:button size="xs" wire:click="toggleSubscribe" icon="bell-slash">Unsubscribe</flux:button>
                     <flux:text class="text-xs">
                         You're receiving notifications because you're subscribed to this task.
@@ -919,7 +859,7 @@ new class extends Component
                 <div class="flex items-center justify-between gap-2">
                     <flux:heading class="text-xs">Saved</flux:heading>
                 </div>
-                @if ($this->isSaved)
+                @if ($task->isSaved(auth()->user()))
                     <flux:button size="xs" wire:click="toggleSaved" icon="x-mark">Unsave</flux:button>
                     <flux:text class="text-xs">You've saved this task for later reference.</flux:text>
                 @else
