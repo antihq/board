@@ -20,6 +20,7 @@ new class extends Component
     #[On('task.moved')]
     #[On('task.updated')]
     #[On('section.deleted')]
+    #[On('task-deleted')]
     public function refreshTasks()
     {
         unset($this->tasks);
@@ -71,6 +72,17 @@ new class extends Component
 
         $this->dispatch('task.moved');
     }
+
+    public function deleteTask($taskId)
+    {
+        $task = $this->project->tasks()->findOrFail($taskId);
+
+        $this->authorize('delete', $task->project);
+
+        $task->delete();
+
+        $this->dispatch('task-deleted', taskId: $task->id);
+    }
 };
 ?>
 
@@ -115,6 +127,30 @@ new class extends Component
                             class="w-full max-w-[95vw] lg:max-w-216"
                         >
                             <livewire:task :task="$task" lazy />
+                        </flux:modal>
+
+                        <flux:modal :name="'delete-task-' . $task->id" class="min-w-[22rem]">
+                            <div class="space-y-6">
+                                <div>
+                                    <flux:heading size="lg">Delete task?</flux:heading>
+                                    <flux:text class="mt-2">
+                                        You're about to delete this task. This action cannot be reversed.
+                                    </flux:text>
+                                </div>
+                                <div class="flex gap-2">
+                                    <flux:spacer />
+                                    <flux:modal.close>
+                                        <flux:button variant="ghost">Cancel</flux:button>
+                                    </flux:modal.close>
+                                    <flux:button
+                                        type="submit"
+                                        variant="danger"
+                                        wire:click="deleteTask({{ $task->id }})"
+                                    >
+                                        Delete task
+                                    </flux:button>
+                                </div>
+                            </div>
                         </flux:modal>
                     </div>
                 @endforeach

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\ChecklistItem;
+use App\Models\Comment;
 use App\Models\Project;
 use App\Models\Section;
 use App\Models\Task;
@@ -253,4 +255,62 @@ it('moves multiple tasks to pending when section is deleted', function () {
         expect($task->section_moved_at)->toBeNull();
         expect($task->section_moved_by)->toBeNull();
     }
+});
+
+it('deletes task and all related resources successfully', function () {
+    $user = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $user->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $task = Task::factory()->create([
+        'project_id' => $project->id,
+        'section_id' => $section->id,
+    ]);
+
+    $comment = $task->comments()->create([
+        'user_id' => $user->id,
+        'content' => 'Test comment',
+    ]);
+
+    $checklistItem = $task->checklistItems()->create([
+        'content' => 'Test checklist item',
+        'completed' => false,
+    ]);
+
+    $tag = $team->tags()->create(['name' => 'Bug Fix']);
+    $task->tags()->attach($tag->id);
+
+    expect($task->comments)->toHaveCount(1);
+    expect($task->checklistItems)->toHaveCount(1);
+    expect($task->tags)->toHaveCount(1);
+
+    Livewire::actingAs($user)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteTask', $task->id)
+        ->assertDispatched('task-deleted', taskId: $task->id);
+
+    expect(Task::find($task->id))->toBeNull();
+    expect(Comment::find($comment->id))->toBeNull();
+    expect(ChecklistItem::find($checklistItem->id))->toBeNull();
+    expect($tag->fresh())->not->toBeNull();
+});
+
+it('prevents non-authorized users from deleting tasks', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $project = Project::factory()->create(['team_id' => $team->id]);
+    $section = Section::factory()->create(['project_id' => $project->id]);
+    $task = Task::factory()->create([
+        'project_id' => $project->id,
+        'section_id' => $section->id,
+    ]);
+
+    $nonMember = User::factory()->create();
+
+    Livewire::actingAs($nonMember)
+        ->test('columns.section', ['section' => $section])
+        ->call('deleteTask', $task->id)
+        ->assertForbidden();
+
+    expect(Task::find($task->id))->not->toBeNull();
 });
