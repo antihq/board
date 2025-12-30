@@ -3,12 +3,13 @@
 use App\Models\Section;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Section $section;
 
     public $title = '';
@@ -105,6 +106,7 @@ new class extends Component
         };
     }
 
+    #[Renderless, Async]
     public function sortItem($item, $_position)
     {
         $task = $this->section->project->tasks()->findOrFail($item);

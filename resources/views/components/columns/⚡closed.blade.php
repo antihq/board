@@ -3,12 +3,13 @@
 use App\Models\Project;
 use Flux\Flux;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public int $page = 1;
@@ -44,6 +45,7 @@ new class extends Component
         return $total > $this->page * 25;
     }
 
+    #[Renderless, Async]
     public function sortItem($item, $_position)
     {
         $task = $this->project->tasks()->findOrFail($item);
