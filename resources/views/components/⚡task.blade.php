@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component {
+new class extends Component
+{
     use WithFileUploads;
 
     public Task $task;
@@ -282,7 +283,11 @@ new class extends Component {
 
         $item->delete();
 
-        $this->completedChecklistItems = array_filter($this->completedChecklistItems, fn ($itemId) => $itemId !== $id);
+        $key = array_search($id, $this->completedChecklistItems);
+
+        if ($key !== false) {
+            unset($this->completedChecklistItems[$key]);
+        }
     }
 
     #[Computed]
