@@ -7,7 +7,8 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component {
+new class extends Component
+{
     use WithFileUploads;
 
     public Task $task;
@@ -587,9 +588,9 @@ new class extends Component {
                             @endunless
 
                             @if ($task->description)
-                                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                                <x-prose>
                                     {!! $task->description !!}
-                                </div>
+                                </x-prose>
                             @else
                                 <flux:button size="xs" wire:click="editDescription">Add description</flux:button>
                             @endif

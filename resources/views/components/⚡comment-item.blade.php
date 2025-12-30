@@ -182,9 +182,9 @@ new class extends Component
                     </div>
                 @endunless
 
-                <div class="prose prose-sm prose-zinc dark:prose-invert max-w-none">
+                <x-prose>
                     {!! $comment->content !!}
-                </div>
+                </x-prose>
             </div>
         </div>
     </div>
