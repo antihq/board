@@ -2,10 +2,14 @@
 
 use App\Models\Project;
 use App\Models\Team;
+use Livewire\Attributes\Async;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public Project $project;
@@ -41,6 +45,7 @@ new class extends Component {
         unset($this->sections);
     }
 
+    #[Renderless, Async]
     public function sortItem($item, $position)
     {
         // Validate position bounds - positions are 1-based
