@@ -230,8 +230,6 @@ it('allows cancelling comment edit', function () {
 });
 
 it('adds images when editing a comment', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -268,8 +266,6 @@ it('adds images when editing a comment', function () {
 });
 
 it('validates total images including existing comment images', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -308,8 +304,6 @@ it('validates total images including existing comment images', function () {
 });
 
 it('removes temporary comment image before saving', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);

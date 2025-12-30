@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,7 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->beforeEach(function () {
         Notification::fake();
+        Storage::fake('public');
     })
     ->in('Feature', '../resources/views/**');
 

@@ -32,8 +32,6 @@ it('saves task description successfully', function () {
 });
 
 it('saves task description with images successfully', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -92,8 +90,6 @@ it('validates maximum 4 images can be uploaded', function () {
 });
 
 it('validates total images including existing task images', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
@@ -154,8 +150,6 @@ it('validates only image files can be uploaded', function () {
 });
 
 it('removes temporary image before saving description', function () {
-    Storage::fake('public');
-
     $user = User::factory()->has(Team::factory())->create();
     $team = $user->teams()->first();
     $project = $team->projects()->create(['name' => 'Test Project', 'handle' => 'test-project']);
