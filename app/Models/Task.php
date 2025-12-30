@@ -509,7 +509,12 @@ class Task extends Model
      */
     private function sanitizeHtml(string $html): string
     {
-        $editor = new Editor;
+        $editor = new Editor([
+            'extensions' => [
+                new \Tiptap\Extensions\StarterKit,
+                new \Tiptap\Marks\Link,
+            ],
+        ]);
 
         return $editor->sanitize($html);
     }
