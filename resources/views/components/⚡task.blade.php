@@ -7,8 +7,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-new class extends Component
-{
+new class extends Component {
     use WithFileUploads;
 
     public Task $task;
@@ -275,15 +274,15 @@ new class extends Component
         $this->task->syncChecklist($this->completedChecklistItems);
     }
 
-    public function deleteChecklistItem($itemId)
+    public function deleteChecklistItem($id)
     {
-        $item = $this->task->checklistItems()->findOrFail($itemId);
+        $item = $this->task->checklistItems()->findOrFail($id);
 
         $this->authorize('update', $this->task);
 
         $item->delete();
 
-        $this->completedChecklistItems = array_filter($this->completedChecklistItems, fn ($id) => $id !== $itemId);
+        $this->completedChecklistItems = array_filter($this->completedChecklistItems, fn ($itemId) => $itemId !== $id);
     }
 
     #[Computed]
