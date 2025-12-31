@@ -8,8 +8,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Team $team;
 
     public Project $project;
@@ -105,18 +104,20 @@ new class extends Component
         ></div>
         <div class="h-full w-full overflow-x-auto">
             <flux:kanban wire:sort="sortItem">
-                <livewire:columns.pending :project="$project" />
+                <livewire:columns.pending :project="$project" lazy:bundle lazy />
                 @foreach ($this->sections as $section)
                     <livewire:columns.section
                         :section="$section"
                         wire:key="{{ $section->id }}"
                         wire:sort:item="{{ $section->id }}"
+                        lazy:bundle
+                        lazy
                     />
                 @endforeach
 
-                <livewire:columns.completed :project="$project" />
-                <livewire:columns.closed :project="$project" />
-                <flux:kanban.column wire:sort:ignore>
+                <livewire:columns.completed :project="$project" lazy:bundle lazy />
+                <livewire:columns.closed :project="$project" lazy:bundle lazy />
+                <flux:kanban.column wire:sort:ignore lazy:bundle lazy>
                     <flux:kanban.column.footer class="pt-2">
                         <form wire:submit.prevent="createSection">
                             <flux:composer
