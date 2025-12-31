@@ -115,7 +115,12 @@ new class extends Component {
         </flux:kanban.card>
     </flux:modal.trigger>
 
-    <flux:modal :name="'task-' . $task->id" class="w-full max-w-[95vw] lg:max-w-216" @close="$refresh">
+    <flux:modal
+        :name="'task-' . $task->id"
+        class="w-full max-w-[95vw] lg:max-w-216"
+        @close="$refresh"
+        wire:sort:ignore
+    >
         <livewire:task :task="$task" lazy />
     </flux:modal>
 </div>
