@@ -153,51 +153,19 @@ new class extends Component {
             </x-slot>
         </flux:kanban.column.header>
         <flux:kanban.column.cards>
-            @island(name: 'section-tasks-{{ $section->id }}', always: true)
-                <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
-                    @forelse ($this->tasks as $task)
-                        <div wire:sort:item="{{ $task->id }}" wire:key="task-{{ $task->id }}">
-                            <flux:modal.trigger :name="'task-' . $task->id">
-                                <x-columns.task-card :task="$task" />
-                            </flux:modal.trigger>
-
-                            <flux:modal
-                                :name="'task-' . $task->id"
-                                @close="$refresh"
-                                class="w-full max-w-[95vw] lg:max-w-216"
-                            >
-                                <livewire:task :task="$task" lazy />
-                            </flux:modal>
-
-                            <flux:modal :name="'delete-task-' . $task->id" class="min-w-[22rem]">
-                                <div class="space-y-6">
-                                    <div>
-                                        <flux:heading size="lg">Delete task?</flux:heading>
-                                        <flux:text class="mt-2">
-                                            You're about to delete this task. This action cannot be reversed.
-                                        </flux:text>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <flux:spacer />
-                                        <flux:modal.close>
-                                            <flux:button variant="ghost">Cancel</flux:button>
-                                        </flux:modal.close>
-                                        <flux:button
-                                            type="submit"
-                                            variant="danger"
-                                            wire:click="deleteTask({{ $task->id }})"
-                                        >
-                                            Delete task
-                                        </flux:button>
-                                    </div>
-                                </div>
-                            </flux:modal>
-                        </div>
-                    @empty
-                        <flux:text class="py-3 text-center" wire:sort:ignore>Drag and drop tasks here</flux:text>
-                    @endforelse
-                </div>
-            @endisland
+            <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
+                @forelse ($this->tasks as $task)
+                    <livewire:columns.task-card
+                        :$task
+                        wire:sort:item="{{ $task->id }}"
+                        wire:key="task-{{ $task->id }}"
+                        lazy:bundle
+                        lazy
+                    />
+                @empty
+                    <flux:text class="py-3 text-center" wire:sort:ignore>Drag and drop tasks here</flux:text>
+                @endforelse
+            </div>
         </flux:kanban.column.cards>
         @if ($this->hasMore)
             <div wire:intersect.margin.200px="loadMore" wire:island="section-tasks-{{ $section->id }}">

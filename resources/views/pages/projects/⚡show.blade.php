@@ -105,6 +105,7 @@ new class extends Component {
         <div class="h-full w-full overflow-x-auto">
             <flux:kanban wire:sort="sortItem">
                 <livewire:columns.pending :project="$project" lazy:bundle lazy />
+
                 @foreach ($this->sections as $section)
                     <livewire:columns.section
                         :section="$section"
