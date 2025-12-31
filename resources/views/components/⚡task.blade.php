@@ -75,6 +75,13 @@ new class extends Component {
         $this->dispatch('task.moved');
     }
 
+    public function complete()
+    {
+        $this->task->complete(Auth::user());
+
+        $this->dispatch('task.moved');
+    }
+
     public function reopen()
     {
         $this->task->reopen(Auth::user());
@@ -462,9 +469,11 @@ new class extends Component {
                             @endif
 
                             @if ($task->completed_at)
-                                <flux:badge color="purple" size="lg" icon="check-circle">Closed</flux:badge>
+                                <flux:badge color="green" size="lg" icon="check-circle">Completed</flux:badge>
+                            @elseif ($task->closed_at)
+                                <flux:badge color="zinc" size="lg" icon="x-circle">Closed</flux:badge>
                             @else
-                                <flux:badge color="green" size="lg" icon="clock">Open</flux:badge>
+                                <flux:badge color="yellow" size="lg" icon="clock">Open</flux:badge>
                             @endif
                         </div>
                     </div>
@@ -751,14 +760,52 @@ new class extends Component {
                                     </div>
                                 </x-slot>
                                 <x-slot name="actionsTrailing">
-                                    @unless ($task->completed_at)
-                                        <flux:button type="button" size="sm" wire:click="close">Close task</flux:button>
-                                    @else
-                                        <flux:button type="button" size="sm" wire:click="reopen">
-                                            Reopen task
-                                        </flux:button>
-                                    @endunless
-                                    <flux:button type="submit" size="sm" variant="primary">Comment</flux:button>
+                                    <flux:button.group>
+                                        @if ($task->completed_at || $task->closed_at)
+                                            <flux:button type="button" wire:click="reopen" icon="arrow-path" size="sm">
+                                                Reopen task
+                                            </flux:button>
+                                        @else
+                                            <flux:button
+                                                type="button"
+                                                wire:click="complete"
+                                                icon="check-circle"
+                                                size="sm"
+                                            >
+                                                Complete task
+                                            </flux:button>
+                                        @endif
+                                        <flux:dropdown>
+                                            <flux:button icon="chevron-down" size="sm" />
+                                            <flux:menu>
+                                                @if ($task->completed_at || $task->closed_at)
+                                                    <flux:menu.item
+                                                        icon="arrow-path"
+                                                        icon:variant="micro"
+                                                        wire:click="reopen"
+                                                    >
+                                                        Reopen task
+                                                    </flux:menu.item>
+                                                @else
+                                                    <flux:menu.item
+                                                        icon="check-circle"
+                                                        icon:variant="micro"
+                                                        wire:click="complete"
+                                                    >
+                                                        Complete task
+                                                    </flux:menu.item>
+                                                    <flux:menu.item
+                                                        icon="x-circle"
+                                                        icon:variant="micro"
+                                                        wire:click="close"
+                                                    >
+                                                        Close task
+                                                    </flux:menu.item>
+                                                @endif
+                                            </flux:menu>
+                                        </flux:dropdown>
+                                    </flux:button.group>
+                                    <flux:button type="submit" variant="primary" size="sm">Comment</flux:button>
                                 </x-slot>
                             </flux:composer>
                         </form>
