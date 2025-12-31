@@ -6,8 +6,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component
-{
+new class extends Component {
     use WithPagination;
 
     public Team $team;
@@ -406,7 +405,7 @@ new class extends Component
                             </x-list-item>
                         </flux:modal.trigger>
 
-                        <flux:modal name="task-{{ $task->id }}" class="w-full max-w-[95vw] lg:max-w-150">
+                        <flux:modal name="task-{{ $task->id }}" class="w-full max-w-[95vw] lg:max-w-216">
                             <livewire:task :task="$task" wire:key="task-{{ $task->id }}" lazy />
                         </flux:modal>
 
