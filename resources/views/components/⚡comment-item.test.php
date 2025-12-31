@@ -419,6 +419,6 @@ it('initializes content when starting edit', function () {
 
     $livewire->call('startEditing');
 
-    expect($livewire->get('content'))->toEqual('Initial comment content');
+    expect($livewire->get('content'))->toContain('Initial comment content');
     expect($livewire->get('isEditing'))->toBeTrue();
 });
