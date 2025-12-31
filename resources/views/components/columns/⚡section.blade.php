@@ -9,7 +9,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     public $title = '';
@@ -136,7 +137,7 @@ new class extends Component {
 ?>
 
 @placeholder
-    <div>
+    <div wire:sort:item="{{ $section->id }}">
         <flux:skeleton.group
             animate="shimmer"
             class="w-80 max-w-80 space-y-3 rounded-lg p-2 [:where(&)]:bg-zinc-100 dark:[:where(&)]:bg-zinc-800"
@@ -172,8 +173,8 @@ new class extends Component {
                 @forelse ($this->tasks as $task)
                     <livewire:columns.task-card
                         :$task
-                        wire:sort:item="{{ $task->id }}"
                         wire:key="task-{{ $task->id }}"
+                        wire:sort:item="{{ $task->id }}"
                         lazy:bundle
                         lazy
                     />
