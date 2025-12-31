@@ -8,7 +8,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Team $team;
 
     public Project $project;
@@ -87,7 +88,7 @@ new class extends Component {
 };
 ?>
 
-<div class="h-full">
+<div>
     <div class="flex items-center justify-between">
         <flux:heading level="1" size="lg">{{ $project->name }}</flux:heading>
 
