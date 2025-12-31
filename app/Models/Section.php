@@ -20,6 +20,7 @@ class Section extends Model
     {
         return $this->hasMany(Task::class)
             ->whereNull('completed_at')
+            ->whereNull('closed_at')
             ->orderBy('prioritized_at', 'desc')
             ->orderBy('updated_at', 'desc');
     }
