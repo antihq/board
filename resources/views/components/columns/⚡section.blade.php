@@ -9,7 +9,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Section $section;
 
     public $title = '';
@@ -137,7 +138,7 @@ new class extends Component {
 
 <div>
     <flux:kanban.column {{ $attributes->class($this->colorClass) }}>
-        <flux:kanban.column.header :heading="$section->title" count="{{ $this->tasks->count() }}">
+        <flux:kanban.column.header :heading="$section->title">
             <x-slot name="actions">
                 <flux:dropdown>
                     <flux:button variant="subtle" icon="ellipsis-horizontal" size="sm" />

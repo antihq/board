@@ -9,7 +9,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public int $page = 1;
@@ -75,7 +76,7 @@ new class extends Component {
 ?>
 
 <flux:kanban.column {{ $attributes }}>
-    <flux:kanban.column.header heading="Completed" count="{{ $this->tasks->count() }}" />
+    <flux:kanban.column.header heading="Completed" />
     <flux:kanban.column.cards>
         <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
             @forelse ($this->tasks as $task)

@@ -9,7 +9,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -89,7 +90,7 @@ new class extends Component {
 ?>
 
 <flux:kanban.column {{ $attributes }}>
-    <flux:kanban.column.header heading="Pending" count="{{ $this->tasks->count() }}">
+    <flux:kanban.column.header heading="Pending">
         <x-slot name="actions">
             <flux:button variant="subtle" icon="plus" size="sm" wire:click="$js.showForm" />
         </x-slot>
