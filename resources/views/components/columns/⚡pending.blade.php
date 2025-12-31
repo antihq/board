@@ -9,8 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component
-{
+new class extends Component {
     public Project $project;
 
     public string $title = '';
@@ -88,6 +87,21 @@ new class extends Component
     }
 };
 ?>
+
+@placeholder
+    <div>
+        <flux:skeleton.group
+            animate="shimmer"
+            class="w-80 max-w-80 space-y-3 rounded-lg p-2 [:where(&)]:bg-zinc-100 dark:[:where(&)]:bg-zinc-800"
+        >
+            <flux:skeleton.line class="w-1/2" />
+
+            @foreach (range(1, random_int(5, 10)) as $item)
+                <flux:skeleton class="size-20 w-full" />
+            @endforeach
+        </flux:skeleton.group>
+    </div>
+@endplaceholder
 
 <flux:kanban.column {{ $attributes }}>
     <flux:kanban.column.header heading="Pending">
