@@ -9,7 +9,8 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Renderless;
 use Livewire\Component;
 
-new class extends Component {
+new class extends Component
+{
     public Project $project;
 
     public string $title = '';
@@ -59,6 +60,12 @@ new class extends Component {
         return $this->project->pendingTasks()->count() > $this->page * 25;
     }
 
+    #[Computed]
+    public function colorClass()
+    {
+        return 'bg-amber-50 dark:bg-amber-950';
+    }
+
     #[Renderless, Async]
     public function sortItem($item, $_position)
     {
@@ -103,7 +110,7 @@ new class extends Component {
     </div>
 @endplaceholder
 
-<flux:kanban.column {{ $attributes }}>
+<flux:kanban.column {{ $attributes->class($this->colorClass) }}>
     <flux:kanban.column.header heading="Pending">
         <x-slot name="actions">
             <flux:button variant="subtle" icon="plus" size="sm" wire:click="$js.showForm" />

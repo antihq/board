@@ -46,6 +46,12 @@ new class extends Component
         return $total > $this->page * 25;
     }
 
+    #[Computed]
+    public function colorClass()
+    {
+        return 'bg-green-50 dark:bg-green-950';
+    }
+
     #[Renderless, Async]
     public function sortItem($item, $_position)
     {
@@ -90,7 +96,7 @@ new class extends Component
     </div>
 @endplaceholder
 
-<flux:kanban.column {{ $attributes }}>
+<flux:kanban.column {{ $attributes->class($this->colorClass) }}>
     <flux:kanban.column.header heading="Completed" />
     <flux:kanban.column.cards>
         <div class="flex flex-col gap-2" wire:sort="sortItem" wire:sort:group="tasks">
