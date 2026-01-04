@@ -8,8 +8,8 @@
     <head>
         @include('partials.head', ['title' => (isset($title) ? $title . ' - ' : '') . $team?->name . ' - ' . config('app.name')])
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-900 dark:lg:bg-zinc-950">
-        <flux:header class="border-zinc-200 lg:border-b dark:border-zinc-700">
+    <body class="flex min-h-svh w-full flex-col bg-white lg:bg-zinc-100 dark:bg-zinc-900 dark:lg:bg-zinc-950">
+        <flux:header class="px-6!">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" size="sm" />
 
             <flux:navbar class="-mb-px max-lg:hidden">
@@ -239,16 +239,16 @@
             </flux:sidebar.nav>
         </flux:sidebar>
 
-        <flux:main class="lg:bg-white dark:lg:bg-zinc-900" container>
-            {{ $slot }}
+        <flux:main class="flex flex-1 flex-col px-0! pt-0! pb-0! lg:px-2!">
+            <div
+                class="grow p-6 lg:rounded-lg lg:bg-white lg:p-10 lg:shadow-xs lg:ring-1 lg:ring-zinc-950/5 dark:lg:bg-zinc-900 dark:lg:ring-white/10"
+            >
+                {{ $slot }}
+            </div>
         </flux:main>
 
-        @persist('toast')
-            <flux:toast position="bottom center" />
-        @endpersist
-
-        <flux:footer class="border-zinc-200 lg:border-t dark:border-zinc-700" container>
-            <flux:text class="text-xs/6 lg:text-sm/6">
+        <flux:footer class="px-6! py-3!">
+            <flux:text class="text-xs lg:text-sm">
                 <flux:link href="/" :accent="false" wire:navigate>{{ config('app.name') }}</flux:link>
                 is designed, built, and backed by
                 <flux:link href="https://x.com/oliverservinX" :accent="false">Oliver Servín</flux:link>
@@ -257,6 +257,10 @@
                 .
             </flux:text>
         </flux:footer>
+
+        @persist('toast')
+            <flux:toast position="bottom center" />
+        @endpersist
 
         @fluxScripts
     </body>
