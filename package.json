@@ -1,7 +1,9 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "antiboard",
     "private": true,
     "type": "module",
+    "description": "A collaborative project and task management platform with Kanban boards",
     "scripts": {
         "build": "vite build",
         "dev": "vite",

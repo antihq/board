@@ -1,13 +1,18 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/livewire-starter-kit",
+    "name": "antihq/antiboard",
     "type": "project",
-    "description": "The official Laravel starter kit for Livewire.",
+    "description": "A collaborative project and task management platform with Kanban boards",
     "keywords": [
         "laravel",
-        "framework"
+        "project-management",
+        "kanban",
+        "tasks",
+        "collaboration",
+        "team",
+        "livewire"
     ],
-    "license": "MIT",
+    "license": "proprietary",
     "require": {
         "php": "^8.2",
         "beyondcode/laravel-server-timing": "^1.6",
@@ -81,7 +86,11 @@
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
-        "format-blade": "npx prettier --write resources/views/"
+        "format-blade": "npx prettier --write resources/views/",
+        "format": [
+            "./vendor/bin/pint",
+            "npm run format-blade"
+        ]
     },
     "extra": {
         "laravel": {
