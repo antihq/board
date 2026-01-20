@@ -429,7 +429,7 @@ class Task extends Model
     #[Scope]
     protected function pending(Builder $query): void
     {
-        $query->whereNull('completed_at')->whereNull('section_id');
+        $query->whereNull('completed_at')->whereNull('section_id')->whereNull('closed_at');
     }
 
     #[Scope]
