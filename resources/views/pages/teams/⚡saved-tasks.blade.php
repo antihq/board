@@ -6,8 +6,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-new class extends Component
-{
+new class extends Component {
     use WithPagination;
 
     public Team $team;
@@ -36,7 +35,7 @@ new class extends Component
     </div>
 
     @if ($this->savedTasks->isEmpty())
-        <div class="py-12 text-center text-gray-500">
+        <div class="py-12 text-center text-zinc-500">
             <p>You haven't saved any tasks yet.</p>
             <p class="mt-1 text-sm">Click the bookmark icon on a task to save it for quick access.</p>
         </div>

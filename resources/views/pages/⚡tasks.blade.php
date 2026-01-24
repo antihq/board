@@ -271,7 +271,7 @@ new class extends Component {
         </div>
 
         @if ($this->tasks->isEmpty())
-            <div class="py-12 text-center text-gray-500">
+            <div class="py-12 text-center text-zinc-500">
                 <p>No tasks found matching your filters.</p>
                 @if ($this->activeFiltersCount > 0)
                     <flux:button wire:click="clearFilters" size="sm" variant="outline" class="mt-2">
